@@ -2,7 +2,15 @@
 
 Guidance for AI coding agents working in this repository.
 
-Lilt is a native macOS client for YouTube Music and YouTube, written in Swift 6 and SwiftUI. The deployment target is macOS 15.4, with macOS 26 features such as Liquid Glass layered on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
+Lilt is a native macOS client for YouTube Music, written in Swift 6 and SwiftUI. The deployment target is macOS 15.4, with macOS 26 features such as Liquid Glass layered on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
+
+## Project
+
+- **Lilt is a personal, minimal fork of [Kaset](https://github.com/sozercan/kaset)**, maintained independently in `julianarchila/kaset` (the GitHub repo keeps its old name). Upstream fixes are cherry-picked when useful, never merged wholesale. Keep the upstream MIT notice in `LICENSE`.
+- **Scope is YouTube Music only.** The fork deliberately removed regular YouTube (video mode, Ask Gemini), Apple Intelligence features, Last.fm scrobbling, web extensions, Sparkle updates, What's New, and the Charts / Moods & Genres / New Releases / Podcasts pages. Ask before reintroducing any of them. ADR-0042 records the fork's identity and removals; later ADRs record its redesigns.
+- **Design direction is a stock macOS app**: native sidebar and search field, system accent color (no brand color), Apple Music–style layouts. Prefer system controls over custom chrome.
+- **Install** the user's copy with `Scripts/build-app.sh release && ditto .build/app/Lilt.app /Applications/Lilt.app`; quit the running app first (`com.julianarchila.Lilt`), and move the old bundle to the Trash instead of deleting it.
+- **Push over SSH** (`git@github.com:julianarchila/kaset.git`): the `gh` token lacks the `workflow` scope, so HTTPS pushes that touch `.github/workflows/` are rejected.
 
 ## Rules
 
