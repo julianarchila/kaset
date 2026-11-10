@@ -78,3 +78,4 @@ What becomes easier or more difficult because of this change?
 | [0041](0041-non-destructive-session-loss.md) | Non-destructive session loss | Accepted |
 | [0042](0042-fork-identity.md) | Fork identity and scope | Accepted |
 | [0043](0043-sidebar-library-layout.md) | Sidebar layout with Library destinations | Accepted |
+| [0044](0044-home-greeting-featured-quick-picks.md) | Home greeting, featured cards, and Quick picks grid | Accepted |

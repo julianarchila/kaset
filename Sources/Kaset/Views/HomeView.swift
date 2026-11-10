@@ -8,6 +8,9 @@ struct HomeView: View {
     @Environment(AuthService.self) private var authService
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
+    /// Featured cards, frozen once full so continuation pages loading below
+    /// don't swap them out; recomputed when Home reloads from its first page.
+    @State private var featuredItems: [HomeFeaturedItem] = []
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
@@ -34,6 +37,9 @@ struct HomeView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .localizedNavigationTitle("Home")
+            // The greeting is the page title; keep the window title for the
+            // Window menu but don't repeat it in the toolbar.
+            .toolbar(removing: .title)
             .navigationDestinations(client: self.viewModel.client)
             .playerBarMusicNavigation(path: self.$navigationPath)
         }
@@ -57,6 +63,22 @@ struct HomeView: View {
     private var contentView: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 32) {
+                Text(Self.greeting(for: Date()))
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.horizontal, DetailContentLayout.horizontalInset)
+                    .accessibilityAddTraits(.isHeader)
+
+                if !self.featuredItems.isEmpty {
+                    HomeFeaturedRow(
+                        items: self.featuredItems,
+                        open: { self.openItem($0) },
+                        play: { self.playFeatured($0) },
+                        shuffle: { self.shuffleFeatured($0) }
+                    )
+                    .padding(.horizontal, DetailContentLayout.horizontalInset)
+                }
+
                 // Favorites section (hidden when empty)
                 if self.authService.hasPersonalAccount, self.favoritesManager.isVisible {
                     FavoritesSection(
@@ -76,10 +98,22 @@ struct HomeView: View {
 
                 // API sections
                 ForEach(self.viewModel.sections) { section in
-                    self.sectionView(section)
-                        .task {
-                            await self.prefetchImagesAsync(for: section)
+                    Group {
+                        if section.isListShelf {
+                            HomeQuickPicksSection(
+                                section: section,
+                                client: self.viewModel.client,
+                                play: { item, index in self.playItem(item, in: section, at: index) },
+                                navigate: { self.navigationPath.append($0) }
+                            )
+                            .padding(.horizontal, DetailContentLayout.horizontalInset)
+                        } else {
+                            self.sectionView(section)
                         }
+                    }
+                    .task {
+                        await self.prefetchImagesAsync(for: section)
+                    }
                 }
 
                 if self.viewModel.hasMoreSections || self.viewModel.loadingState == .loadingMore {
@@ -93,6 +127,14 @@ struct HomeView: View {
             .padding(.vertical, 20)
         }
         .accessibilityIdentifier(AccessibilityID.Home.scrollView)
+        .onChange(of: self.viewModel.sections.first?.id, initial: true) {
+            // A new first section means Home reloaded: pick fresh cards.
+            self.featuredItems = HomeFeaturedPicker.pick(from: self.viewModel.sections)
+        }
+        .onChange(of: self.viewModel.sections.count) {
+            guard self.featuredItems.count < HomeFeaturedPicker.defaultLimit else { return }
+            self.featuredItems = HomeFeaturedPicker.pick(from: self.viewModel.sections)
+        }
         .pullToRefresh {
             await self.viewModel.refresh()
         }
@@ -178,9 +220,79 @@ struct HomeView: View {
         )
     }
 
+    // MARK: - Greeting
+
+    /// Time-of-day greeting shown as the Home title.
+    static func greeting(for date: Date, calendar: Calendar = .current) -> String {
+        switch calendar.component(.hour, from: date) {
+        case 5 ..< 12:
+            String(localized: "Good morning")
+        case 12 ..< 18:
+            String(localized: "Good afternoon")
+        default:
+            String(localized: "Good evening")
+        }
+    }
+
+    // MARK: - Featured Actions
+
+    private func openItem(_ item: HomeSectionItem) {
+        self.playItem(item, in: nil, at: 0)
+    }
+
+    private func playFeatured(_ item: HomeSectionItem) {
+        switch item {
+        case let .playlist(playlist):
+            SongActionsHelper.playPlaylist(playlist, client: self.viewModel.client, playerService: self.playerService)
+        case let .album(album):
+            AlbumPlaybackActions.playAlbum(album, client: self.viewModel.client, playerService: self.playerService)
+        case .song, .artist:
+            self.playItem(item, in: nil, at: 0)
+        }
+    }
+
+    /// Plays a featured playlist or album in a random order, starting from a random track.
+    private func shuffleFeatured(_ item: HomeSectionItem) {
+        let client = self.viewModel.client
+        let playerService = self.playerService
+        let intent = playerService.beginMusicPlaybackIntent()
+        Task { @MainActor in
+            do {
+                let songs: [Song]
+                switch item {
+                case let .playlist(playlist):
+                    let response = try await client.getPlaylist(id: playlist.id)
+                    songs = PlaylistPlaybackActions.playableSongsWithPlaylistArtwork(
+                        response.detail.tracks,
+                        playlist: playlist
+                    )
+                case let .album(album):
+                    let response = try await client.getPlaylist(id: album.id)
+                    songs = QueueSongMetadata.albumSongs(
+                        response.detail.tracks,
+                        album: album,
+                        purpose: .playback(trackCount: response.detail.tracks.count)
+                    )
+                case .song, .artist:
+                    return
+                }
+                let shuffled = songs.filter(\.isPlayable).shuffled()
+                guard !shuffled.isEmpty, playerService.acceptsMusicPlaybackIntent(intent) else { return }
+                await playerService.playQueue(
+                    shuffled,
+                    startingAt: 0,
+                    deferringSmartShuffleFill: false,
+                    intent: intent
+                )
+            } catch {
+                DiagnosticsLogger.ui.error("Failed to shuffle-play featured item: \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: - Actions
 
-    private func playItem(_ item: HomeSectionItem, in _: HomeSection, at _: Int) {
+    private func playItem(_ item: HomeSectionItem, in _: HomeSection?, at _: Int) {
         switch item {
         case let .song(song):
             // Play the song and fetch similar songs (radio queue) in the background

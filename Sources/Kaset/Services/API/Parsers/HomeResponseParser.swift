@@ -170,8 +170,22 @@ enum HomeResponseParser {
             id: stableId,
             title: title,
             items: items,
-            isChart: ParsingHelpers.isChartSection(title)
+            isChart: ParsingHelpers.isChartSection(title),
+            isListShelf: Self.isListShelf(contents: contents, items: items)
         )
+    }
+
+    /// A carousel of compact song rows ("Quick picks") rather than cards.
+    static func isListShelf(contents: [[String: Any]], items: [HomeSectionItem]) -> Bool {
+        let usesListRows = contents.contains { $0["musicResponsiveListItemRenderer"] != nil }
+        let allSongs = items.allSatisfy { item in
+            if case .song = item {
+                true
+            } else {
+                false
+            }
+        }
+        return usesListRows && allSongs
     }
 
     private static func parseMusicShelf(_ data: [String: Any]) -> HomeSection? {

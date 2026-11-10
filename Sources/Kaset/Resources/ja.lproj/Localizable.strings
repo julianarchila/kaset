@@ -450,3 +450,8 @@
 "Pinned" = "ピン留め";
 "Saved Podcasts" = "保存したポッドキャスト";
 "New" = "新着";
+"Good morning" = "おはようございます";
+"Good afternoon" = "こんにちは";
+"Good evening" = "こんばんは";
+"From %@" = "%1$@から";
+"Show Less" = "表示を減らす";

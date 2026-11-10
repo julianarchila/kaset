@@ -12,6 +12,18 @@ struct HomeResponseParserTests {
         #expect(response.sections.isEmpty)
     }
 
+    @Test("Quick picks song rows are a list shelf; album cards are not")
+    func listShelfDetectionFromFixture() throws {
+        let fixture = try SearchResponseParserTests.loadFixture("home_response")
+        let sections = HomeResponseParser.parse(fixture).sections
+
+        let quickPicks = try #require(sections.first { $0.title == "Quick picks" })
+        #expect(quickPicks.isListShelf)
+
+        let albums = try #require(sections.first { $0.title == "Recommended albums" })
+        #expect(!albums.isListShelf)
+    }
+
     @Test("Parse response with multiple sections")
     func parseResponseWithSections() {
         let data = self.makeHomeResponseData(sectionCount: 3)

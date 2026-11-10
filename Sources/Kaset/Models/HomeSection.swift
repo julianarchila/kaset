@@ -10,12 +10,17 @@ struct HomeSection: Identifiable, Hashable {
     /// Whether this section is a chart (e.g., "Top 100", "Trending", "Charts").
     /// Chart sections are rendered as vertical numbered lists instead of horizontal carousels.
     let isChart: Bool
+    /// Whether YouTube Music sends this shelf as compact song rows
+    /// (`musicResponsiveListItemRenderer`) rather than cards, as it does for
+    /// "Quick picks". The Home renders these shelves as a song grid.
+    let isListShelf: Bool
 
-    init(id: String, title: String, items: [HomeSectionItem], isChart: Bool = false) {
+    init(id: String, title: String, items: [HomeSectionItem], isChart: Bool = false, isListShelf: Bool = false) {
         self.id = id
         self.title = title
         self.items = items
         self.isChart = isChart
+        self.isListShelf = isListShelf
     }
 }
 
