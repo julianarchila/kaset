@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Player bar shown at the bottom of the content area, styled like Apple Music with Liquid Glass.
 struct PlayerBar: View { // swiftlint:disable:this type_body_length
-    private static let brandAccent = PackageResourceLookup.brandAccent
+    private static let accent = PackageResourceLookup.accent
     private static let fullSongInfoWidth: CGFloat = 234
     private static let compactSongInfoWidth: CGFloat = 152
 
@@ -349,7 +349,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                     Image(systemName: self.playerService.currentTrackLikeStatus == .like ? "hand.thumbsup.fill" : "hand.thumbsup")
                         .font(.system(size: 16, weight: .regular))
                         .frame(width: 10, height: 16)
-                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .like ? Self.brandAccent : .primary)
+                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .like ? Self.accent : .primary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .like)
@@ -365,7 +365,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                     Image(systemName: self.playerService.currentTrackLikeStatus == .dislike ? "hand.thumbsdown.fill" : "hand.thumbsdown")
                         .font(.system(size: 16, weight: .regular))
                         .frame(width: 10, height: 16)
-                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .dislike ? Self.brandAccent : .primary)
+                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .dislike ? Self.accent : .primary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .dislike)
@@ -388,7 +388,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 PlayerBarTimelineLane(
                     seekController: self.seekController,
                     segments: self.progressSegments,
-                    accent: Self.brandAccent
+                    accent: Self.accent
                 )
                 .padding(.top, 18)
                 // Keeps the segment tooltip above the transport buttons; the tooltip
@@ -427,7 +427,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: "airplayaudio")
                     .font(.system(size: 16, weight: .regular))
                     .frame(width: 10, height: 16)
-                    .foregroundStyle(self.playerService.isAirPlayConnected ? Self.brandAccent : .primary)
+                    .foregroundStyle(self.playerService.isAirPlayConnected ? Self.accent : .primary)
                     .contentTransition(.symbolEffect(.replace))
             }
             .background {
@@ -452,7 +452,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                         if self.playerService.shuffleMode == .smart {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 8, weight: .bold))
-                                .foregroundStyle(Self.brandAccent)
+                                .foregroundStyle(Self.accent)
                                 .offset(x: 5, y: -5)
                         }
                     }
@@ -510,7 +510,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: self.repeatIconName)
                     .font(.system(size: 16, weight: .regular))
                     .frame(width: 12, height: 16)
-                    .foregroundStyle(self.playerService.repeatMode == .off ? .primary : Self.brandAccent)
+                    .foregroundStyle(self.playerService.repeatMode == .off ? .primary : Self.accent)
                     .contentTransition(.symbolEffect(.replace))
             }
             .disabled(self.playerService.currentTrack == nil)
@@ -542,7 +542,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
                 PlayerBarVerticalSlider(
                     value: self.$volumeValue,
-                    accent: Self.brandAccent,
+                    accent: Self.accent,
                     accessibilityIdentifier: AccessibilityID.PlayerBar.volumeSlider,
                     accessibilityLabel: String(localized: "Volume"),
                     onEditingChanged: { editing in
@@ -632,7 +632,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: self.playerService.showLyrics ? "quote.bubble.fill" : "quote.bubble")
                     .font(.system(size: 16, weight: .regular))
                     .frame(width: 10, height: 16)
-                    .foregroundStyle(self.playerService.showLyrics ? Self.brandAccent : .primary)
+                    .foregroundStyle(self.playerService.showLyrics ? Self.accent : .primary)
                     .contentTransition(.symbolEffect(.replace))
             }
         )
@@ -657,7 +657,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: "list.bullet")
                     .font(.system(size: 16, weight: .regular))
                     .frame(width: 10, height: 16)
-                    .foregroundStyle(self.playerService.showQueue ? Self.brandAccent : .primary)
+                    .foregroundStyle(self.playerService.showQueue ? Self.accent : .primary)
             }
         )
         .compatGlassID("queue", in: self.playerNamespace)
@@ -676,7 +676,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: self.pictureButtonIcon)
                     .font(.system(size: 15, weight: .regular))
                     .frame(width: 13, height: 14)
-                    .foregroundStyle(self.playerService.showVideo ? Self.brandAccent : .primary)
+                    .foregroundStyle(self.playerService.showVideo ? Self.accent : .primary)
                     .contentTransition(.symbolEffect(.replace))
             }
         )
@@ -701,7 +701,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 Image(systemName: self.playerService.isMiniPlayerVisible ? "macwindow" : "rectangle.inset.bottomright.filled")
                     .font(.system(size: 15, weight: .regular))
                     .frame(width: 15, height: 15)
-                    .foregroundStyle(self.playerService.isMiniPlayerVisible ? Self.brandAccent : .primary)
+                    .foregroundStyle(self.playerService.isMiniPlayerVisible ? Self.accent : .primary)
                     .contentTransition(.symbolEffect(.replace))
             }
         )
@@ -1054,7 +1054,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
     private var shuffleTint: Color {
         switch self.playerService.shuffleMode {
         case .off: .primary
-        case .on, .smart: Self.brandAccent
+        case .on, .smart: Self.accent
         }
     }
 

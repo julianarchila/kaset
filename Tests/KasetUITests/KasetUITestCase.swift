@@ -7,7 +7,6 @@
 enum TestAccessibilityID {
     enum Sidebar {
         static let container = "sidebar"
-        static let searchItem = "sidebar.search"
         static let homeItem = "sidebar.home"
         static let exploreItem = "sidebar.explore"
         static let likedMusicItem = "sidebar.likedMusic"
@@ -20,14 +19,6 @@ enum TestAccessibilityID {
     }
 
     enum Search {
-        static let searchField = "searchView.searchField"
-        static let clearButton = "searchView.clearButton"
-        static let suggestionsContainer = "searchView.suggestions"
-
-        static func suggestion(index: Int) -> String {
-            "searchView.suggestion.\(index)"
-        }
-
         static func resultRow(index: Int) -> String {
             "searchView.result.\(index)"
         }
@@ -314,7 +305,13 @@ class KasetUITestCase: XCTestCase {
 
     /// Navigates to Search via sidebar.
     func navigateToSearch() {
-        self.navigateToSidebarItem(TestAccessibilityID.Sidebar.searchItem)
+        // ⌘F opens Search and focuses the sidebar's native search field.
+        self.app.typeKey("f", modifierFlags: .command)
+    }
+
+    /// The native search field at the top of the sidebar.
+    var sidebarSearchField: XCUIElement {
+        self.app.searchFields.firstMatch
     }
 
     /// Navigates to Explore via sidebar.

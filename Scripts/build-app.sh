@@ -450,8 +450,7 @@ xcrun xcstringstool compile "$APP_SHORTCUTS_CATALOG" \
 # ── App icon and main asset catalog ──────────────────────────────────────────
 # AppIcon.icon is an Icon Composer package (macOS 26+). actool consumes it
 # directly and produces Assets.car with full dark/light appearance layers.
-# The top-level Assets.car also needs AccentColor because Info.plist references
-# NSAccentColorName from the main bundle.
+# The app has no accent color asset: it follows the user's macOS accent color.
 
 ICON_SOURCE="$ROOT/Sources/Kaset/Resources/AppIcon.icon"
 APP_ASSET_CATALOG="$ROOT/Sources/Kaset/Resources/Assets.xcassets"
@@ -462,11 +461,11 @@ if [[ -d "$ICON_SOURCE" ]]; then
   cp -R "$ICON_SOURCE" "$APP_BUNDLE/Contents/Resources/AppIcon.icon"
 fi
 
-# Compile AppIcon.icon and AccentColor into Contents/Resources/Assets.car.
+# Compile AppIcon.icon into Contents/Resources/Assets.car.
 # Xcode 26's actool currently fails on macOS 15 runners while processing
 # Icon Composer assets because it loads newer AVFCore/CoreMedia symbols.
 # UI-test CI can opt out via KASET_SKIP_MAIN_ASSETS=1; release builds should
-# keep compiling these assets so AppIcon/AccentColor remain complete.
+# keep compiling these assets so AppIcon remains complete.
 if [[ "$SKIP_MAIN_ASSETS" == "1" ]]; then
   echo "⚠️  Skipping main asset catalog compilation (KASET_SKIP_MAIN_ASSETS=1)."
 elif [[ -d "$ICON_SOURCE" ]] && [[ -d "$APP_ASSET_CATALOG" ]] && command -v xcrun &>/dev/null; then
@@ -486,7 +485,7 @@ elif [[ -d "$ICON_SOURCE" ]] && [[ -d "$APP_ASSET_CATALOG" ]] && command -v xcru
     echo "ERROR: actool did not produce Assets.car from $ICON_SOURCE and $APP_ASSET_CATALOG" >&2
     exit 1
   fi
-  echo "   ✓ App icon and accent color compiled to Contents/Resources/Assets.car"
+  echo "   ✓ App icon compiled to Contents/Resources/Assets.car"
 else
   echo "⚠️  Warning: $ICON_SOURCE or $APP_ASSET_CATALOG not found. App will have incomplete assets."
 fi
@@ -577,8 +576,6 @@ ${APP_LOCALIZATIONS_PLIST}
             <string>AppIcon</string>
         </dict>
     </dict>
-    <key>NSAccentColorName</key>
-    <string>AccentColor</string>
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleInfoDictionaryVersion</key>

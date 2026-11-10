@@ -231,7 +231,7 @@ private struct QueueRowView: View {
         } else if self.isSuggested {
             Image(systemName: "sparkles")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(PackageResourceLookup.brandAccent)
+                .foregroundStyle(PackageResourceLookup.accent)
                 .accessibilityLabel(Text(String(localized: "Suggested")))
         } else {
             Text("\(self.index + 1)")

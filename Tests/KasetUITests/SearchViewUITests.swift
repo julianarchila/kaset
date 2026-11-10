@@ -11,7 +11,7 @@ final class SearchViewUITests: KasetUITestCase {
         navigateToSearch()
 
         // Search field should be present
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForElement(searchField), "Search field should exist")
     }
 
@@ -20,7 +20,7 @@ final class SearchViewUITests: KasetUITestCase {
 
         navigateToSearch()
 
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForHittable(searchField))
 
         // Type in the search field
@@ -29,23 +29,6 @@ final class SearchViewUITests: KasetUITestCase {
 
         // Verify text was entered
         XCTAssertEqual(searchField.value as? String, "test query")
-    }
-
-    func testClearButtonAppearsWithText() {
-        launchDefault()
-
-        navigateToSearch()
-
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
-        XCTAssertTrue(waitForHittable(searchField))
-
-        // Initially no clear button
-        searchField.click()
-        searchField.typeText("test")
-
-        // Clear button should appear (X icon)
-        let clearButton = app.buttons[TestAccessibilityID.Search.clearButton]
-        XCTAssertTrue(clearButton.waitForExistence(timeout: 3), "Clear button should appear")
     }
 
     // MARK: - Empty State
@@ -67,7 +50,7 @@ final class SearchViewUITests: KasetUITestCase {
 
         navigateToSearch()
 
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForHittable(searchField))
 
         searchField.click()
@@ -85,7 +68,7 @@ final class SearchViewUITests: KasetUITestCase {
 
         navigateToSearch()
 
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForHittable(searchField))
 
         searchField.click()
@@ -108,7 +91,7 @@ final class SearchViewUITests: KasetUITestCase {
         navigateToSearch()
 
         // The search field should be ready for input
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForElement(searchField))
 
         // Type directly - if focused, it should work
@@ -133,7 +116,7 @@ final class SearchViewUITests: KasetUITestCase {
         launchWithMockSearch(songCount: 1)
         navigateToSearch()
 
-        let searchField = app.textFields[TestAccessibilityID.Search.searchField]
+        let searchField = sidebarSearchField
         XCTAssertTrue(waitForHittable(searchField))
         searchField.click()
         searchField.typeText("test\n")

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Sidebar navigation for the main window, styled like Apple Music.
 ///
-/// Layout: Search, Home, and New Releases at the top; a collapsible Discover
+/// Layout: the native search field, Home, and New at the top; a collapsible Discover
 /// section; the Library destinations; pinned items; and every playlist in the
 /// user's library.
 struct Sidebar: View {
@@ -42,13 +42,10 @@ struct Sidebar: View {
         List {
             // Main navigation
             Section {
-                self.navigationRow(.search)
-                    .accessibilityIdentifier(AccessibilityID.Sidebar.searchItem)
-
                 self.navigationRow(.home)
                     .accessibilityIdentifier(AccessibilityID.Sidebar.homeItem)
 
-                self.navigationRow(.newReleases)
+                self.navigationRow(.newReleases, title: String(localized: "New"))
                     .accessibilityIdentifier(AccessibilityID.Sidebar.newReleasesItem)
             }
 
@@ -148,9 +145,9 @@ struct Sidebar: View {
         return nil
     }
 
-    private func navigationRow(_ item: NavigationItem) -> some View {
+    private func navigationRow(_ item: NavigationItem, title: String? = nil) -> some View {
         KasetSidebarRow(
-            title: item.displayName,
+            title: title ?? item.displayName,
             systemImage: item.icon,
             isSelected: self.currentSidebarSelection == .navigation(item)
         ) {

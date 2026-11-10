@@ -73,7 +73,7 @@ class QueueTableCellView: NSView {
             accessibilityDescription: String(localized: "Suggested")
         )
         self.suggestedIndicator.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 11, weight: .semibold)
-        self.suggestedIndicator.contentTintColor = PackageResourceLookup.brandAccentNSColor
+        self.suggestedIndicator.contentTintColor = PackageResourceLookup.accentNSColor
         self.suggestedIndicator.translatesAutoresizingMaskIntoConstraints = false
         self.suggestedIndicator.isHidden = true
         self.suggestedIndicator.setAccessibilityLabel(String(localized: "Suggested"))

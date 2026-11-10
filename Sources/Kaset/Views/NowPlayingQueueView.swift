@@ -162,7 +162,7 @@ struct NowPlayingQueueRow: View {
                         if self.entry.source == .suggested {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(PackageResourceLookup.brandAccent)
+                                .foregroundStyle(PackageResourceLookup.accent)
                                 .accessibilityLabel(String(localized: "Suggested"))
                         }
                     }

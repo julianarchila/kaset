@@ -9,13 +9,13 @@ final class SidebarUITests: KasetUITestCase {
         launchDefault()
 
         // Verify all sidebar items are present via accessibility identifiers
-        let searchItem = app.buttons[TestAccessibilityID.Sidebar.searchItem]
+        let searchField = sidebarSearchField
         let homeItem = app.buttons[TestAccessibilityID.Sidebar.homeItem]
         let exploreItem = app.buttons[TestAccessibilityID.Sidebar.exploreItem]
         let likedMusicItem = app.buttons[TestAccessibilityID.Sidebar.likedMusicItem]
         let playlistsItem = app.buttons[TestAccessibilityID.Sidebar.libraryPlaylistsItem]
 
-        XCTAssertTrue(searchItem.waitForExistence(timeout: 10), "Search item should exist")
+        XCTAssertTrue(searchField.waitForExistence(timeout: 10), "Search field should exist")
         XCTAssertTrue(homeItem.exists, "Home item should exist")
         XCTAssertTrue(exploreItem.exists, "Explore item should exist")
         XCTAssertTrue(likedMusicItem.exists, "Liked Music item should exist")
@@ -44,8 +44,7 @@ final class SidebarUITests: KasetUITestCase {
         XCTAssertTrue(waitForElement(navigationTitle), "Search navigation title should be visible")
 
         // Search field should be present
-        let searchField = app.textFields.firstMatch
-        XCTAssertTrue(searchField.exists, "Search field should exist")
+        XCTAssertTrue(sidebarSearchField.exists, "Search field should exist")
     }
 
     func testNavigateToExplore() {

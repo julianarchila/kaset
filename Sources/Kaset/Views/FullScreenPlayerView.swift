@@ -354,7 +354,7 @@ struct FullScreenPlayerView: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: size, weight: .medium))
-                .foregroundStyle(isActive ? PackageResourceLookup.brandAccent : .white.opacity(0.92))
+                .foregroundStyle(isActive ? PackageResourceLookup.accent : .white.opacity(0.92))
                 .frame(minWidth: 36, minHeight: 40)
                 .contentShape(.rect)
         }

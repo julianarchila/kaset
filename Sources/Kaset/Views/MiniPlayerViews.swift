@@ -708,7 +708,7 @@ struct MiniPlayerWindow: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: size, weight: .bold))
-                .foregroundStyle(active ? PackageResourceLookup.brandAccent : .white.opacity(0.90))
+                .foregroundStyle(active ? PackageResourceLookup.accent : .white.opacity(0.90))
                 .frame(width: max(21, size + 7), height: max(21, size + 7))
                 .shadow(color: .black.opacity(0.62), radius: 2, y: 1)
         }
@@ -741,7 +741,7 @@ struct MiniPlayerWindow: View {
                                     if entry.source == .suggested {
                                         Image(systemName: "sparkles")
                                             .font(.system(size: 8, weight: .semibold))
-                                            .foregroundStyle(PackageResourceLookup.brandAccent)
+                                            .foregroundStyle(PackageResourceLookup.accent)
                                             .accessibilityLabel(Text(String(localized: "Suggested")))
                                     }
                                 }

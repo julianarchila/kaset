@@ -3,27 +3,19 @@ import SwiftUI
 
 enum PackageResourceLookup {
     private static let resourceBundleName = "Kaset_Kaset.bundle"
-    private static let accentColorName = NSColor.Name("AccentColor")
 
     static let bundle = Self.candidateBundles.first
     static let localizationBundle = Self.bundle
 
-    /// The brand accent as an AppKit color, for views built with AppKit (e.g. NSTableView cells).
-    static let brandAccentNSColor: NSColor = {
-        if let color = NSColor(named: accentColorName, bundle: Bundle.main) {
-            return color
-        }
+    /// The app accent as an AppKit color, for views built with AppKit (e.g. NSTableView cells).
+    ///
+    /// The fork has no accent color asset, so this is the user's macOS accent
+    /// color (blue with the default "Multicolor" setting). It is a dynamic
+    /// system color and updates when the user changes the accent.
+    static let accentNSColor: NSColor = .controlAccentColor
 
-        for bundle in candidateBundles {
-            if let color = NSColor(named: accentColorName, bundle: bundle) {
-                return color
-            }
-        }
-
-        return NSColor(srgbRed: 1.0, green: 0.0, blue: 0.337, alpha: 1.0)
-    }()
-
-    static let brandAccent = Color(nsColor: Self.brandAccentNSColor)
+    /// The app accent for SwiftUI views; see `accentNSColor`.
+    static let accent = Color(nsColor: Self.accentNSColor)
 
     private static let bundleSearchRoots: [Bundle] = {
         var bundles: [Bundle] = [Bundle.main]

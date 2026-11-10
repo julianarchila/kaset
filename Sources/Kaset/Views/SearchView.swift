@@ -2,7 +2,10 @@ import SwiftUI
 
 // MARK: - SearchView
 
-/// Search view for finding music.
+/// Search results for finding music.
+///
+/// The query is typed in the sidebar's native search field (see
+/// `MainWindow`); this view shows the filter chips and results for it.
 struct SearchView: View {
     @State var viewModel: SearchViewModel
     @Environment(PlayerService.self) private var playerService
@@ -10,30 +13,21 @@ struct SearchView: View {
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
-    /// External trigger for focusing the search field (from keyboard shortcut).
-    @Binding var focusTrigger: Bool
-
-    @FocusState private var isSearchFieldFocused: Bool
-
-    /// Index of currently selected suggestion for keyboard navigation.
-    @State private var selectedSuggestionIndex: Int = -1
-
-    /// Initializes SearchView with optional focus trigger binding.
-    init(viewModel: SearchViewModel, focusTrigger: Binding<Bool> = .constant(false)) {
+    init(viewModel: SearchViewModel) {
         _viewModel = State(initialValue: viewModel)
-        _focusTrigger = focusTrigger
     }
 
     var body: some View {
         NavigationStack(path: self.$navigationPath) {
             VStack(spacing: 0) {
-                // Search bar
-                self.searchBar
-                    .zIndex(1)
+                if self.viewModel.shouldShowFilters {
+                    self.filterChips
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
 
-                Divider()
+                    Divider()
+                }
 
-                // Content
                 self.contentView
             }
             .localizedNavigationTitle("Search")
@@ -45,152 +39,7 @@ struct SearchView: View {
             PlayerBar()
                 .playerBarMusicNavigation(path: self.$navigationPath)
         }
-        .onAppear {
-            self.isSearchFieldFocused = true
-        }
-        .onChange(of: self.focusTrigger) { _, newValue in
-            if newValue {
-                self.isSearchFieldFocused = true
-                self.focusTrigger = false
-            }
-        }
         .popsNavigationStackOnSidebarReselect(path: self.$navigationPath, for: .search)
-    }
-
-    // MARK: - Search Bar
-
-    private var searchBar: some View {
-        VStack(spacing: 12) {
-            // Keep suggestions as an overlay of the field itself. If the dropdown participates
-            // in the search bar's layout, macOS 26 glass materialization can render a
-            // second transient plate during updates. Anchoring it as an overlay gives the
-            // autocomplete menu a single visual owner and prevents duplicate dropdowns.
-            self.searchField
-                .overlay(alignment: .top) {
-                    if self.viewModel.showSuggestions {
-                        self.suggestionsDropdown
-                            .padding(.top, 44) // Below search field
-                    }
-                }
-                .zIndex(1)
-
-            // Filter chips
-            if self.viewModel.shouldShowFilters {
-                self.filterChips
-            }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .onChange(of: self.viewModel.query) { _, _ in
-            self.selectedSuggestionIndex = -1
-            self.viewModel.fetchSuggestions()
-        }
-        .onChange(of: self.viewModel.suggestions) { _, _ in
-            self.selectedSuggestionIndex = -1
-        }
-    }
-
-    private var searchField: some View {
-        HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-
-            TextField(String(localized: "Search songs, albums, artists..."), text: self.$viewModel.query)
-                .textFieldStyle(.plain)
-                .focused(self.$isSearchFieldFocused)
-                .onSubmit {
-                    HapticService.success()
-                    if self.selectedSuggestionIndex >= 0,
-                       self.selectedSuggestionIndex < self.viewModel.suggestions.count
-                    {
-                        self.viewModel.selectSuggestion(self.viewModel.suggestions[self.selectedSuggestionIndex])
-                    } else {
-                        self.viewModel.search()
-                    }
-                }
-                .onKeyPress(.downArrow) {
-                    if self.viewModel.showSuggestions {
-                        self.selectedSuggestionIndex = min(
-                            self.selectedSuggestionIndex + 1,
-                            self.viewModel.suggestions.count - 1
-                        )
-                        return .handled
-                    }
-                    return .ignored
-                }
-                .onKeyPress(.upArrow) {
-                    if self.viewModel.showSuggestions {
-                        self.selectedSuggestionIndex = max(self.selectedSuggestionIndex - 1, -1)
-                        return .handled
-                    }
-                    return .ignored
-                }
-                .onKeyPress(.escape) {
-                    if self.viewModel.showSuggestions {
-                        self.viewModel.clearSuggestions()
-                        return .handled
-                    }
-                    return .ignored
-                }
-                .accessibilityIdentifier(AccessibilityID.Search.searchField)
-
-            if !self.viewModel.query.isEmpty {
-                Button {
-                    self.viewModel.clear()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(String(localized: "Clear search"))
-                .accessibilityIdentifier(AccessibilityID.Search.clearButton)
-            }
-        }
-        .padding(10)
-        .compatGlass(in: .capsule)
-    }
-
-    private var suggestionsDropdown: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(self.viewModel.suggestions.prefix(7).enumerated()), id: \.element.id) { index, suggestion in
-                self.suggestionRow(suggestion, index: index)
-                if index < min(self.viewModel.suggestions.count, 7) - 1 {
-                    Divider()
-                        .padding(.leading, 40)
-                }
-            }
-        }
-        .compatGlass(in: .rect(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-        .accessibilityIdentifier(AccessibilityID.Search.suggestionsContainer)
-    }
-
-    private func suggestionRow(_ suggestion: SearchSuggestion, index: Int) -> some View {
-        Button {
-            self.viewModel.selectSuggestion(suggestion)
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16)
-
-                Text(suggestion.query)
-                    .font(.system(size: 13))
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Image(systemName: "arrow.up.left")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(index == self.selectedSuggestionIndex ? Color.accentColor.opacity(0.15) : Color.clear)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(AccessibilityID.Search.suggestion(index: index))
     }
 
     private var filterChips: some View {
@@ -483,10 +332,9 @@ struct SearchView: View {
 }
 
 #Preview {
-    @Previewable @State var focusTrigger = false
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    SearchView(viewModel: SearchViewModel(client: client), focusTrigger: $focusTrigger)
+    SearchView(viewModel: SearchViewModel(client: client))
         .environment(PlayerService())
         .environment(FavoritesManager.shared)
 }

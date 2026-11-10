@@ -14,7 +14,11 @@ own playlists only appeared after pinning them by hand.
 
 ## Decision
 
-- Top: Search, Home, and New Releases.
+- Top: the native sidebar search field (`.searchable(placement: .sidebar)`
+  with `.searchSuggestions`), then Home and New (New Releases). Typing a query
+  switches the detail column to Search results; Enter searches immediately and
+  ⌘F focuses the field. `SearchView` no longer has its own field.
+- Sidebar symbols use the user's macOS accent color (see ADR-0042).
 - Discover (Explore, Charts, Moods & Genres, Podcasts) is a collapsible section,
   collapsed by default. Sections use the native sidebar disclosure control:
   a custom header button cannot toggle `Section(isExpanded:)` reliably,

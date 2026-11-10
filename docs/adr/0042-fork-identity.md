@@ -59,6 +59,9 @@ Several upstream settings tied a fork build to the upstream app:
   `WKWebExtensionController`. Mix tracklists keep segmenting the seek bar
   through `MixTracklistParser` and `NowPlayingTracklistProvider`. This
   supersedes ADR-0011 and ADR-0014.
+- The app follows the user's macOS accent color instead of Kaset's pink
+  brand accent: the `AccentColor` asset and `NSAccentColorName` are gone, and
+  `PackageResourceLookup.accent` is `NSColor.controlAccentColor`.
 
 ## Consequences
 

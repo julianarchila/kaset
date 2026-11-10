@@ -161,7 +161,7 @@ struct NowPlayingVolumeControl: View {
             NowPlayingGlassIconButton(
                 systemName: "airplayaudio",
                 label: self.playerService.isAirPlayConnected ? String(localized: "AirPlay Connected") : String(localized: "AirPlay"),
-                tint: self.playerService.isAirPlayConnected ? PackageResourceLookup.brandAccent : nil
+                tint: self.playerService.isAirPlayConnected ? PackageResourceLookup.accent : nil
             ) {
                 HapticService.toggle()
                 self.playerService.showAirPlayPicker(at: self.airPlayAnchor.screenPoint)

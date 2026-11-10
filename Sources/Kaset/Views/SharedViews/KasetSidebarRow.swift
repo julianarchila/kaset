@@ -8,7 +8,7 @@ import SwiftUI
 /// becomes the active control: selected rows switch to the system accent fill
 /// and symbols become selected-text colored. Kaset drives detail content from
 /// explicit selection state, so use a plain button row with our own selected
-/// background and brand-accent symbol instead of relying on `NavigationLink`'s
+/// background and system-accent symbol instead of relying on `NavigationLink`'s
 /// active/inactive source-list styling.
 struct KasetSidebarRow: View {
     let title: String
@@ -32,7 +32,7 @@ struct KasetSidebarRow: View {
                     self.artwork(url: artworkURL)
                 } else {
                     Image(systemName: self.systemImage)
-                        .foregroundStyle(PackageResourceLookup.brandAccent)
+                        .foregroundStyle(PackageResourceLookup.accent)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -55,7 +55,7 @@ struct KasetSidebarRow: View {
                 .scaledToFill()
         } placeholder: {
             Image(systemName: self.systemImage)
-                .foregroundStyle(PackageResourceLookup.brandAccent)
+                .foregroundStyle(PackageResourceLookup.accent)
         }
         .frame(width: Self.artworkSize, height: Self.artworkSize)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))

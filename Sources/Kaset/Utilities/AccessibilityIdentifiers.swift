@@ -14,7 +14,6 @@ enum AccessibilityID {
 
     enum Sidebar {
         static let container = "sidebar"
-        static let searchItem = "sidebar.search"
         static let homeItem = "sidebar.home"
         static let exploreItem = "sidebar.explore"
         static let chartsItem = "sidebar.charts"
@@ -126,17 +125,10 @@ enum AccessibilityID {
 
     enum Search {
         static let container = "searchView"
-        static let searchField = "searchView.searchField"
-        static let clearButton = "searchView.clearButton"
-        static let suggestionsContainer = "searchView.suggestions"
         static let resultsContainer = "searchView.results"
         static let emptyState = "searchView.emptyState"
         static let noResults = "searchView.noResults"
         static let loadingIndicator = "searchView.loading"
-
-        static func suggestion(index: Int) -> String {
-            "searchView.suggestion.\(index)"
-        }
 
         static func filterChip(_ filter: String) -> String {
             "searchView.filter.\(filter)"

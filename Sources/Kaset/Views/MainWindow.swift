@@ -78,6 +78,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     /// Column visibility for NavigationSplitView. The main window is hidden rather than closed,
     /// so this keeps the user's sidebar choice across focus changes and Dock restores.
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @FocusState private var isSidebarSearchFocused: Bool
 
     init(
         navigationSelection: Binding<NavigationItem?>,
@@ -461,12 +462,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     libraryViewModel: self.libraryViewModel,
                     onReselectNavigationItem: { item in
                         self.sidebarNavigationReselectGenerations.wrappedValue[item, default: 0] += 1
-                        if item == .search {
-                            Task { @MainActor in
-                                try? await Task.sleep(for: .milliseconds(100))
-                                self.searchFocusTrigger.wrappedValue = true
-                            }
-                        }
                     },
                     onReselectPinnedItem: { item in
                         guard !(self.pinnedNavigationPaths[item.contentId]?.isEmpty ?? true) else { return }
@@ -479,6 +474,27 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     pinnedItem: self.selectedSidebarPinnedItem,
                     client: self.client
                 )
+            }
+            .searchable(
+                text: self.sidebarSearchQuery,
+                placement: .sidebar,
+                prompt: Text(String(localized: "Search"))
+            )
+            .searchFocused(self.$isSidebarSearchFocused)
+            .searchSuggestions {
+                self.sidebarSearchSuggestions
+            }
+            .onSubmit(of: .search) {
+                self.submitSidebarSearch()
+            }
+            .onChange(of: self.searchFocusTrigger.wrappedValue) { _, isRequested in
+                guard isRequested else { return }
+                self.searchFocusTrigger.wrappedValue = false
+                // The field lives in the sidebar, so reveal it before focusing.
+                if self.columnVisibility == .detailOnly {
+                    self.columnVisibility = .all
+                }
+                self.isSidebarSearchFocused = true
             }
             .id(self.contentResetID)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -497,6 +513,52 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         .animation(.easeInOut(duration: 0.25), value: self.playerService.showQueue)
         .toolbar(self.isShowingFullScreenPlayer ? .hidden : .automatic, for: .windowToolbar)
         .frame(minWidth: MainWindowLayout.minimumWidth, minHeight: MainWindowLayout.minimumHeight)
+    }
+
+    // MARK: - Sidebar Search
+
+    /// Query of the sidebar's native search field, backed by the search view model.
+    /// Typing a query switches the detail column to Search results.
+    private var sidebarSearchQuery: Binding<String> {
+        Binding(
+            get: { self.searchViewModel?.query ?? "" },
+            set: { newValue in
+                guard let searchViewModel = self.searchViewModel,
+                      searchViewModel.query != newValue
+                else { return }
+                searchViewModel.query = newValue
+                if !newValue.isEmpty {
+                    self.showSearchResults()
+                }
+                searchViewModel.fetchSuggestions()
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var sidebarSearchSuggestions: some View {
+        if let searchViewModel {
+            ForEach(searchViewModel.suggestions.prefix(7)) { suggestion in
+                Label(suggestion.query, systemImage: "magnifyingglass")
+                    .searchCompletion(suggestion.query)
+            }
+        }
+    }
+
+    private func submitSidebarSearch() {
+        guard let searchViewModel else { return }
+        HapticService.success()
+        self.showSearchResults()
+        searchViewModel.searchImmediately()
+    }
+
+    private func showSearchResults() {
+        if self.selectedSidebarPinnedItem != nil {
+            self.selectedSidebarPinnedItem = nil
+        }
+        if self.navigationSelection != .search {
+            self.navigationSelection = .search
+        }
     }
 
     private var isShowingFullScreenPlayer: Bool {
@@ -570,7 +632,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 }
             case .search:
                 if let vm = searchViewModel {
-                    SearchView(viewModel: vm, focusTrigger: self.searchFocusTrigger)
+                    SearchView(viewModel: vm)
                 }
             case .charts:
                 if let vm = chartsViewModel {
