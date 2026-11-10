@@ -41,10 +41,7 @@ struct KasetApp: App {
     @State private var authService = AuthService()
     @State private var webKitManager = WebKitManager.shared
     @State private var playerService = PlayerService()
-    @State private var youtubePlayerService: YouTubePlayerService
-    @State private var playbackArbiter: PlaybackArbiter
     @State private var sharedClient: any YTMusicClientProtocol
-    @State private var sharedYouTubeClient: any YouTubeClientProtocol
     @State private var notificationService: NotificationService?
     @State private var favoritesManager = FavoritesManager.shared
     @State private var sidebarPinnedItemsManager = SidebarPinnedItemsManager.shared
@@ -66,9 +63,6 @@ struct KasetApp: App {
 
     /// Current navigation selection for keyboard navigation.
     @State private var navigationSelection: NavigationItem? = SettingsManager.shared.launchNavigationItem
-
-    /// Current navigation selection for the YouTube (video) experience.
-    @State private var youtubeNavigationSelection: YouTubeNavigationItem? = .home
 
     /// Monotonic command request consumed by `MainWindow` to refresh the active Home feed.
     @State private var homeRefreshRequestID = 0
@@ -139,43 +133,16 @@ struct KasetApp: App {
             account?.currentAccountScopeID
         }
 
-        // YouTube (video) client — same login, www.youtube.com origin
-        let realYouTubeClient = YouTubeClient(authService: auth, webKitManager: webkit, askFeatureEnabled: true)
-        realYouTubeClient.brandIdProvider = { [weak account] in
+        // Mix tracklists read chapters/descriptions from regular YouTube's `next` endpoint.
+        let watchNextFetcher = YouTubeWatchNextFetcher(authService: auth, webKitManager: webkit)
+        watchNextFetcher.brandIdProvider = { [weak account] in
             account?.currentBrandId
         }
-        realYouTubeClient.accountCacheIdentityProvider = { [weak account] in
-            account?.currentAccount?.cacheIdentity
-        }
-        realYouTubeClient.askAccountBindingProvider = { [weak account] in
-            guard let account,
-                  let currentAccount = account.currentAccount,
-                  currentAccount.isPrimary,
-                  account.verifiedAccountId == currentAccount.id,
-                  let scopeID = account.currentAccountScopeID
-            else {
-                return nil
-            }
-            return YouTubeAskAccountBinding(scopeID: scopeID)
-        }
-        let youtubeClient: YouTubeClientProtocol = if UITestConfig.isUITestMode {
-            MockUITestYouTubeClient()
-        } else {
-            realYouTubeClient
-        }
-
-        // YouTube video playback service + the one-audio-source arbiter
-        let youtubePlayer = YouTubePlayerService(webKitManager: webkit)
-        youtubePlayer.youtubeClient = youtubeClient
-        let arbiter = PlaybackArbiter(playerService: player, youtubePlayerService: youtubePlayer)
 
         _authService = State(initialValue: auth)
         _webKitManager = State(initialValue: webkit)
         _playerService = State(initialValue: player)
-        _youtubePlayerService = State(initialValue: youtubePlayer)
-        _playbackArbiter = State(initialValue: arbiter)
         _sharedClient = State(initialValue: client)
-        _sharedYouTubeClient = State(initialValue: youtubeClient)
         _syncedLyricsService = State(initialValue: SyncedLyricsService(providers: [
             YTMusicSyncedProvider(client: client),
             LRCLibProvider(),
@@ -186,7 +153,7 @@ struct KasetApp: App {
         // Playback-UI tracklist provider: owns seek-bar segmentation for the current item and is
         // driven by the player, so segments show even without Last.fm connected. Scrobbling keeps
         // its provisional classification state but shares the same cached/coalescing parser.
-        let mixTracklistParser = MixTracklistParser(youTubeClient: youtubeClient)
+        let mixTracklistParser = MixTracklistParser(watchNextProvider: watchNextFetcher)
         let tracklistProvider = NowPlayingTracklistProvider(parser: mixTracklistParser)
         player.setNowPlayingTracklistProvider(tracklistProvider)
         _nowPlayingTracklistProvider = State(initialValue: tracklistProvider)
@@ -223,18 +190,15 @@ struct KasetApp: App {
                 let startupState = self.authService.startupState
                 MainWindow(
                     navigationSelection: self.$navigationSelection,
-                    youtubeNavigationSelection: self.$youtubeNavigationSelection,
                     homeRefreshRequestID: self.$homeRefreshRequestID,
                     didCompleteStartupPlaybackCleanup: self.$didCompleteStartupPlaybackCleanup,
-                    client: self.sharedClient,
-                    youtubeClient: self.sharedYouTubeClient
+                    client: self.sharedClient
                 )
                 .id(self.settings.contentLanguage)
                 .environment(\.locale, self.settings.contentLanguage.locale)
                 .environment(self.authService)
                 .environment(self.webKitManager)
                 .environment(self.playerService)
-                .environment(self.youtubePlayerService)
                 .environment(self.favoritesManager)
                 .environment(self.sidebarPinnedItemsManager)
                 .environment(self.likeStatusManager)
@@ -292,12 +256,10 @@ struct KasetApp: App {
                     if !self.didCompleteStartupPlaybackCleanup {
                         if self.authService.signOutSequence > 0 {
                             self.playerService.clearPlaybackForSignOut()
-                            self.youtubePlayerService.stop()
                         } else if self.authService.state.isLoggedIn {
                             self.playerService.clearGuestPlaybackForAuthenticatedStartup()
                         } else {
                             self.playerService.clearPlaybackForGuestStartup()
-                            self.youtubePlayerService.stop()
                         }
                         self.didCompleteStartupPlaybackCleanup = true
                         AppIntentsBridge.shared.markStartupComplete()
@@ -325,26 +287,7 @@ struct KasetApp: App {
                     // equalizer a chance to spin up.
                     if isPlaying {
                         self.equalizerService.retryStartIfEnabled()
-                        // One audio source at a time: music starting pauses video.
-                        self.playbackArbiter.musicDidStartPlaying()
                     }
-                }
-                .onChange(of: self.youtubePlayerService.surfaceLocation) { _, location in
-                    self.handleYouTubeSurfaceLocationChange(location)
-                }
-                .onChange(of: self.youtubePlayerService.popInRequest) { _, request in
-                    // Pop-in from the floating window: bring the app to the
-                    // video source; YouTubeContentView opens/adopts the
-                    // watch view and consumes the request.
-                    guard request != nil else { return }
-                    self.settings.appSource = .video
-                    self.showMainWindow()
-                }
-                .task {
-                    NowPlayingManager.shared.configureYouTubeRouting(
-                        youtubePlayerService: self.youtubePlayerService,
-                        arbiter: self.playbackArbiter
-                    )
                 }
                 .onChange(of: self.playerService.isMiniPlayerVisible) { _, isVisible in
                     self.handleMiniPlayerVisibilityChange(isVisible)
@@ -354,9 +297,6 @@ struct KasetApp: App {
                 }
                 .onChange(of: self.settings.keepMiniPlayerOnTop) { _, _ in
                     MiniPlayerWindowController.shared.syncWindowState()
-                }
-                .onChange(of: self.settings.keepYouTubeVideoOnTop) { _, _ in
-                    YouTubeVideoWindowController.shared.syncWindowState()
                 }
             }
         }
@@ -374,17 +314,12 @@ struct KasetApp: App {
                 .environment(self.equalizerService)
         }
         .commands {
-            // Playback commands — routed to whichever player is active
-            // (the YouTube video player when it played last, music otherwise).
+            // Playback commands
             CommandMenu("Playback") {
                 // Play/Pause - Space
-                Button(self.activePlayerIsPlaying ? "Pause" : "Play") {
-                    if self.playbackArbiter.routesMediaKeysToVideo {
-                        self.youtubePlayerService.playPause()
-                    } else {
-                        Task {
-                            await self.playerService.playPause()
-                        }
+                Button(self.playerService.isPlaying ? "Pause" : "Play") {
+                    Task {
+                        await self.playerService.playPause()
                     }
                 }
                 .keyboardShortcut(self.playbackShortcut(.space, modifiers: []))
@@ -394,14 +329,8 @@ struct KasetApp: App {
 
                 // Next Track - ⌘→
                 Button(String(localized: "Next")) {
-                    if self.playbackArbiter.routesMediaKeysToVideo {
-                        Task {
-                            await self.youtubePlayerService.skipForward()
-                        }
-                    } else {
-                        Task {
-                            await self.playerService.next()
-                        }
+                    Task {
+                        await self.playerService.next()
                     }
                 }
                 .keyboardShortcut(self.playbackShortcut(.rightArrow, modifiers: .command))
@@ -409,12 +338,8 @@ struct KasetApp: App {
 
                 // Previous Track - ⌘←
                 Button(String(localized: "Previous")) {
-                    if self.playbackArbiter.routesMediaKeysToVideo {
-                        self.youtubePlayerService.skipBackward()
-                    } else {
-                        Task {
-                            await self.playerService.previous()
-                        }
+                    Task {
+                        await self.playerService.previous()
                     }
                 }
                 .keyboardShortcut(self.playbackShortcut(.leftArrow, modifiers: .command))
@@ -471,7 +396,6 @@ struct KasetApp: App {
             }
 
             // Navigation commands - replace default sidebar toggle
-            // Each routes to the active source's equivalent destination.
             CommandGroup(replacing: .sidebar) {
                 Button(String(localized: "Refresh")) {
                     self.homeRefreshRequestID += 1
@@ -483,56 +407,26 @@ struct KasetApp: App {
 
                 // Home - ⌘1
                 Button(String(localized: "Home")) {
-                    if self.settings.appSource == .video {
-                        self.youtubeNavigationSelection = .home
-                    } else {
-                        self.navigationSelection = .home
-                    }
+                    self.navigationSelection = .home
                 }
                 .keyboardShortcut("1", modifiers: .command)
 
                 // Explore - ⌘2
                 Button(String(localized: "Explore")) {
-                    if self.settings.appSource == .video {
-                        self.youtubeNavigationSelection = .explore
-                    } else {
-                        self.navigationSelection = .explore
-                    }
+                    self.navigationSelection = .explore
                 }
                 .keyboardShortcut("2", modifiers: .command)
 
                 // Library - ⌘3
                 Button(String(localized: "Library")) {
-                    if self.settings.appSource == .video {
-                        self.youtubeNavigationSelection = .playlists
-                    } else {
-                        self.navigationSelection = .library
-                    }
+                    self.navigationSelection = .library
                 }
                 .keyboardShortcut("3", modifiers: .command)
 
                 Divider()
 
-                // Switch Source - ⌘⇧Y
-                Button(self.settings.appSource == .music ? "Switch to YouTube" : "Switch to Music") {
-                    if self.settings.appSource == .video {
-                        // Pause a docked video in place — no pop-out handoff.
-                        self.youtubePlayerService.prepareForSourceSwitch()
-                    }
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        self.settings.appSource = self.settings.appSource == .music ? .video : .music
-                    }
-                }
-                .keyboardShortcut("y", modifiers: [.command, .shift])
-
-                Divider()
-
                 // Search - ⌘F
                 Button(String(localized: "Search")) {
-                    if self.settings.appSource == .video {
-                        self.youtubeNavigationSelection = .search
-                        return
-                    }
                     self.activateMusicSearch()
                 }
                 .keyboardShortcut("f", modifiers: .command)
@@ -544,14 +438,6 @@ struct KasetApp: App {
                     }
                     .keyboardShortcut("k", modifiers: .command)
                 }
-
-                Divider()
-
-                Toggle(String(localized: "Float on Top"), isOn: self.$settings.keepYouTubeVideoOnTop)
-                    .disabled(!YouTubeVideoWindowLevelPolicy.canToggleFloatOnTop(
-                        isFloating: self.youtubePlayerService.surfaceLocation == .floating,
-                        isFullscreenOrTransitioning: self.youtubePlayerService.isWindowFullscreen
-                    ))
 
                 Divider()
 
@@ -581,16 +467,6 @@ struct KasetApp: App {
                 }
                 .keyboardShortcut("0", modifiers: .command)
             }
-        }
-    }
-
-    private func handleYouTubeSurfaceLocationChange(_ location: YouTubePlayerService.SurfaceLocation) {
-        // The floating window hosts the video surface whenever it is popped out
-        // (or the inline watch view went away).
-        if location == .floating {
-            YouTubeVideoWindowController.shared.show(youtubePlayerService: self.youtubePlayerService, authService: self.authService)
-        } else {
-            YouTubeVideoWindowController.shared.close()
         }
     }
 
@@ -699,37 +575,22 @@ struct KasetApp: App {
         }
     }
 
-    /// Whether the currently routed player (video or music) is playing.
-    private var activePlayerIsPlaying: Bool {
-        if self.playbackArbiter.routesMediaKeysToVideo {
-            self.youtubePlayerService.isPlaying
-        } else {
-            self.playerService.isPlaying
-        }
-    }
-
     private func playbackShortcut(_ key: KeyEquivalent, modifiers: EventModifiers) -> KeyboardShortcut? {
         guard !self.textInputFocusState.isFocused else { return nil }
         return KeyboardShortcut(key, modifiers: modifiers)
     }
 
     private var shouldDisablePlaybackCommand: Bool {
-        !self.playbackArbiter.routesMediaKeysToVideo
-            && self.playerService.currentTrack == nil
+        self.playerService.currentTrack == nil
             && self.playerService.pendingPlayVideoId == nil
     }
 
     private var shouldDisableTrackNavigationCommands: Bool {
-        !self.playbackArbiter.routesMediaKeysToVideo && self.playerService.currentEpisode != nil
+        self.playerService.currentEpisode != nil
     }
 
     private var canRefreshHome: Bool {
-        switch self.settings.appSource {
-        case .music:
-            self.navigationSelection == .home
-        case .video:
-            self.youtubeNavigationSelection == .home
-        }
+        self.navigationSelection == .home
     }
 
     /// Label for repeat mode menu item.
@@ -797,17 +658,6 @@ struct KasetApp: App {
                 await self.playerService.playWithRadio(song: song, intent: intent)
             }
 
-        case let .youtubeVideo(videoId):
-            DiagnosticsLogger.app.info("Playing YouTube video from URL")
-            // Switch to the video experience and play in the floating
-            // window (no inline watch view is open yet).
-            self.settings.appSource = .video
-            self.youtubePlayerService.play(
-                video: YouTubeVideo(videoId: videoId, title: String(localized: "YouTube video")),
-                usesCookieFreeDataStore: self.authService.shouldUseCookieFreePlaybackDataStore
-            )
-            self.youtubePlayerService.popOutToWindow()
-
         case .playlist, .album, .artist:
             // Only song playback is supported via URL scheme
             DiagnosticsLogger.app.info("URL scheme only supports song playback")
@@ -832,11 +682,6 @@ struct SettingsView: View {
             MusicSettingsView()
                 .tabItem {
                     Label(String(localized: "Music"), systemImage: "music.note")
-                }
-
-            YouTubeSettingsView()
-                .tabItem {
-                    Label(String(localized: "YouTube"), systemImage: "play.rectangle.fill")
                 }
 
             EqualizerSettingsView()

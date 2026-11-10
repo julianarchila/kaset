@@ -54,9 +54,9 @@ What becomes easier or more difficult because of this change?
 | [0017](0017-equalizer.md) | 6-Band Equalizer via Core Audio Process Tap | Implemented |
 | [0018](0018-artist-page-episodes.md) | Artist Page — Episodes, Singles, Playlists, Podcasts, Related Artists | Accepted |
 | [0019](0019-podcasts-availability.md) | Region-Aware Podcasts Tab Visibility | Implemented |
-| [0020](0020-youtube-source-toggle.md) | Native YouTube Client Behind a Source Toggle | Accepted |
+| [0020](0020-youtube-source-toggle.md) | Native YouTube Client Behind a Source Toggle | Superseded by ADR-0042 |
 | [0021](0021-liquid-glass-sidebar-slide-under.md) | Liquid Glass Sidebar Slide-Under | Accepted |
-| [0022](0022-youtube-home-sections.md) | YouTube Home Sections — Continue Watching + Personalized Topic Rails | Accepted |
+| [0022](0022-youtube-home-sections.md) | YouTube Home Sections — Continue Watching + Personalized Topic Rails | Superseded by ADR-0042 |
 | [0023](0023-brand-account-history-session-switch.md) | Brand-Account History via WebView Session-Identity Switch | Accepted |
 | [0024](0024-logged-in-guest-mode.md) | Logged-In Guest Mode | Accepted |
 | [0025](0025-smart-shuffle.md) | Smart Shuffle (tri-state shuffle with interleaved recommendations) | Accepted |
@@ -66,7 +66,7 @@ What becomes easier or more difficult because of this change?
 | [0029](0029-now-playing-tracklist-provider.md) | Shared Now-Playing Mix Tracklist Provider | Accepted |
 | [0030](0030-account-scoped-favorites.md) | Account-Scoped Favorites Persistence | Accepted |
 | [0031](0031-saved-album-library-reconciliation.md) | Saved-Album Library Identity and Reconciliation | Accepted |
-| [0032](0032-youtube-ask-gemini.md) | Watch-Scoped YouTube Ask Gemini | Accepted; fixed WEB profile enabled in production |
+| [0032](0032-youtube-ask-gemini.md) | Watch-Scoped YouTube Ask Gemini | Superseded by ADR-0042 |
 | [0033](0033-login-passkey-suppression.md) | Suppress Passkey Detection in the Login WebView | Accepted |
 | [0034](0034-replace-playback-navigation.md) | Replace Playback Documents Without Growing History | Accepted |
 | [0035](0035-gapless-playback-native-queue.md) | Gapless Playback via YouTube Music Native Queue | Accepted |

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted; production activation uses the explicitly selected fixed WEB profile.
+Superseded by [ADR-0042](0042-fork-identity.md): the fork removed the YouTube video mode.
 
 ## Context
 

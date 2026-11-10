@@ -24,7 +24,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
     @Environment(AuthService.self) private var authService
     @Environment(PlayerService.self) private var playerService
-    @Environment(YouTubePlayerService.self) private var youtubePlayerService
     @Environment(WebKitManager.self) private var webKitManager
     @Environment(AccountService.self) private var accountService
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
@@ -38,9 +37,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     /// Binding to navigation selection for keyboard shortcut control from parent.
     @Binding var navigationSelection: NavigationItem?
 
-    /// Binding to the YouTube (video) experience's navigation selection.
-    @Binding var youtubeNavigationSelection: YouTubeNavigationItem?
-
     /// Monotonic request from the View menu to refresh the active Home feed.
     @Binding var homeRefreshRequestID: Int
 
@@ -49,15 +45,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
     /// Shared API client used by all views and services.
     let client: any YTMusicClientProtocol
-
-    /// Shared YouTube (video) API client.
-    let youtubeClient: any YouTubeClientProtocol
-
-    /// App-wide settings; drives the active content source (music vs. video).
-    @State private var settings = SettingsManager.shared
-
-    /// View models for the YouTube experience (persist across source toggles).
-    @State private var youtubeStore: YouTubeViewModelStore
 
     @State private var showLoginSheet = false
     @State private var isCommandBarPresented = false
@@ -96,19 +83,14 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
     init(
         navigationSelection: Binding<NavigationItem?>,
-        youtubeNavigationSelection: Binding<YouTubeNavigationItem?>,
         homeRefreshRequestID: Binding<Int>,
         didCompleteStartupPlaybackCleanup: Binding<Bool>,
-        client: any YTMusicClientProtocol,
-        youtubeClient: any YouTubeClientProtocol
+        client: any YTMusicClientProtocol
     ) {
         self._navigationSelection = navigationSelection
-        self._youtubeNavigationSelection = youtubeNavigationSelection
         self._homeRefreshRequestID = homeRefreshRequestID
         self._didCompleteStartupPlaybackCleanup = didCompleteStartupPlaybackCleanup
         self.client = client
-        self.youtubeClient = youtubeClient
-        _youtubeStore = State(initialValue: YouTubeViewModelStore(client: youtubeClient))
         _homeViewModel = State(initialValue: HomeViewModel(client: client))
         _exploreViewModel = State(initialValue: ExploreViewModel(client: client))
         _searchViewModel = State(initialValue: SearchViewModel(client: client))
@@ -368,7 +350,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             .onChange(of: self.authService.loginCleanupRequired) { _, cleanupRequired in
                 guard cleanupRequired else { return }
                 self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: true)
-                self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: true)
             }
             .onChange(of: self.playerService.showVideo) { _, showVideo in
                 DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")
@@ -396,8 +377,8 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 // player under an unverified/primary identity on cold-launch brand
                 // restore, where `currentAccount` is set before its session pin lands.
                 // History is recorded by the playback WebViews' own stats pings, so a
-                // track/video still loaded under the previous identity must reload to
-                // record to the new account. The shared cookie session covers both.
+                // track still loaded under the previous identity must reload to
+                // record to the new account.
                 guard let verifiedAccountId = self.accountService.verifiedAccountId else { return }
                 // Re-verifying the account already in use (every launch re-pins it) keeps
                 // the like scope: an account switch already invalidated like state through
@@ -405,9 +386,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 // is kept too. Bumping it here only made Liked Music drop its pages mid-scroll.
                 let isReverification = self.accountService.currentAccount?.id == verifiedAccountId
                 self.playerService.reloadCurrentTrackForIdentitySwitch(invalidatesLikeSession: !isReverification)
-                if self.youtubePlayerService.currentVideo != nil {
-                    self.youtubePlayerService.reloadCurrentVideoForIdentitySwitch()
-                }
             }
             .onChange(of: self.podcastsAvailability.availability) { oldValue, newValue in
                 // If the user is sitting on the Podcasts tab when it flips
@@ -446,7 +424,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             && !self.hasRenderedAuthenticatedContent
         if !isInitialScopeResolution {
             self.client.resetSessionStateForAccountSwitch()
-            self.youtubeClient.resetSessionStateForAccountSwitch()
             self.likeStatusManager.clearCache()
             LibraryMutationActions.cancelAllPendingLibraryMutations()
         }
@@ -487,8 +464,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             guard newAccountId != nil else { return }
 
             self.historyViewModel?.reset()
-            // YouTube surfaces are account-scoped too.
-            self.youtubeStore.resetForAccountChange()
 
             // Brand accounts can have a different region than the
             // primary. Re-probe in the background so the sidebar
@@ -511,60 +486,38 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     }
 
     private func refreshActiveHome() async {
-        switch self.settings.appSource {
-        case .music:
-            guard self.navigationSelection == .home, let homeViewModel else { return }
-            await homeViewModel.refresh()
-        case .video:
-            guard self.youtubeNavigationSelection == .home else { return }
-            await self.youtubeStore.home.refresh()
-        }
+        guard self.navigationSelection == .home, let homeViewModel else { return }
+        await homeViewModel.refresh()
     }
 
     private var mainContent: some View {
         ZStack(alignment: .trailing) {
-            // Main navigation content — sidebar and detail swap with the active source.
+            // Main navigation content
             NavigationSplitView(columnVisibility: self.$columnVisibility) {
-                if self.settings.appSource == .music {
-                    Sidebar(
-                        selection: self.$navigationSelection,
-                        pinnedSelection: self.$selectedSidebarPinnedItem,
-                        client: self.client,
-                        onReselectNavigationItem: { item in
-                            self.sidebarNavigationReselectGenerations.wrappedValue[item, default: 0] += 1
-                            if item == .search {
-                                Task { @MainActor in
-                                    try? await Task.sleep(for: .milliseconds(100))
-                                    self.searchFocusTrigger.wrappedValue = true
-                                }
+                Sidebar(
+                    selection: self.$navigationSelection,
+                    pinnedSelection: self.$selectedSidebarPinnedItem,
+                    client: self.client,
+                    onReselectNavigationItem: { item in
+                        self.sidebarNavigationReselectGenerations.wrappedValue[item, default: 0] += 1
+                        if item == .search {
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .milliseconds(100))
+                                self.searchFocusTrigger.wrappedValue = true
                             }
-                        },
-                        onReselectPinnedItem: { item in
-                            guard !(self.pinnedNavigationPaths[item.contentId]?.isEmpty ?? true) else { return }
-                            self.pinnedNavigationPaths[item.contentId] = NavigationPath()
                         }
-                    )
-                } else {
-                    YouTubeSidebar(
-                        selection: self.$youtubeNavigationSelection,
-                        onReselect: { _ in
-                            self.youtubeStore.navigationPath = NavigationPath()
-                        }
-                    )
-                }
+                    },
+                    onReselectPinnedItem: { item in
+                        guard !(self.pinnedNavigationPaths[item.contentId]?.isEmpty ?? true) else { return }
+                        self.pinnedNavigationPaths[item.contentId] = NavigationPath()
+                    }
+                )
             } detail: {
-                if self.settings.appSource == .music {
-                    self.detailView(
-                        for: self.navigationSelection,
-                        pinnedItem: self.selectedSidebarPinnedItem,
-                        client: self.client
-                    )
-                } else {
-                    YouTubeContentView(
-                        selection: self.youtubeNavigationSelection,
-                        store: self.youtubeStore
-                    )
-                }
+                self.detailView(
+                    for: self.navigationSelection,
+                    pinnedItem: self.selectedSidebarPinnedItem,
+                    client: self.client
+                )
             }
             .id(self.contentResetID)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -572,7 +525,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             // Right sidebar overlay - either lyrics or queue (mutually exclusive)
             self.rightSidebarOverlay(client: self.client)
 
-            if self.playerService.showFullScreenPlayer, self.settings.appSource == .music {
+            if self.playerService.showFullScreenPlayer {
                 FullScreenPlayerView()
                     .ignoresSafeArea()
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -602,7 +555,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     }
 
     private var isShowingFullScreenPlayer: Bool {
-        self.playerService.showFullScreenPlayer && self.settings.appSource == .music
+        self.playerService.showFullScreenPlayer
     }
 
     private func presentCommandBarIfAvailable() {
@@ -611,10 +564,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     }
 
     private var supportsCommandBarUI: Bool {
-        // The command bar is a music/AI feature; it has no role in the
-        // YouTube experience, so the sparkle button hides there.
         PlatformCapabilities.supportsCommandBar(usesLegacyMacOS15UI: self.usesLegacyMacOS15UI)
-            && self.settings.appSource == .music
             && self.hasPersonalAccount
     }
 
@@ -838,13 +788,10 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             let shouldRefreshGuestContent = crossedSignOutBoundary || oldState.isInitializing || isReauthTransition
             if crossedSignOutBoundary {
                 self.playerService.clearPlaybackForSignOut()
-                self.youtubePlayerService.stop()
             }
             if shouldRefreshGuestContent {
                 self.client.resetSessionStateForAccountSwitch()
-                self.youtubeClient.resetSessionStateForAccountSwitch()
                 self.rebuildMusicViewModels()
-                self.youtubeStore.resetForAccountChange()
                 // Reset podcasts availability so the next sign-in re-probes
                 // the endpoint.
                 self.podcastsAvailability.reset()
@@ -866,11 +813,8 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 // Replace any mounted guest/expired models so in-flight responses
                 // cannot populate the authenticated shell after login or reauth.
                 self.client.resetSessionStateForAccountSwitch()
-                self.youtubeClient.resetSessionStateForAccountSwitch()
                 self.rebuildMusicViewModels(accountId: self.accountService.currentAccount?.id)
-                self.youtubeStore.resetForAccountChange()
                 self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: false)
-                self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: false)
             }
             self.showLoginSheet = false
             // KasetApp's state-keyed root task owns account loading for every
@@ -915,23 +859,18 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         guard self.authService.state.isLoggedIn else { return }
         self.guestRefreshTask?.cancel()
         self.guestRefreshTask = nil
-        self.youtubeStore.resetForAccountChange()
         self.podcastsAvailability.reset()
 
         if isGuestModeEnabled {
             self.client.resetSessionStateForAccountSwitch()
-            self.youtubeClient.resetSessionStateForAccountSwitch()
             self.rebuildMusicViewModels()
             self.playerService.clearPlaybackForGuestStartup()
-            self.youtubePlayerService.stop()
             self.normalizeGuestSelections()
             self.scheduleGuestContentRefresh()
         } else {
             self.client.resetSessionStateForAccountSwitch()
-            self.youtubeClient.resetSessionStateForAccountSwitch()
             self.rebuildMusicViewModels(accountId: self.accountService.currentAccount?.id)
             self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: false)
-            self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: false)
             Task { @MainActor in
                 await self.accountService.fetchAccounts()
                 await self.refreshAuthenticatedContent()
@@ -981,9 +920,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         if self.navigationSelection?.requiresSignIn == true {
             self.navigationSelection = .home
         }
-        if self.youtubeNavigationSelection?.requiresSignIn == true {
-            self.youtubeNavigationSelection = .home
-        }
         self.selectedSidebarPinnedItem = nil
     }
 
@@ -1008,7 +944,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         await self.chartsViewModel?.refresh()
         await self.moodsAndGenresViewModel?.refresh()
         await self.newReleasesViewModel?.refresh()
-        await self.youtubeStore.refreshGuestContent()
         self.podcastsAvailability.activateAccount(nil)
         if self.podcastsAvailability.availability != .unavailable {
             await self.podcastsViewModel?.refresh()
@@ -1149,18 +1084,15 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
 
 #Preview {
     @Previewable @State var navSelection: NavigationItem? = .home
-    @Previewable @State var youtubeNavSelection: YouTubeNavigationItem? = .home
     @Previewable @State var homeRefreshRequestID = 0
     let authService = AuthService()
     let ytMusicClient = YTMusicClient(authService: authService)
     let accountService = AccountService(ytMusicClient: ytMusicClient, authService: authService)
     MainWindow(
         navigationSelection: $navSelection,
-        youtubeNavigationSelection: $youtubeNavSelection,
         homeRefreshRequestID: $homeRefreshRequestID,
         didCompleteStartupPlaybackCleanup: .constant(true),
-        client: ytMusicClient,
-        youtubeClient: YouTubeClient(authService: authService)
+        client: ytMusicClient
     )
     .environment(authService)
     .environment(PlayerService())

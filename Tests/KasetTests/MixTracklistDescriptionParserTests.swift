@@ -9,13 +9,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback builds a structured mix tracklist")
     func parsesDescriptionTimestampFallback() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Notes before the tracklist block.
 
@@ -27,7 +23,7 @@ struct MixTracklistDescriptionParserTests {
             More links after the tracklist.
             """
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let tracklist = await parser.parseTracklist(videoId: "description-mix")
 
@@ -54,17 +50,13 @@ struct MixTracklistDescriptionParserTests {
         ]
 
         for (index, description) in descriptions.enumerated() {
-            let mockYouTube = MockYouTubeClient()
+            let mockYouTube = MockWatchNextProvider()
             mockYouTube.watchNextData = WatchNextData(
                 videoTitle: "Description Mix",
-                viewCountText: nil,
-                publishedText: nil,
-                channel: nil,
-                related: [],
                 descriptionText: "Tracklist:\n\(description)"
             )
 
-            let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+            let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
                 .parseTracklist(videoId: "description-format-\(index)")
 
             #expect(tracklist?.entries.map(\.startTime) == [0, 3723, 7200])
@@ -76,13 +68,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback keeps the longest increasing run")
     func keepsLongestIncreasingDescriptionRun() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Techno Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             12:00 Premiere starts
@@ -94,7 +82,7 @@ struct MixTracklistDescriptionParserTests {
             """
         )
 
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "increasing-description-run")
 
         #expect(tracklist?.entries.map(\.startTime) == [0, 180, 360, 540, 900])
@@ -106,13 +94,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("The longest valid description block wins before artist count")
     func prefersLongestValidDescriptionBlock() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Progressive Session",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Short Artist A - Short One
             04:00 Short Artist B - Short Two
@@ -130,7 +114,7 @@ struct MixTracklistDescriptionParserTests {
             21:00 Finale
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "longest-valid-description-block")
 
         #expect(tracklist?.entries.count == 8)
@@ -141,13 +125,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("An invalid description timestamp does not hide a later valid timestamp")
     func skipsInvalidTimestampWithinDescriptionLine() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             1:75:00 typo then 0:00 A - One
@@ -156,7 +136,7 @@ struct MixTracklistDescriptionParserTests {
             """
         )
 
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "invalid-then-valid-description-time")
 
         #expect(tracklist?.entries.map(\.startTime) == [0, 60, 120])
@@ -167,13 +147,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback prefers structured duplicate rows")
     func prefersStructuredDuplicateDescriptionRows() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Duplicated Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Summary:
             00:00 Intro - Welcome
@@ -186,7 +162,7 @@ struct MixTracklistDescriptionParserTests {
             06:00 Artist C - Track Three
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "duplicated-description-mix")
 
         #expect(tracklist?.entries.map(\.artist) == ["Artist A", "Artist B", "Artist C"])
@@ -196,13 +172,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback supports cumulative minutes above 99")
     func parsesCumulativeMinuteDescriptionTimestamps() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Long Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Artist A - Track One
@@ -210,7 +182,7 @@ struct MixTracklistDescriptionParserTests {
             100:05 Artist C - Track Three
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "long-description-mix")
 
         #expect(tracklist?.entries.map(\.startTime) == [0, 5999, 6005])
@@ -220,20 +192,16 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects non-track agendas")
     func rejectsTimestampedAgenda() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Conference Agenda",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Introduction
             01:00 Sponsor
             02:00 Q&A
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "agenda")
 
         #expect(tracklist == nil)
@@ -242,13 +210,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback accepts a headed title-only tracklist")
     func acceptsHeadedTitleOnlyTracklist() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Title-only Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Intro
@@ -256,7 +220,7 @@ struct MixTracklistDescriptionParserTests {
             06:00 Finale
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "headed-title-only")
 
         #expect(tracklist?.entries.map(\.title) == ["Intro", "First Song", "Finale"])
@@ -266,20 +230,16 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Inline description tracklist headings permit title-only entries")
     func acceptsInlineTracklistHeading() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Inline Tracklist",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist: 00:00 Intro
             03:00 First Song
             06:00 Finale
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "inline-tracklist-heading")
 
         #expect(tracklist?.entries.map(\.title) == ["Intro", "First Song", "Finale"])
@@ -289,13 +249,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("A tracklist heading applies only to the first qualifying timestamp run")
     func doesNotPropagateHeadingAcrossTimestampReset() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Music and Talk",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Artist A - Song One
@@ -307,7 +263,7 @@ struct MixTracklistDescriptionParserTests {
             30:00 Closing
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "heading-timestamp-reset")
 
         #expect(tracklist?.entries.count == 3)
@@ -318,13 +274,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback ignores negated tracklist prose")
     func ignoresNegatedTracklistProse() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Conference Agenda",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             No tracklist is available.
             00:00 Host - Welcome
@@ -332,7 +284,7 @@ struct MixTracklistDescriptionParserTests {
             30:00 Panel - Q&A
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "negated-tracklist-prose")
 
         #expect(tracklist == nil)
@@ -341,13 +293,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description tracklist headings do not cross intervening prose")
     func rejectsHeadingSeparatedByProse() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Conference Agenda",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             Unavailable
@@ -356,7 +304,7 @@ struct MixTracklistDescriptionParserTests {
             30:00 Q&A
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "heading-separated-by-prose")
 
         #expect(tracklist == nil)
@@ -365,20 +313,16 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects dash-formatted agendas")
     func rejectsDashFormattedAgenda() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Conference Agenda",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Host - Welcome
             10:00 Jane Doe - Keynote
             30:00 Panel - Q&A
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "dash-agenda")
 
         #expect(tracklist == nil)
@@ -387,13 +331,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects long dash-formatted agendas")
     func rejectsLongDashFormattedAgenda() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Conference Agenda",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Host - Welcome
             10:00 Jane Doe - Keynote
@@ -402,7 +342,7 @@ struct MixTracklistDescriptionParserTests {
             40:00 Host - Closing
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "long-dash-agenda")
 
         #expect(tracklist == nil)
@@ -411,13 +351,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback accepts a headingless music mix")
     func acceptsHeadinglessMusicMix() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Deep Progressive Techno #11",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Artist A - Track One
             08:40 Artist B - Track Two
@@ -426,7 +362,7 @@ struct MixTracklistDescriptionParserTests {
             30:00 Artist E - Track Five
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "headingless-techno-mix")
 
         #expect(tracklist?.entries.count == 5)
@@ -436,13 +372,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Short localized description tracklists remain supported")
     func acceptsShortLocalizedTracklist() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Sesión progresiva",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Lista de canciones:
             00:00 Artista A - Canción Uno
@@ -450,7 +382,7 @@ struct MixTracklistDescriptionParserTests {
             08:00 Artista C - Canción Tres
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "short-localized-tracklist")
 
         #expect(tracklist?.entries.count == MixTracklist.minEntryCount)
@@ -460,13 +392,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Presentation title words do not veto structured song rows")
     func acceptsStructuredMusicPodcastTracklist() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Progressive House Podcast #42",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Artist A - Welcome Home
             04:00 Artist B - Opening Night
@@ -475,7 +403,7 @@ struct MixTracklistDescriptionParserTests {
             16:00 Artist E - Afterglow
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "structured-music-podcast")
 
         #expect(tracklist?.entries.count == 5)
@@ -487,20 +415,16 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Agenda-like song words do not veto unambiguous music rows")
     func acceptsAgendaWordsInSongTitles() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Deep House Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Artist A - Welcome Home
             04:00 Artist B - Opening Night
             08:00 Artist C - Closing Time
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "agenda-words-in-song-titles")
 
         #expect(tracklist?.entries.count == MixTracklist.minEntryCount)
@@ -510,13 +434,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Headingless description tracklists may contain blank lines")
     func acceptsBlankSeparatedHeadinglessMix() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Techno Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Artist A - Track One
 
@@ -529,7 +449,7 @@ struct MixTracklistDescriptionParserTests {
             30:00 Artist E - Track Five
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "blank-separated-headingless-mix")
 
         #expect(tracklist?.entries.count == 5)
@@ -539,13 +459,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Highly structured headingless tracklists do not require title keywords")
     func acceptsHighlyStructuredHeadinglessMix() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Progressive House Session",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Artist A - Track One
             05:00 Artist B - Track Two
@@ -557,7 +473,7 @@ struct MixTracklistDescriptionParserTests {
             35:00 Artist H - Track Eight
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "structured-headingless-mix")
 
         #expect(tracklist?.entries.count == 8)
@@ -570,13 +486,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects music-topic agendas")
     func rejectsMusicTopicAgenda() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Techno Music Conference Discussion",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Host - Welcome
             05:00 Guest - Context
@@ -585,7 +497,7 @@ struct MixTracklistDescriptionParserTests {
             20:00 Host - Closing
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "music-topic-agenda")
 
         #expect(tracklist == nil)
@@ -594,13 +506,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects electronic music workshops")
     func rejectsElectronicMusicWorkshop() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Electronic Music Workshop",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Alice - Opening remarks
             05:00 Bob - Production context
@@ -609,7 +517,7 @@ struct MixTracklistDescriptionParserTests {
             20:00 Alice - Closing remarks
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "electronic-music-workshop")
 
         #expect(tracklist == nil)
@@ -618,13 +526,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects partial timestamp components")
     func rejectsPartialTimestampComponent() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Artist A - Track One
@@ -633,7 +537,7 @@ struct MixTracklistDescriptionParserTests {
             12:345 Fake Artist - Fake Track
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "partial-timestamp")
 
         #expect(tracklist?.entries.map(\.startTime) == [0, 180, 360])
@@ -643,13 +547,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback keeps blank-separated headed groups together")
     func keepsBlankSeparatedTracklistGroups() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Description Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Artist A - Track One
@@ -660,7 +560,7 @@ struct MixTracklistDescriptionParserTests {
             12:00 Artist E - Track Five
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "blank-separated-tracklist")
 
         #expect(tracklist?.entries.count == 5)
@@ -670,13 +570,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback prioritizes an explicit tracklist heading")
     func prioritizesExplicitTracklistHeading() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Techno Music Discussion",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             00:00 Host - Welcome
             05:00 Guest - Context
@@ -690,7 +586,7 @@ struct MixTracklistDescriptionParserTests {
             16:00 Artist C - Track Three
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "headed-tracklist-priority")
 
         #expect(tracklist?.entries.count == 3)
@@ -700,13 +596,9 @@ struct MixTracklistDescriptionParserTests {
     @MainActor
     @Test("Description timestamp fallback rejects overflowing components atomically")
     func rejectsOverflowingDescriptionTimestamp() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Overflow Description",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             descriptionText: """
             Tracklist:
             00:00 Artist A - Track One
@@ -715,7 +607,7 @@ struct MixTracklistDescriptionParserTests {
             9223372036854775808:03:15 Fake Artist - Fake Track
             """
         )
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube)
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube)
             .parseTracklist(videoId: "overflow-description")
 
         #expect(tracklist?.entries.map(\.startTime) == [0, 195, 390])
@@ -728,26 +620,20 @@ struct MixTracklistDescriptionParserTests {
     @Test("Concurrent parses for the same video issue a single fetch")
     func coalescesConcurrentParsesForSameVideo() async {
         let gate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Concurrent Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: (0 ..< 3).map { index in
                 YouTubeChapter(
                     videoId: "mix",
                     title: "Artist \(index) - Track \(index)",
                     startTime: TimeInterval(index) * 600,
-                    endTime: TimeInterval(index + 1) * 600,
-                    timeText: nil,
-                    thumbnailURL: nil
+                    endTime: TimeInterval(index + 1) * 600
                 )
             }
         )
         mockYouTube.beforeWatchNextReturn = { _ in await gate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         async let first = parser.parseTracklist(videoId: "mix")
         async let second = parser.parseTracklist(videoId: "mix")

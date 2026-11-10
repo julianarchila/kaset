@@ -3,7 +3,7 @@ import Foundation
 // MARK: - URLHandler
 
 /// Handles parsing and routing of YouTube Music URLs, regular YouTube watch
-/// links, and Kaset custom-scheme URLs.
+/// links (played as YouTube Music songs), and custom-scheme URLs.
 ///
 /// Supports URLs like:
 /// - `https://music.youtube.com/watch?v=dQw4w9WgXcQ` - Play song
@@ -12,8 +12,8 @@ import Foundation
 /// - `https://music.youtube.com/browse/VLPLxxx` - Open playlist (browse format)
 /// - `https://music.youtube.com/channel/UCxxx` - Open artist
 /// - `https://music.youtube.com/browse/MPLAUCxxx` - Open library artist
-/// - `https://www.youtube.com/watch?v=dQw4w9WgXcQ` - Play regular YouTube video
-/// - `https://youtu.be/dQw4w9WgXcQ` - Play regular YouTube video
+/// - `https://www.youtube.com/watch?v=dQw4w9WgXcQ` - Play as a song
+/// - `https://youtu.be/dQw4w9WgXcQ` - Play as a song
 /// - `kasetfork://play?v=dQw4w9WgXcQ` - Custom scheme for song
 /// - `kasetfork://playlist?list=PLxxx` - Custom scheme for playlist
 /// - `kasetfork://album?id=MPRExxx` - Custom scheme for album
@@ -37,9 +37,6 @@ enum URLHandler {
 
         /// An artist/channel to open.
         case artist(id: String)
-
-        /// A regular YouTube video to play (switches to the video source).
-        case youtubeVideo(videoId: String)
     }
 
     // MARK: - URL Parsing
@@ -72,14 +69,14 @@ enum URLHandler {
         return host == "music.youtube.com" || host == "www.music.youtube.com"
     }
 
-    /// Parses regular YouTube video URLs:
-    /// `https://www.youtube.com/watch?v=xxx` and `https://youtu.be/xxx`.
+    /// Parses regular YouTube video URLs (`https://www.youtube.com/watch?v=xxx`
+    /// and `https://youtu.be/xxx`) and plays the video ID through YouTube Music.
     private static func parseYouTubeVideoURL(_ url: URL) -> ParsedContent? {
         guard let host = url.host?.lowercased() else { return nil }
 
         if host == "youtu.be" {
             let videoId = url.pathComponents.dropFirst().first ?? ""
-            return videoId.isEmpty ? nil : .youtubeVideo(videoId: videoId)
+            return videoId.isEmpty ? nil : .song(videoId: videoId)
         }
 
         guard host == "youtube.com" || host == "www.youtube.com" || host == "m.youtube.com" else {
@@ -91,7 +88,7 @@ enum URLHandler {
             if let videoId = Self.queryValue(for: "v", in: components?.queryItems ?? []),
                !videoId.isEmpty
             {
-                return .youtubeVideo(videoId: videoId)
+                return .song(videoId: videoId)
             }
         }
 

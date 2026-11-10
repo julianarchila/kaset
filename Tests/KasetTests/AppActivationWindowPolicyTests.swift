@@ -6,7 +6,7 @@ struct AppActivationWindowPolicyTests {
     @Test("Auxiliary key windows do not reveal the main window")
     func auxiliaryKeyWindowDoesNotRevealMainWindow() {
         #expect(!AppActivationWindowPolicy.shouldRevealMainWindow(
-            keyWindowIdentifier: AccessibilityID.YouTubeContent.videoWindow,
+            keyWindowIdentifier: AccessibilityID.VideoWindow.container,
             mainWindowIdentifier: nil
         ))
     }

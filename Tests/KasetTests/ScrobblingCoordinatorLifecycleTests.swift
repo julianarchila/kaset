@@ -41,7 +41,7 @@ struct ScrobblingCoordinatorLifecycleTests {
         }
         let settings = MockScrobblingSettings()
         settings.setServiceEnabled("Mock", true)
-        let parser = MixTracklistParser(youTubeClient: MockYouTubeClient())
+        let parser = MixTracklistParser(watchNextProvider: MockWatchNextProvider())
         let playerService = PlayerService()
         playerService.currentTrack = TestFixtures.makeSong(id: "old", title: "Old Track", duration: 100)
         playerService.updatePlaybackState(
@@ -83,10 +83,10 @@ struct ScrobblingCoordinatorLifecycleTests {
         defer { self.cleanupDirectory(directory) }
 
         let parseGate = AsyncGate()
-        let youtubeClient = MockYouTubeClient()
+        let youtubeClient = MockWatchNextProvider()
         youtubeClient.watchNextData = .empty
         youtubeClient.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: youtubeClient)
+        let parser = MixTracklistParser(watchNextProvider: youtubeClient)
         let service = MockScrobbleService()
         service.authState = .connected(username: "testuser")
         let settings = MockScrobblingSettings(scrobblePercentThreshold: 0.001)
@@ -141,10 +141,10 @@ struct ScrobblingCoordinatorLifecycleTests {
         defer { self.cleanupDirectory(directory) }
 
         let parseGate = AsyncGate()
-        let youtubeClient = MockYouTubeClient()
+        let youtubeClient = MockWatchNextProvider()
         youtubeClient.watchNextData = .empty
         youtubeClient.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: youtubeClient)
+        let parser = MixTracklistParser(watchNextProvider: youtubeClient)
         let service = MockScrobbleService()
         service.authState = .connected(username: "testuser")
         let settings = MockScrobblingSettings()
@@ -186,9 +186,9 @@ struct ScrobblingCoordinatorLifecycleTests {
         let directory = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(directory) }
 
-        let youtubeClient = MockYouTubeClient()
+        let youtubeClient = MockWatchNextProvider()
         youtubeClient.watchNextData = .empty
-        let parser = MixTracklistParser(youTubeClient: youtubeClient)
+        let parser = MixTracklistParser(watchNextProvider: youtubeClient)
         let service = MockScrobbleService()
         service.authState = .connected(username: "testuser")
         let settings = MockScrobblingSettings()

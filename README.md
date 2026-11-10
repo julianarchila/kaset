@@ -1,29 +1,19 @@
 <h1 align="center">Kaset</h1>
 
-<p align="center">A native macOS client for YouTube Music and YouTube, built with Swift and SwiftUI.</p>
+<p align="center">A personal fork of <a href="https://github.com/sozercan/kaset">Kaset</a>: a native macOS client for YouTube Music, built with Swift and SwiftUI.</p>
 
 <p align="center">
   <a href="https://trendshift.io/repositories/16570?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-16570"><img src="https://trendshift.io/api/badge/repositories/16570" alt="sozercan/kaset | Trendshift" width="200" height="44"/></a>
 </p>
 
-<table>
-  <tr>
-    <th>YouTube Music</th>
-    <th>YouTube</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshot-ytm.png" alt="Kaset YouTube Music screenshot"></td>
-    <td><img src="docs/screenshot-yt.png" alt="Kaset YouTube screenshot"></td>
-  </tr>
-</table>
+<p align="center"><img src="docs/screenshot-ytm.png" alt="Kaset YouTube Music screenshot"></p>
 
 ## Features
 
-### Music & Video
+### Music
 
-- 🎵 **Native macOS Experience** — Apple Music-style UI with Liquid Glass player bars, clean sidebar navigation, and a source toggle for Music ↔ YouTube
+- 🎵 **Native macOS Experience** — Apple Music-style UI with Liquid Glass player bars, and clean sidebar navigation
 - 🎧 **YouTube Music Support** — Full playback of DRM-protected YouTube Music content via your existing Premium subscription
-- ▶️ **[YouTube Support](docs/youtube.md)** — Browse regular YouTube recommendations, search, subscriptions, Shorts, Watch Later, history, comments, and video playback with native controls, captions, quality selection, and picture in picture
 
 ### Playback
 
@@ -54,7 +44,7 @@
 ### Automation & Extensibility
 
 - 🧩 **[Extensions](docs/extensions.md)** — Load WebKit Web Extensions, including [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home) and [SponsorBlock](https://github.com/ajayyy/SponsorBlock)
-- 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `kaset://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play in YouTube mode
+- 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `kasetfork://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play through YouTube Music
 - ⚡️ **[Shortcuts, Siri & Spotlight](docs/shortcuts.md)** — Native actions to play music, playlists, and albums, control playback, and rate songs; Siri phrases; Library playlists and albums in Spotlight
 - 🤖 **[AppleScript Support](docs/applescript.md)** — Automate playback with scripts, Raycast, Alfred, and Shortcuts
 
@@ -62,7 +52,7 @@
 
 - macOS 15.4 or later
 - Apple Intelligence features require macOS 26.0 or later
-- [Google](https://accounts.google.com) account for YouTube Music and YouTube personalization
+- [Google](https://accounts.google.com) account for YouTube Music personalization
 
 ## Installation
 

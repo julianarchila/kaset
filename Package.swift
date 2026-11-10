@@ -23,9 +23,6 @@ let package = Package(
         // Main app executable
         .executableTarget(
             name: "Kaset",
-            dependencies: [
-                "YouTubeAskCore",
-            ],
             exclude: [
                 "Resources/AppIcon.icon",
                 "Resources/kaset.icns",
@@ -68,7 +65,6 @@ let package = Package(
         // API Explorer CLI tool
         .executableTarget(
             name: "APIExplorer",
-            dependencies: ["YouTubeAskCore"],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
             ]
@@ -77,25 +73,6 @@ let package = Package(
             name: "APIExplorerTests",
             dependencies: ["APIExplorer"],
             swiftSettings: [.swiftLanguageMode(.v6)]
-        ),
-        // Shared Foundation-only YouTube Ask parsing and safety core
-        .target(
-            name: "YouTubeAskCore",
-            swiftSettings: [
-                .swiftLanguageMode(.v6),
-                .enableExperimentalFeature("StrictConcurrency"),
-            ]
-        ),
-        // Unit tests for the shared YouTube Ask core
-        .testTarget(
-            name: "YouTubeAskCoreTests",
-            dependencies: ["YouTubeAskCore"],
-            resources: [
-                .process("Fixtures"),
-            ],
-            swiftSettings: [
-                .swiftLanguageMode(.v6),
-            ]
         ),
         // Unit tests
         .testTarget(

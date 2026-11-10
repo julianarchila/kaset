@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0042](0042-fork-identity.md): the fork removed the YouTube video mode.
 
 ## Context
 
@@ -75,4 +75,4 @@ additive.**
   migration could move these. Inline parser tests pin the confirmed shapes;
   `api-explorer --youtube browse FEwhat_to_watch` is the re-discovery tool.
 
-See [docs/youtube.md](../youtube.md) for the full architecture.
+The `docs/youtube.md` architecture document was removed with the video mode.

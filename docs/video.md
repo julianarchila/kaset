@@ -1,6 +1,6 @@
 # YouTube Music Video Mode
 
-This document details the floating video window for YouTube Music videos. Regular YouTube playback uses the YouTube source's separate watch WebView and floating window; see [YouTube Mode](youtube.md).
+This document details the floating video window for YouTube Music videos.
 
 ## Overview
 

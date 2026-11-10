@@ -1818,7 +1818,7 @@ Field notes:
   streaming/player state, but no `chapterRenderer` or
   `macroMarkersListItemRenderer` chapter data in the verified probes.
 
-Prefer the destination feeds documented in [youtube.md](youtube.md) for Explore; YouTube's old `FEtrending` feed is no longer a reliable target.
+For regular YouTube Explore, prefer destination feeds; YouTube's old `FEtrending` feed is no longer a reliable target.
 
 #### YouTube Ask Gemini / YouChat investigation (2026-07-27)
 

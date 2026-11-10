@@ -81,21 +81,17 @@ struct MixTracklistTests {
     @Test("Chapter parser preserves the final chapter's explicit end time")
     func finalChapterEndTime() async {
         let chapters = [
-            YouTubeChapter(videoId: "mix", title: "A - One", startTime: 0, endTime: 100, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix", title: "B - Two", startTime: 100, endTime: 200, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix", title: "C - Three", startTime: 200, endTime: 290, timeText: nil, thumbnailURL: nil),
+            YouTubeChapter(videoId: "mix", title: "A - One", startTime: 0, endTime: 100),
+            YouTubeChapter(videoId: "mix", title: "B - Two", startTime: 100, endTime: 200),
+            YouTubeChapter(videoId: "mix", title: "C - Three", startTime: 200, endTime: 290),
         ]
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: chapters
         )
 
-        let tracklist = await MixTracklistParser(youTubeClient: mockYouTube).parseTracklist(videoId: "mix")
+        let tracklist = await MixTracklistParser(watchNextProvider: mockYouTube).parseTracklist(videoId: "mix")
 
         #expect(tracklist?.entries.last?.endTime == 290)
         #expect(tracklist?.entries.last?.duration == 90)
@@ -109,21 +105,15 @@ struct MixTracklistTests {
                 videoId: "regular",
                 title: title,
                 startTime: TimeInterval(index) * 60,
-                endTime: TimeInterval(index + 1) * 60,
-                timeText: nil,
-                thumbnailURL: nil
+                endTime: TimeInterval(index + 1) * 60
             )
         }
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Regular Video",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: chapters
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let first = await parser.parseTracklist(videoId: "regular")
         let second = await parser.parseTracklist(videoId: "regular")
@@ -143,9 +133,9 @@ struct MixTracklistTests {
     @MainActor
     @Test("Chapter parser does not cache transient request failures")
     func transientFailureRemainsRetryable() async {
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.error = URLError(.timedOut)
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let first = await parser.parseTracklist(videoId: "mix")
         #expect(first == nil)
@@ -153,14 +143,10 @@ struct MixTracklistTests {
         mockYouTube.error = nil
         mockYouTube.watchNextData = WatchNextData(
             videoTitle: "Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: [
-                YouTubeChapter(videoId: "mix", title: "A - One", startTime: 0, endTime: 60, timeText: nil, thumbnailURL: nil),
-                YouTubeChapter(videoId: "mix", title: "B - Two", startTime: 60, endTime: 120, timeText: nil, thumbnailURL: nil),
-                YouTubeChapter(videoId: "mix", title: "C - Three", startTime: 120, endTime: 180, timeText: nil, thumbnailURL: nil),
+                YouTubeChapter(videoId: "mix", title: "A - One", startTime: 0, endTime: 60),
+                YouTubeChapter(videoId: "mix", title: "B - Two", startTime: 60, endTime: 120),
+                YouTubeChapter(videoId: "mix", title: "C - Three", startTime: 120, endTime: 180),
             ]
         )
 

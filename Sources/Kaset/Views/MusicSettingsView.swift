@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Settings for the YouTube Music experience (distinct from the YouTube video
-/// experience). Hosts the playback, now-playing, audio-quality, and lyrics
-/// preferences that only apply when `appSource` is `.music`.
+/// Settings for YouTube Music playback: the playback, now-playing,
+/// audio-quality, and lyrics preferences.
 struct MusicSettingsView: View {
     @State private var settings = SettingsManager.shared
 

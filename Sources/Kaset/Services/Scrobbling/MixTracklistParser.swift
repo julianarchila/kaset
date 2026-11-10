@@ -7,7 +7,7 @@ import os
 /// 1. YouTube chapters (structured API data)
 /// 2. Description timestamps (regex over timestamped tracklist lines)
 ///
-/// Both tiers read the same `YouTubeClient.getWatchNext(videoId:)` response,
+/// Both tiers read the same `WatchNextProviding.getWatchNext(videoId:)` response,
 /// which calls the regular YouTube `next` endpoint. The YTMusic `next`
 /// endpoint does NOT return chapter or description data (confirmed via API
 /// exploration, 2026-07-10).
@@ -51,7 +51,7 @@ final class MixTracklistParser {
         var waiters: [UUID: ParseWaiter]
     }
 
-    private let youTubeClient: any YouTubeClientProtocol
+    private let watchNextProvider: any WatchNextProviding
     private var cache: [String: CacheEntry] = [:]
     /// In-flight parses keyed by video id. Each caller owns a waiter while all callers for the
     /// same video share one underlying task. The last cancelled waiter removes and cancels that
@@ -59,8 +59,8 @@ final class MixTracklistParser {
     private var inFlight: [String: InFlightParse] = [:]
     private let logger = DiagnosticsLogger.scrobbling
 
-    init(youTubeClient: any YouTubeClientProtocol) {
-        self.youTubeClient = youTubeClient
+    init(watchNextProvider: any WatchNextProviding) {
+        self.watchNextProvider = watchNextProvider
     }
 
     /// Parse a tracklist for a video. Returns nil if no tracklist is available.
@@ -194,7 +194,7 @@ final class MixTracklistParser {
     private func performParse(videoId: String) async -> ParseResult {
         let watchNextData: WatchNextData
         do {
-            watchNextData = try await self.youTubeClient.getWatchNext(videoId: videoId)
+            watchNextData = try await self.watchNextProvider.getWatchNext(videoId: videoId)
         } catch {
             self.logger.debug("Tracklist fetch failed for \(videoId): \(error.localizedDescription)")
             return ParseResult(tracklist: nil, cacheEntry: nil)

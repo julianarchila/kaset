@@ -44,13 +44,13 @@ Sources/
   └── Kaset/            → Main app target
       ├── Models/       → Data models (Song, Playlist, Album, Artist, etc.)
       ├── Services/
-      │   ├── API/      → YTMusicClient + YouTubeClient (InnerTube API calls)
+      │   ├── API/      → YTMusicClient (InnerTube API calls)
       │   ├── Auth/     → AuthService (login state machine)
       │   ├── Player/   → PlayerService, NowPlayingManager (playback, media keys)
       │   └── WebKit/   → WebKitManager (cookie store, persistent login)
-      ├── ViewModels/   → Music view models plus YouTube/ video-source view models
+      ├── ViewModels/   → View models
       ├── Utilities/    → DiagnosticsLogger, extensions
-      └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, YouTube views, etc.)
+      └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, etc.)
   └── APIExplorer/      → API explorer CLI tool
 Tests/                  → Unit tests (KasetTests/)
 Scripts/                → Build scripts
@@ -65,11 +65,8 @@ docs/                   → Detailed documentation
 | `Sources/Kaset/Services/WebKit/WebKitManager.swift` | Cookie store & persistence                 |
 | `Sources/Kaset/Services/Auth/AuthService.swift`     | Login state machine                        |
 | `Sources/Kaset/Services/API/YTMusicClient.swift`    | YouTube Music API client                   |
-| `Sources/Kaset/Services/API/YouTubeClient.swift`    | Regular YouTube API client                 |
 | `Sources/Kaset/Services/Player/PlayerService.swift` | Playback state & control                   |
-| `Sources/Kaset/Services/Player/YouTubePlayerService.swift` | Regular YouTube playback state & control   |
 | `Sources/Kaset/Views/MiniPlayerWebView.swift`       | Singleton WebView, playback UI             |
-| `Sources/Kaset/Views/YouTube/YouTubeWatchWebView.swift` | Singleton WebView for regular YouTube watch playback |
 | `Sources/Kaset/Views/MainWindow.swift`              | Main app window                            |
 | `Sources/Kaset/Utilities/DiagnosticsLogger.swift`   | Logging                                    |
 
@@ -79,7 +76,6 @@ For detailed architecture documentation, see the `docs/` folder:
 
 - **[docs/architecture.md](docs/architecture.md)** — Services, state management, data flow
 - **[docs/playback.md](docs/playback.md)** — WebView playback system, background audio
-- **[docs/youtube.md](docs/youtube.md)** — Regular YouTube source, video playback, Shorts, comments, and parser strategy
 - **[docs/testing.md](docs/testing.md)** — Test commands, patterns, debugging
 
 ### High-Level Overview
@@ -88,19 +84,13 @@ The app uses a clean architecture with:
 
 - **Observable Pattern**: `@Observable` classes for reactive state management
 - **MainActor Isolation**: All UI and service classes are `@MainActor` for thread safety
-- **Dual Source Model**: YouTube Music and regular YouTube are parallel experiences behind a sidebar source toggle
 - **WebKit Integration**: Persistent `WKWebsiteDataStore` for cookie management, authentication, and DRM playback
 - **Swift Concurrency**: `async`/`await` throughout, no `DispatchQueue`
 
 ### Playback Architecture
 
-Kaset has two playback paths. YouTube Music uses `PlayerService` plus the
-`SingletonPlayerWebView` at `music.youtube.com`; regular YouTube uses
-`YouTubePlayerService` plus `YouTubeWatchWebView` at `www.youtube.com`.
-`PlaybackArbiter` keeps one audio source active at a time and media keys route
-to the source that played most recently.
-
-#### YouTube Music
+YouTube Music playback uses `PlayerService` plus the `SingletonPlayerWebView`
+at `music.youtube.com`.
 
 ```
 User clicks Play
@@ -123,25 +113,6 @@ PlayerService.play(videoId:)
             - isPlaying
             - progress
             - duration
-```
-
-#### Regular YouTube
-
-```
-User opens a YouTube video
-    │
-    ▼
-YouTubePlayerService.play(video:)
-    │
-    ├── Sets active video metadata
-    ├── Loads www.youtube.com/watch?v={id}
-    └── Hosts YouTubeWatchWebView inline or in the floating window
-            │
-            ▼
-    JavaScript bridge sends state, captions, quality, and ad updates
-            │
-            ▼
-    YouTubePlayerService updates playback state and YouTubePlayerBar
 ```
 
 ### Authentication Flow

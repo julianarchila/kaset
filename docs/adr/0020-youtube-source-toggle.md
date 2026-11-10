@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0042](0042-fork-identity.md): the fork removed the YouTube video mode.
 
 ## Context
 
@@ -60,4 +60,4 @@ Two architectural questions dominated:
   fixable. `api-explorer --youtube` is the discovery tool.
 - YouTube ads play (no blocking); Premium accounts see none.
 
-See [docs/youtube.md](../youtube.md) for the full architecture.
+The `docs/youtube.md` architecture document was removed with the video mode.

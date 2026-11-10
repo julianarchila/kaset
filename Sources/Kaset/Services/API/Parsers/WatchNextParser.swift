@@ -1,18 +1,13 @@
 import Foundation
 
-/// Parses YouTube `next` (watch-next) responses: primary video metadata
-/// plus the related-videos rail.
+/// Parses the regular YouTube `next` (watch-next) response for the data
+/// YouTube Music mixes need: title, chapters, and description.
 enum WatchNextParser {
     static func parse(_ data: [String: Any]) -> WatchNextData {
         let results = (data["contents"] as? [String: Any])?["twoColumnWatchNextResults"]
             as? [String: Any]
 
-        // Primary metadata (title, view count, channel)
         var videoTitle: String?
-        var viewCountText: String?
-        var publishedText: String?
-        var channel: YouTubeChannel?
-        var isSubscribed: Bool?
         var secondaryDescriptionText: String?
 
         let primaryContents = (
@@ -21,55 +16,21 @@ enum WatchNextParser {
 
         for content in primaryContents {
             if let primaryInfo = content["videoPrimaryInfoRenderer"] as? [String: Any] {
-                videoTitle = YouTubeItemParser.text(from: primaryInfo["title"])
-                publishedText = YouTubeItemParser.text(from: primaryInfo["relativeDateText"])
-                let viewCount = (primaryInfo["viewCount"] as? [String: Any])?["videoViewCountRenderer"]
-                    as? [String: Any]
-                viewCountText = YouTubeItemParser.text(from: viewCount?["viewCount"])
+                videoTitle = Self.text(from: primaryInfo["title"])
             }
 
-            if let secondaryInfo = content["videoSecondaryInfoRenderer"] as? [String: Any] {
-                if let content = (secondaryInfo["attributedDescription"] as? [String: Any])?["content"]
-                    as? String, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                {
-                    secondaryDescriptionText = content
-                }
-                if let owner = (secondaryInfo["owner"] as? [String: Any])?["videoOwnerRenderer"]
-                    as? [String: Any]
-                {
-                    channel = Self.channel(fromVideoOwner: owner)
-                }
-                if let subscribeButton = (secondaryInfo["subscribeButton"] as? [String: Any])?["subscribeButtonRenderer"]
-                    as? [String: Any]
-                {
-                    isSubscribed = subscribeButton["subscribed"] as? Bool
-                }
+            if let secondaryInfo = content["videoSecondaryInfoRenderer"] as? [String: Any],
+               let content = (secondaryInfo["attributedDescription"] as? [String: Any])?["content"]
+               as? String, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            {
+                secondaryDescriptionText = content
             }
         }
-
-        // Related videos rail
-        var related: [YouTubeVideo] = []
-        var continuation: String?
-        if let secondaryResults = results?["secondaryResults"] {
-            YouTubeFeedParser.collect(
-                in: secondaryResults,
-                videos: &related,
-                continuation: &continuation
-            )
-        }
-
-        let chapters = Self.chapters(of: data)
 
         return WatchNextData(
             videoTitle: videoTitle,
-            viewCountText: viewCountText,
-            publishedText: publishedText,
-            channel: channel,
-            related: YouTubeFeedParser.deduplicate(related),
-            chapters: chapters,
-            descriptionText: Self.descriptionText(of: data) ?? secondaryDescriptionText,
-            isSubscribed: isSubscribed,
-            commentsContinuation: Self.commentsContinuation(of: data)
+            chapters: Self.chapters(of: data),
+            descriptionText: Self.descriptionText(of: data) ?? secondaryDescriptionText
         )
     }
 
@@ -101,34 +62,6 @@ enum WatchNextParser {
         return self.findDescriptionText(in: panels)
     }
 
-    /// The continuation token for the watch page's comments section
-    /// (the `comment-item-section` item section).
-    static func commentsContinuation(of data: [String: Any]) -> String? {
-        self.findCommentsSectionToken(in: data)
-    }
-
-    private static func findCommentsSectionToken(in value: Any) -> String? {
-        if let dict = value as? [String: Any] {
-            if let section = dict["itemSectionRenderer"] as? [String: Any],
-               (section["sectionIdentifier"] as? String) == "comment-item-section"
-            {
-                return self.firstContinuationToken(in: section)
-            }
-            for nested in dict.values {
-                if let token = Self.findCommentsSectionToken(in: nested) {
-                    return token
-                }
-            }
-        } else if let array = value as? [Any] {
-            for element in array {
-                if let token = Self.findCommentsSectionToken(in: element) {
-                    return token
-                }
-            }
-        }
-        return nil
-    }
-
     private static func findDescriptionText(in value: Any) -> String? {
         if let dict = value as? [String: Any] {
             if let attributed = dict["attributedDescriptionBodyText"] as? [String: Any],
@@ -138,7 +71,7 @@ enum WatchNextParser {
                 return content
             }
             if let descriptionBody = dict["descriptionBodyText"] as? [String: Any],
-               let content = YouTubeItemParser.text(from: descriptionBody),
+               let content = Self.text(from: descriptionBody),
                !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             {
                 return content
@@ -152,28 +85,6 @@ enum WatchNextParser {
             for element in array {
                 if let description = self.findDescriptionText(in: element) {
                     return description
-                }
-            }
-        }
-        return nil
-    }
-
-    private static func firstContinuationToken(in value: Any) -> String? {
-        if let dict = value as? [String: Any] {
-            if let command = dict["continuationCommand"] as? [String: Any],
-               let token = command["token"] as? String
-            {
-                return token
-            }
-            for nested in dict.values {
-                if let token = Self.firstContinuationToken(in: nested) {
-                    return token
-                }
-            }
-        } else if let array = value as? [Any] {
-            for element in array {
-                if let token = Self.firstContinuationToken(in: element) {
-                    return token
                 }
             }
         }
@@ -248,7 +159,7 @@ enum WatchNextParser {
         fromChapterRenderer renderer: [String: Any],
         videoId: String?
     ) -> YouTubeChapter? {
-        guard let title = YouTubeItemParser.text(from: renderer["title"]),
+        guard let title = text(from: renderer["title"]),
               let startMillis = self.intValue(from: renderer["timeRangeStartMillis"])
         else {
             return nil
@@ -258,9 +169,7 @@ enum WatchNextParser {
             videoId: videoId,
             title: title,
             startTime: TimeInterval(startMillis) / 1000,
-            endTime: nil,
-            timeText: nil,
-            thumbnailURL: YouTubeItemParser.thumbnailURL(fromThumbnail: renderer["thumbnail"])
+            endTime: nil
         )
     }
 
@@ -268,7 +177,7 @@ enum WatchNextParser {
         fromMacroMarkerRenderer renderer: [String: Any],
         fallbackVideoId: String?
     ) -> YouTubeChapter? {
-        guard let title = YouTubeItemParser.text(from: renderer["title"]) else {
+        guard let title = text(from: renderer["title"]) else {
             return nil
         }
 
@@ -278,7 +187,7 @@ enum WatchNextParser {
         if let fallbackVideoId, let endpointVideoId, endpointVideoId != fallbackVideoId {
             return nil
         }
-        let timeText = YouTubeItemParser.text(from: renderer["timeDescription"])
+        let timeText = Self.text(from: renderer["timeDescription"])
         let startMillis = self.intValue(from: repeatCommand?["startTimeMs"])
             ?? self.intValue(from: watchEndpoint?["startTimeSeconds"]).map { $0 * 1000 }
             ?? timeText.flatMap(self.milliseconds(fromTimeText:))
@@ -289,9 +198,7 @@ enum WatchNextParser {
             videoId: endpointVideoId ?? fallbackVideoId,
             title: title,
             startTime: TimeInterval(startMillis) / 1000,
-            endTime: self.intValue(from: repeatCommand?["endTimeMs"]).map { TimeInterval($0) / 1000 },
-            timeText: timeText,
-            thumbnailURL: YouTubeItemParser.thumbnailURL(fromThumbnail: renderer["thumbnail"])
+            endTime: self.intValue(from: repeatCommand?["endTimeMs"]).map { TimeInterval($0) / 1000 }
         )
     }
 
@@ -402,9 +309,7 @@ enum WatchNextParser {
             videoId: chapter.videoId,
             title: chapter.title,
             startTime: chapter.startTime,
-            endTime: boundedChapter.endTime,
-            timeText: chapter.timeText,
-            thumbnailURL: chapter.thumbnailURL
+            endTime: boundedChapter.endTime
         )
     }
 
@@ -412,24 +317,27 @@ enum WatchNextParser {
         "\(chapter.videoId ?? "")|\(Int((chapter.startTime * 1000).rounded()))|\(chapter.title)"
     }
 
-    // MARK: - Private
+    // MARK: - Text
 
-    private static func channel(fromVideoOwner owner: [String: Any]) -> YouTubeChannel? {
-        let browseEndpoint = (owner["navigationEndpoint"] as? [String: Any])?["browseEndpoint"]
-            as? [String: Any]
-        guard let name = YouTubeItemParser.text(from: owner["title"]),
-              let channelId = browseEndpoint?["browseId"] as? String
-        else {
-            return nil
+    /// Reads a YouTube text node (`simpleText`, `content`, or `runs`).
+    static func text(from value: Any?) -> String? {
+        guard let dict = value as? [String: Any] else {
+            return value as? String
         }
 
-        return YouTubeChannel(
-            channelId: channelId,
-            name: name,
-            handle: (browseEndpoint?["canonicalBaseUrl"] as? String)?
-                .split(separator: "/").last.map(String.init),
-            subscriberCountText: YouTubeItemParser.text(from: owner["subscriberCountText"]),
-            thumbnailURL: YouTubeItemParser.thumbnailURL(fromThumbnail: owner["thumbnail"])
-        )
+        if let simple = dict["simpleText"] as? String {
+            return simple
+        }
+
+        if let content = dict["content"] as? String {
+            return content
+        }
+
+        if let runs = dict["runs"] as? [[String: Any]] {
+            let joined = ParsingHelpers.joinedRunText(runs)
+            return joined.isEmpty ? nil : joined
+        }
+
+        return nil
     }
 }

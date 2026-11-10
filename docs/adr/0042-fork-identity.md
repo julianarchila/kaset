@@ -40,6 +40,16 @@ Several upstream settings tied a fork build to the upstream app:
   supersedes ADR-0007.
 - "What's New" is removed, since the fork publishes no GitHub releases.
 - The fork does not track upstream. Fixes are cherry-picked when useful.
+- YouTube video mode removed. The fork is YouTube Music only: the video
+  source and its sidebar toggle, the YouTube client, video player and its
+  floating window, Ask Gemini, and the `YouTubeAskCore` target are gone. The
+  YouTube Music video window stays. This
+  supersedes ADR-0020, ADR-0022, and ADR-0032. Media keys, menus, and App
+  Intents always control the music player. `www.youtube.com/watch` and
+  `youtu.be` links play the video ID as a YouTube Music song. Mix tracklists
+  still read chapters and descriptions from regular YouTube's `next` endpoint
+  through the small `YouTubeWatchNextFetcher`, because the YouTube Music
+  `next` endpoint omits them.
 
 ## Consequences
 

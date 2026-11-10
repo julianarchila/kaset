@@ -133,12 +133,6 @@ final class NowPlayingManager {
     private var isAssertingNativeClaim = false
     @ObservationIgnored private var nowPlayingObservationGeneration: UInt64 = 0
 
-    /// YouTube video routing (optional; absent in music-only flows).
-    /// When the arbiter says the video source played last, play/pause/toggle
-    /// media keys control it instead of the music player. Guarded so music
-    /// behavior is identical when video routing is not configured/active.
-    private weak var youtubePlayerService: YouTubePlayerService?
-    private weak var playbackArbiter: PlaybackArbiter?
     private let settings = SettingsManager.shared
     private let remoteMusicCommandIngress = RemoteMusicCommandIngress()
     private static let defaultSkipInterval: TimeInterval = 15
@@ -162,33 +156,13 @@ final class NowPlayingManager {
         case claim(title: String, artist: String, playbackState: NativeClaimPlaybackState)
     }
 
-    struct ActiveVideoClaim: Equatable, Sendable {
-        let title: String
-        let artist: String
-        let playbackState: NativeClaimPlaybackState
-        let isPlaybackConfirmed: Bool
-    }
-
-    /// Pure decision: given the active source and its playback state, what claim do we want?
-    /// Confirmed playback stays hands-off so WebKit owns the rich Control Center card. A paused or
-    /// loading video keeps a minimal video claim until WebKit reports playback, while inactive music
-    /// keeps the equivalent music claim so the Play key resumes Kaset instead of Apple Music.
+    /// Pure decision: given the music player's state, what claim do we want?
+    /// Active playback stays hands-off so WebKit owns the rich Control Center card, while
+    /// inactive music keeps a minimal claim so the Play key resumes Kaset instead of Apple Music.
     nonisolated static func desiredClaim(
         state: PlayerService.PlaybackState,
-        track: (title: String, artist: String)?,
-        activeVideo: ActiveVideoClaim?
+        track: (title: String, artist: String)?
     ) -> NowPlayingClaim {
-        if let activeVideo {
-            guard activeVideo.isPlaybackConfirmed else {
-                return .claim(
-                    title: activeVideo.title,
-                    artist: activeVideo.artist,
-                    playbackState: activeVideo.playbackState
-                )
-            }
-            return .handsOff
-        }
-
         switch state {
         case .playing, .buffering, .loading:
             return .handsOff
@@ -204,11 +178,7 @@ final class NowPlayingManager {
         let track = player.currentTrack.map { song in
             (title: song.title, artist: song.artists.map(\.name).joined(separator: ", "))
         }
-        let claim = Self.desiredClaim(
-            state: player.state,
-            track: track,
-            activeVideo: self.activeVideoClaimInput
-        )
+        let claim = Self.desiredClaim(state: player.state, track: track)
         self.applyNowPlayingClaim(claim)
     }
 
@@ -253,33 +223,17 @@ final class NowPlayingManager {
         info?[MPNowPlayingInfoPropertyServiceIdentifier] as? String == self.nativeClaimServiceIdentifier
     }
 
-    /// Video metadata used for a native fallback until its WebView confirms active playback.
-    private var activeVideoClaimInput: ActiveVideoClaim? {
-        guard self.routesToYouTubeVideo,
-              let youtube = self.youtubePlayerService,
-              let video = youtube.currentVideo
-        else { return nil }
-
-        return ActiveVideoClaim(
-            title: video.title,
-            artist: video.channelName ?? "",
-            playbackState: youtube.isPlaying || youtube.isPlaybackLoading ? .playing : .paused,
-            isPlaybackConfirmed: youtube.isPlaying && !youtube.isPlaybackLoading
-        )
-    }
-
     /// Replaces the current one-shot observation loop with one that tracks the latest dependencies.
     private func restartNowPlayingObservation() {
         self.nowPlayingObservationGeneration &+= 1
         self.observePlaybackState(generation: self.nowPlayingObservationGeneration)
     }
 
-    /// Re-runs the claim whenever music state, track metadata, or active-video state changes.
+    /// Re-runs the claim whenever music state or track metadata changes.
     private func observePlaybackState(generation: UInt64) {
         withObservationTracking {
             _ = self.playerService?.state
             _ = self.playerService?.currentTrack
-            _ = self.activeVideoClaimInput
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self,
@@ -309,32 +263,6 @@ final class NowPlayingManager {
 
         self.updateNowPlayingClaim()
         self.restartNowPlayingObservation()
-    }
-
-    /// Registers the YouTube video player for media-key routing.
-    /// Additive: without this call (or when video is inactive), all commands
-    /// route to the music player exactly as before.
-    func configureYouTubeRouting(
-        youtubePlayerService: YouTubePlayerService,
-        arbiter: PlaybackArbiter
-    ) {
-        self.youtubePlayerService = youtubePlayerService
-        self.playbackArbiter = arbiter
-        self.restartNowPlayingObservation()
-        self.updateNowPlayingClaim()
-        self.logger.info("NowPlayingManager: YouTube video routing configured")
-    }
-
-    /// Whether play/pause media keys should control the YouTube video player.
-    private var routesToYouTubeVideo: Bool {
-        self.playbackArbiter?.routesMediaKeysToVideo == true
-    }
-
-    nonisolated static func routesAbsoluteSeekToVideo(
-        routesToYouTubeVideo: Bool,
-        hasYouTubePlayer: Bool
-    ) -> Bool {
-        routesToYouTubeVideo && hasYouTubePlayer
     }
 
     private func observeSettingsChanges() {
@@ -459,13 +387,13 @@ final class NowPlayingManager {
     }
 
     /// Admits a transport command from App Intents through the media-key ingress, so Shortcuts
-    /// and Siri control whichever source (music or video) the media keys would.
+    /// and Siri control the player the same way the media keys do.
     /// Returns false when there is nothing to control: before `configure(playerService:)`, or when
-    /// no video is routed and the music player has no track, pending load, or queue.
+    /// the music player has no track, pending load, or queue.
     @discardableResult
     func handleAppIntentCommand(_ payload: RemoteMusicCommandPayload) -> Bool {
         guard let player = self.playerService,
-              Self.hasTransportTarget(player: player, routesToYouTubeVideo: self.routesToYouTubeVideo)
+              Self.hasTransportTarget(player: player)
         else { return false }
         if self.remoteMusicCommandIngress.capture(payload) {
             self.drainRemoteMusicCommandIngress()
@@ -473,8 +401,8 @@ final class NowPlayingManager {
         return true
     }
 
-    static func hasTransportTarget(player: PlayerService, routesToYouTubeVideo: Bool) -> Bool {
-        routesToYouTubeVideo || player.currentTrack != nil || player.currentEpisode != nil
+    static func hasTransportTarget(player: PlayerService) -> Bool {
+        player.currentTrack != nil || player.currentEpisode != nil
             || player.pendingPlayVideoId != nil || !player.queueEntries.isEmpty
     }
 
@@ -496,29 +424,11 @@ final class NowPlayingManager {
     ) {
         switch capturedCommand.payload {
         case .play:
-            if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-                youtube.handleRemoteResume(
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-            } else {
-                self.enqueueMusicRemoteCommand(.play, capturedCommand: capturedCommand, player: player)
-            }
+            self.enqueueMusicRemoteCommand(.play, capturedCommand: capturedCommand, player: player)
         case .pause:
-            if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-                youtube.handleRemotePause(
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-            } else {
-                self.enqueueMusicRemoteCommand(.pause, capturedCommand: capturedCommand, player: player)
-            }
+            self.enqueueMusicRemoteCommand(.pause, capturedCommand: capturedCommand, player: player)
         case .togglePlayPause:
-            if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-                youtube.handleRemoteTogglePlayPause(
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-            } else {
-                self.enqueueMusicRemoteCommand(.togglePlayPause, capturedCommand: capturedCommand, player: player)
-            }
+            self.enqueueMusicRemoteCommand(.togglePlayPause, capturedCommand: capturedCommand, player: player)
         case let .nextPrevious(direction):
             self.handleNextPreviousMediaKey(
                 direction: direction,
@@ -532,15 +442,6 @@ final class NowPlayingManager {
                 player: player
             )
         case let .skip(interval, direction):
-            if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-                guard interval.isFinite else { return }
-                let delta = direction == .forward ? interval : -interval
-                youtube.handleRemoteSeek(
-                    to: max(0, youtube.progress + delta),
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-                return
-            }
             self.handleSkipCommand(
                 interval: interval,
                 direction: direction,
@@ -549,21 +450,11 @@ final class NowPlayingManager {
             )
         case let .absoluteSeek(position):
             guard position.isFinite else { return }
-            if Self.routesAbsoluteSeekToVideo(
-                routesToYouTubeVideo: self.routesToYouTubeVideo,
-                hasYouTubePlayer: self.youtubePlayerService != nil
-            ), let youtube = self.youtubePlayerService {
-                youtube.handleRemoteSeek(
-                    to: position,
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-            } else {
-                self.enqueueMusicRemoteCommand(
-                    .absoluteSeek(position: position),
-                    capturedCommand: capturedCommand,
-                    player: player
-                )
-            }
+            self.enqueueMusicRemoteCommand(
+                .absoluteSeek(position: position),
+                capturedCommand: capturedCommand,
+                player: player
+            )
         }
     }
 
@@ -581,15 +472,6 @@ final class NowPlayingManager {
             return
         }
 
-        if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-            let delta = direction == .forward ? Self.defaultSkipInterval : -Self.defaultSkipInterval
-            youtube.handleRemoteSeek(
-                to: max(0, youtube.progress + delta),
-                issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-            )
-            return
-        }
-
         self.handleSkipCommand(
             interval: Self.defaultSkipInterval,
             direction: direction,
@@ -598,27 +480,12 @@ final class NowPlayingManager {
         )
     }
 
-    /// Moves to the next or previous item of whichever source the media keys control.
+    /// Moves to the next or previous item.
     private func handleTrackChange(
         direction: RemoteMusicCommandDirection,
         capturedCommand: CapturedRemoteMusicCommand,
         player: PlayerService
     ) {
-        if self.routesToYouTubeVideo, let youtube = self.youtubePlayerService {
-            if direction == .forward {
-                Task { @MainActor in
-                    await youtube.handleRemoteSkipForward(
-                        issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                    )
-                }
-            } else {
-                youtube.handleRemoteSkipBackward(
-                    issuedAtMilliseconds: capturedCommand.issuedAtMilliseconds
-                )
-            }
-            return
-        }
-
         self.handleTrackNavigation(
             direction: direction,
             capturedCommand: capturedCommand,

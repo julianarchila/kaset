@@ -19,7 +19,7 @@ final class ScrobblingCoordinator {
     /// The offline scrobble queue.
     let queue: ScrobbleQueue
 
-    /// Optional mix-tracklist parser; requires a YouTubeClient that some contexts do not provide.
+    /// Optional mix-tracklist parser; requires a watch-next provider that some contexts do not provide.
     let mixTracklistParser: MixTracklistParser?
     let unknownDurationParseDelay: Duration
     let mixParseTimeout: Duration

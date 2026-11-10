@@ -8,10 +8,10 @@ struct MixTracklistParserCancellationTests {
     @Test("Cancelling one coalesced waiter preserves the shared parse")
     func cancellingOneCoalescedWaiterPreservesSharedParse() async {
         let gate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = Self.makeChapterTracklistData(videoId: "one-waiter")
         mockYouTube.beforeWatchNextReturn = { _ in await gate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
         var firstReturned = false
 
         let first = Task { @MainActor in
@@ -53,7 +53,7 @@ struct MixTracklistParserCancellationTests {
         let staleGate = AsyncGate()
         let staleDidResume = AsyncGate()
         let replacementGate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = Self.makeChapterTracklistData(videoId: "all-waiters")
         mockYouTube.beforeWatchNextReturnByCallCount = { callCount in
             if callCount == 1 {
@@ -63,7 +63,7 @@ struct MixTracklistParserCancellationTests {
                 await replacementGate.wait()
             }
         }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
         var firstReturned = false
         var secondReturned = false
         var secondStarted = false
@@ -140,7 +140,7 @@ struct MixTracklistParserCancellationTests {
     func immediateRetryPrunesSynchronouslyCancelledSoleWaiter() async {
         let staleGate = AsyncGate()
         let replacementGate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = Self.makeChapterTracklistData(videoId: "immediate-retry")
         mockYouTube.beforeWatchNextReturnByCallCount = { callCount in
             if callCount == 1 {
@@ -149,7 +149,7 @@ struct MixTracklistParserCancellationTests {
                 await replacementGate.wait()
             }
         }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let first = Task { @MainActor in
             await parser.parseTracklist(videoId: "immediate-retry")
@@ -181,18 +181,12 @@ struct MixTracklistParserCancellationTests {
     private static func makeChapterTracklistData(videoId: String) -> WatchNextData {
         WatchNextData(
             videoTitle: "Cancellation Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: (0 ..< 3).map { index in
                 YouTubeChapter(
                     videoId: videoId,
                     title: "Artist \(index) - Track \(index)",
                     startTime: TimeInterval(index) * 600,
-                    endTime: TimeInterval(index + 1) * 600,
-                    timeText: nil,
-                    thumbnailURL: nil
+                    endTime: TimeInterval(index + 1) * 600
                 )
             }
         )

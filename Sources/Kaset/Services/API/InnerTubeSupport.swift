@@ -1,11 +1,10 @@
 import CryptoKit
 import Foundation
 
-/// Pure helpers shared by Kaset's InnerTube clients (YouTube Music and YouTube).
+/// Pure helpers shared by Kaset's InnerTube requests.
 ///
 /// Kept deliberately small: `YTMusicClient` is not refactored onto this to
-/// avoid touching the proven music path; `YouTubeClient` composes these from
-/// day one.
+/// avoid touching the proven music path; `YouTubeWatchNextFetcher` uses it.
 enum InnerTubeSupport {
     /// Computes the `SAPISIDHASH` authorization value for an InnerTube request.
     ///

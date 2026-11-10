@@ -1,6 +1,6 @@
 # Architecture & Services
 
-This document provides detailed information about Kaset's architecture, services, and design patterns. Kaset now has two parallel content sources over the same Google login: YouTube Music (`.music`, default) and regular YouTube (`.video`). Shared infrastructure handles auth, settings, caching, images, and media keys; source-specific clients, models, parsers, view models, and playback WebViews keep the two experiences isolated.
+This document provides detailed information about Kaset's architecture, services, and design patterns. This fork is a YouTube Music client only; the upstream regular-YouTube video mode was removed (see [ADR-0042](adr/0042-fork-identity.md)).
 
 ## Core Structure
 
@@ -13,20 +13,19 @@ Sources/
       ├── AppDelegate.swift → Window lifecycle
       ├── Models/       → Data types (Song, Playlist, Album, Artist, etc.)
       ├── Services/     → Business logic
-      │   ├── API/      → YTMusicClient, YouTubeClient, Parsers/
+      │   ├── API/      → YTMusicClient, YouTubeWatchNextFetcher (mix chapters), Parsers/
       │   ├── Audio/    → EqualizerService, EqualizerAudioEngine, ProcessTapHelper, BiquadFilter
       │   ├── Auth/     → AuthService (login state machine)
       │   ├── Library/  → Library identity and optimistic reconciliation modules
-      │   ├── Player/   → PlayerService, YouTubePlayerService, PlaybackArbiter, NowPlayingManager, queue metadata and album playback actions
+      │   ├── Player/   → PlayerService, NowPlayingManager, queue metadata and album playback actions
       │   ├── Scripting/→ ScriptCommands (AppleScript integration)
       │   ├── WebKit/   → WebKitManager (cookie persistence)
       │   └── HapticService.swift → Force Touch trackpad haptic feedback
-      ├── ViewModels/   → State management (music view models plus YouTube/ video-source view models)
+      ├── ViewModels/   → State management
       ├── Utilities/    → Helpers (DiagnosticsLogger, extensions)
-      └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, YouTube views, etc.)
+      └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, etc.)
   ├── APIExplorer/      → API explorer CLI tool
-  └── YouTubeAskCore/   → Foundation-only Ask wire decoding, strict parsing, sanitization, and request construction
-Tests/                  → Unit tests (`KasetTests/` and isolated `YouTubeAskCoreTests/`)
+Tests/                  → Unit tests (`KasetTests/`, `APIExplorerTests/`)
 docs/                   → Documentation
   └── adr/              → Architecture Decision Records
 ```
@@ -40,9 +39,6 @@ All major services have protocol definitions for testability:
 protocol YTMusicClientProtocol: Sendable { ... }
 protocol AuthServiceProtocol { ... }
 protocol PlayerServiceProtocol { ... }
-
-// Sources/Kaset/Services/YouTubeProtocols.swift
-protocol YouTubeClientProtocol: Sendable { ... }
 ```
 
 ViewModels accept protocols via dependency injection with default implementations:
@@ -58,8 +54,6 @@ final class HomeViewModel {
 }
 ```
 
-YouTube view models follow the same pattern with `YouTubeClientProtocol` and live under `Sources/Kaset/ViewModels/YouTube/`. `YouTubeViewModelStore` keeps the YouTube navigation stack and view-model caches warm while the user switches back to Music. Watch-scoped Ask state is deliberately excluded from that store: `YouTubeWatchViewModel` owns a child `YouTubeAskViewModel`, so opaque conversation state cannot survive route destruction or a source/account boundary.
-
 ## State Management
 
 - **Source of Truth**: Services are `@MainActor @Observable` singletons
@@ -69,10 +63,6 @@ YouTube view models follow the same pattern with `YouTubeClientProtocol` and liv
 ### Library State Reconciliation
 
 `LibraryViewModel` owns observable Library UI state, while `LibraryContentReconciler` owns optimistic add/remove reconciliation for eventually-consistent YouTube Music Library responses. `LibraryMutationActions` owns mutation orchestration: calling YouTube Music, invalidating stale caches, applying optimistic state, and scheduling delayed reconciliation when backend snapshots lag. This keeps pending mutation stabilization rules behind small Library interfaces instead of spreading them across view models and action helpers.
-
-### YouTube Ask State Boundary
-
-Ask Gemini uses a route-owned, memory-only state machine. Visible messages and local suggestion IDs are separated from opaque server commands. The canonical eligible `next` panel may supply the opaque free-text command directly. When it does not, the client may send the prompt-free initial `get_panel` continuation and accept a confirmed materialized command; if both stages provide commands, they must match exactly. One action consumes each bound conversation revision. A successful response advances the revision and retains the validated composer command unless YouTube supplies a replacement; uncertain failures discard it and require New Chat. Continuation and click-tracking values are never exposed to the UI. Hidden state is bound to the video ID, authentication generation, confirmed primary-account scope, local conversation ID, and revision. Navigation away, source/account/authentication changes, cancellation, or view-model destruction invalidates the operation and discards both visible and opaque conversation state. Nothing is written to `APICache`, UserDefaults, Keychain, navigation restoration, telemetry, or logs. See [ADR-0032](adr/0032-youtube-ask-gemini.md).
 
 ## Key Services
 
@@ -148,30 +138,11 @@ Makes authenticated requests to YouTube Music's internal API:
 - `addSongToPlaylist(videoId:playlistId:allowDuplicate:)` → Add one song to an existing playlist via `browse/edit_playlist`
 - `createPlaylist(title:description:privacyStatus:videoIds:)` → Create a playlist and optionally seed it with songs
 
-### YouTubeClient
+### YouTubeWatchNextFetcher
 
-**File**: `Sources/Kaset/Services/API/YouTubeClient.swift`
+**File**: `Sources/Kaset/Services/API/YouTubeWatchNextFetcher.swift`
 
-Makes authenticated requests to regular YouTube's internal InnerTube API. It deliberately mirrors `YTMusicClient`'s scaffolding while keeping the origin, client identity, models, and parsers separate:
-
-- Uses `https://www.youtube.com` for `SAPISIDHASH`, `Origin`, `Referer`, and `X-Origin`
-- Uses the `WEB` InnerTube client instead of YouTube Music's `WEB_REMIX`
-- Prefixes shared `APICache` keys with `yt:` so video-source entries do not collide with Music cache invalidation
-- Delegates normal response parsing to YouTube-specific parsers under `Services/API/Parsers/YouTube/`
-- Routes Ask Gemini through an isolated bounded, same-origin, no-cache, no-automatic-retry transport backed by `YouTubeAskCore`; generic YouTube request behavior is unchanged
-
-**Endpoints / surfaces**:
-- `getHomeBundle()` / `getHomeFeed()` → Recommendations, chips, shelves, and pagination
-- `search(query:filter:)` → Videos, channels, and playlists
-- `getWatchNext(videoId:)` → Watch metadata, related videos, channel state, and comment continuation for playback/scrobbling callers
-- `getWatchPage(videoId:)` → The same watch data plus an optional strictly parsed Ask bootstrap from one `next` request
-- `loadAskConversation(from:)`, `continueAskConversation(_:selecting:)` → Initial Ask panel and exact server-issued chip continuations through `get_panel`
-- `getComments(continuation:)`, `postComment(...)`, `performCommentAction(...)` → Watch-page comments
-- `getChannel(channelId:)`, `getPlaylist(playlistId:)`, `getDestinationFeed(_:)`, `getShorts()` → Browse surfaces
-- `getSubscriptionsFeed()`, `getSubscribedChannels()`, `getHistory(forceRefresh:)`, `getUserPlaylists()` → Signed-in YouTube surfaces
-- `rateVideo(...)`, `setSubscribed(...)`, `addToWatchLater(...)`, `removeFromWatchLater(...)` → Mutations
-
-Ask operations require a signed-in primary account. The production app explicitly selects the fixed WEB request profile; strict parser, identity, and transport failures still fail closed per conversation. See [youtube.md](youtube.md) for the product surface, [ADR-0032](adr/0032-youtube-ask-gemini.md) for the activation decision, and the [API discovery record](api-discovery.md#youtube-ask-gemini--youchat-investigation-2026-07-27) for wire-level observations.
+The only request the app sends to regular YouTube (`www.youtube.com/youtubei/v1/next`, `WEB` client). The YouTube Music `next` endpoint omits chapters and the video description, so `MixTracklistParser` reads them here to build seek-bar segments and per-track scrobbles for long mixes. It uses the `www.youtube.com` origin for `SAPISIDHASH`, `Origin`, `Referer`, and `X-Origin`, and does not cache responses. `WatchNextParser` extracts the title, chapters, and description.
 
 ### API Parsers
 
@@ -192,11 +163,9 @@ Response parsing is extracted into specialized modules:
 | `RadioQueueParser.swift` | Radio queue from "next" endpoint |
 | `SongMetadataParser.swift` | Full song metadata with feedback tokens |
 | `LyricsParser.swift` | Lyrics extraction |
-| `YouTube/` | Regular YouTube feed, search, watch-next, comments, channel, playlist, guide, and renderer parsers |
+| `WatchNextParser.swift` | Title, chapters, and description from regular YouTube's `next` response (mix tracklists) |
 
-`YouTubeAskCore` is a separate Foundation-only target rather than another recursive app parser. It owns the bounded JSON/XSSI/NDJSON/length-prefixed wire decoder, strict YouChat bootstrap/chip/message parser, visible-text sanitizer, opaque command carrier, and direct-chip request builder. The app and API Explorer consume the same package-scoped contract; API Explorer-only reporting and live-action confirmation stay outside the core.
-
-**Design**: Static enum-based parsers with pure functions for testability. Ask parsing is schema-directed and fail-closed rather than broad recursive discovery.
+**Design**: Static enum-based parsers with pure functions for testability.
 
 ### Queue Song Metadata and Album Playback
 
@@ -254,28 +223,6 @@ final class SingletonPlayerWebView {
 }
 ```
 
-### YouTubePlayerService and YouTubeWatchWebView
-
-**Files**:
-- `Sources/Kaset/Services/Player/YouTubePlayerService.swift`
-- `Sources/Kaset/Views/YouTube/YouTubeWatchWebView.swift`
-
-Control regular YouTube video playback through a separate singleton watch WebView. The WebView loads `www.youtube.com/watch?v={videoId}`, extracts the video surface for inline/floating presentation, and reports playback state, captions, quality, ad state, and timing back to Swift.
-
-`YouTubePlayerService.surfaceLocation` tracks where the extracted video currently lives:
-
-| Surface | Description |
-|---------|-------------|
-| `.inline` | Docked in `YouTubeWatchView` |
-| `.floating` | Hosted by `YouTubeVideoWindowController` |
-| `.none` | No active YouTube playback surface |
-
-### PlaybackArbiter
-
-**File**: `Sources/Kaset/Services/Player/PlaybackArbiter.swift`
-
-Coordinates the two playback services so Music and YouTube do not play over each other. When one source starts, the arbiter pauses the other source; `NowPlayingManager` uses the arbiter's active/last-played source to route media keys.
-
 ### NowPlayingManager
 
 **File**: `Sources/Kaset/Services/Player/NowPlayingManager.swift`
@@ -284,10 +231,10 @@ Remote command center integration for media key support:
 
 - Registers `MPRemoteCommandCenter` handlers
 - Handles media keys (play/pause, next, previous, seek)
-- Routes commands to `PlayerService` / `YouTubePlayerService` based on the active source
+- Routes commands to `PlayerService`
 - Admits App Intents transport commands through the same ingress (`handleAppIntentCommand`)
 
-**Note**: Now Playing display (track/video info, artwork) is handled natively by WKWebView's Media Session API. This provides better integration with YouTube Music artwork and regular YouTube video metadata.
+**Note**: Now Playing display (track info, artwork) is handled natively by WKWebView's Media Session API, which integrates YouTube Music artwork.
 
 ### HapticService
 
@@ -382,12 +329,9 @@ Manages user preferences persisted via `UserDefaults`:
 |---------|------|---------|-------------|
 | `showNowPlayingNotifications` | `Bool` | `true` | Track change notifications |
 | `defaultLaunchPage` | `LaunchPage` | `.home` | Initial page on app launch |
-| `appSource` | `AppSource` | `.music` | Active source toggle (`.music` for YouTube Music, `.video` for regular YouTube) |
 | `hapticFeedbackEnabled` | `Bool` | `true` | Force Touch feedback |
 | `rememberPlaybackSettings` | `Bool` | `false` | Persist shuffle/repeat state |
 | `syncedLyricsEnabled` | `Bool` | `true` | Enable synced lyrics provider lookup before plain lyrics fallback |
-| `popOutVideoOnNavigateAway` | `Bool` | `true` | Pop a playing YouTube video into the floating window when navigating away; when off, playback stops |
-| `showYouTubeControlsOnVideo` | `Bool` | `false` | Overlay the YouTube player bar on the docked watch-page video (auto-hiding while playing) instead of the bottom bar; other YouTube pages except Shorts drop the bottom bar |
 
 **Music LaunchPage Options**: Home, Explore, Charts, Moods & Genres, New Releases, Liked Music, Playlists, Last Used
 
@@ -474,7 +418,7 @@ Caches and syncs like/dislike status for songs:
 
 **File**: `Sources/Kaset/Services/URLHandler.swift`
 
-Parses YouTube Music URLs, regular YouTube watch links, and custom `kasetfork://` URLs:
+Parses YouTube Music URLs, regular YouTube watch links (played as songs), and custom `kasetfork://` URLs:
 
 | URL Pattern | ParsedContent |
 |-------------|---------------|
@@ -482,14 +426,14 @@ Parses YouTube Music URLs, regular YouTube watch links, and custom `kasetfork://
 | `music.youtube.com/playlist?list=xxx` | `.playlist(id:)` |
 | `music.youtube.com/browse/MPRExxx` | `.album(id:)` |
 | `music.youtube.com/channel/UCxxx` | `.artist(id:)` |
-| `youtube.com/watch?v=xxx` | `.youtubeVideo(videoId:)` |
-| `youtu.be/xxx` | `.youtubeVideo(videoId:)` |
+| `youtube.com/watch?v=xxx` | `.song(videoId:)` |
+| `youtu.be/xxx` | `.song(videoId:)` |
 | `kasetfork://play?v=xxx` | `.song(videoId:)` |
 | `kasetfork://playlist?list=xxx` | `.playlist(id:)` |
 | `kasetfork://album?id=xxx` | `.album(id:)` |
 | `kasetfork://artist?id=xxx` | `.artist(id:)` |
 
-**Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.kasetOpenURLs` for `KasetApp.handleIncomingURL` to parse and route. Music song links play through `PlayerService`; regular YouTube watch links switch to the YouTube source and open playback in the floating video window.
+**Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.kasetOpenURLs` for `KasetApp.handleIncomingURL` to parse and route. Song links, including regular YouTube watch links, play through `PlayerService`.
 
 ### ScriptCommands (AppleScript)
 
@@ -604,7 +548,7 @@ App Launch
 
 ## API Request Flow
 
-The Music and YouTube API clients share the same high-level request shape but use different origins and InnerTube client identities. The Music path looks like this:
+The YouTube Music request path looks like this:
 
 ```
 YTMusicClient.getHome()
@@ -631,21 +575,9 @@ YTMusicClient.getHome()
                   → Show LoginSheet
 ```
 
-`YouTubeClient` follows the same cookie/SAPISIDHASH flow with `https://www.youtube.com`, the `WEB` client context, and `yt:`-prefixed cache keys.
-
-The optional Ask path begins with the watch page's existing `next` request. A
-strict parser may return an account- and video-bound bootstrap; it never treats
-HTTP 200 alone as eligibility. Initial preparation and direct server-chip
-submission use the Ask-specific transport, whose response collection and frame
-sizes are bounded and whose redirects must remain same-origin. Panel calls are
-not cached or automatically retried. Only sanitized visible messages leave the
-Ask domain layer, while continuations and commands remain opaque in memory.
-Production calls are disabled until a request profile passes the read-only
-parity gate described in [ADR-0032](adr/0032-youtube-ask-gemini.md).
+`YouTubeWatchNextFetcher` follows the same cookie/SAPISIDHASH flow with `https://www.youtube.com` and the `WEB` client context.
 
 ## Playback Flow
-
-This diagram covers YouTube Music playback. Regular YouTube playback is documented in [youtube.md](youtube.md) and uses `YouTubePlayerService` plus `YouTubeWatchWebView`.
 
 ```
 User clicks Play
@@ -942,7 +874,7 @@ PlayerBarTimelineLane(seekController: seekController, segments: segments, accent
 }
 ```
 
-- `PlayerBarTimelineLane`, `MiniPlayerSeekSection`, and `YouTubePlayerBarTimelineLane` are the only player views that read progress. Don't add progress reads to `PlayerBar`, `MiniPlayerWindow`, or `YouTubePlayerBar`.
+- `PlayerBarTimelineLane` and `MiniPlayerSeekSection` are the only player views that read progress. Don't add progress reads to `PlayerBar` or `MiniPlayerWindow`.
 - Compute values that don't depend on progress, such as mix segments, in the parent and pass them in.
 - Cache formatted time strings and rebuild them only when the displayed second changes (`PlayerBarSeekController.progressDidChange`).
 - On an `@Observable` class, calling a mutating method on a stored struct notifies observers even when nothing changes. On per-tick paths, mutate a copy and assign it back only if it differs (see `PlayerBarSeekController.reconcileHold`).
@@ -966,12 +898,6 @@ Cancel async work when views disappear or inputs change:
     loadTask?.cancel()
 }
 ```
-
-For Ask Gemini, cancellation is also an identity boundary. The child view model
-owns preparation, submission, and New Chat tasks; canceling the watch route
-increments its operation generation and discards every opaque command. A late
-response must validate the captured video, authentication generation,
-primary-account scope, conversation ID, and revision before publishing.
 
 ### Memory Management
 

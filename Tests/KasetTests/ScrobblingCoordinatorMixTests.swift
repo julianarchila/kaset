@@ -21,10 +21,6 @@ struct ScrobblingCoordinatorMixTests {
     private func makeWatchNextData(chapters: [YouTubeChapter]) -> WatchNextData {
         WatchNextData(
             videoTitle: "Long Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: chapters
         )
     }
@@ -39,9 +35,7 @@ struct ScrobblingCoordinatorMixTests {
                 videoId: videoId,
                 title: "Artist \(index) - Track \(index)",
                 startTime: TimeInterval(index) * entryDuration,
-                endTime: TimeInterval(index + 1) * entryDuration,
-                timeText: nil,
-                thumbnailURL: nil
+                endTime: TimeInterval(index + 1) * entryDuration
             )
         }
     }
@@ -64,11 +58,11 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(
             chapters: self.makeMixChapters(entryDuration: 100)
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -132,11 +126,11 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(
             chapters: self.makeMixChapters(videoId: "short1", entryDuration: 100)
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -173,11 +167,11 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(
             chapters: self.makeMixChapters(videoId: "short1", entryDuration: 100)
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -239,9 +233,9 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = .empty
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -291,9 +285,9 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = .empty
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -333,10 +327,10 @@ struct ScrobblingCoordinatorMixTests {
         defer { self.cleanupDirectory(dir) }
 
         let parseGate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: self.makeMixChapters())
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -384,11 +378,11 @@ struct ScrobblingCoordinatorMixTests {
         let dir = try self.makeTemporaryDirectory()
         defer { self.cleanupDirectory(dir) }
 
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(
             chapters: self.makeMixChapters(videoId: "short1", entryDuration: 100)
         )
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
         let settings = MockScrobblingSettings()
@@ -437,10 +431,10 @@ struct ScrobblingCoordinatorMixTests {
         defer { self.cleanupDirectory(dir) }
 
         let parseGate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: self.makeMixChapters())
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -486,14 +480,14 @@ struct ScrobblingCoordinatorMixTests {
 
         let parseGate = AsyncGate()
         let chapters = [
-            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300, timeText: nil, thumbnailURL: nil),
+            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100),
+            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200),
+            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300),
         ]
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: chapters)
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -554,10 +548,10 @@ struct ScrobblingCoordinatorMixTests {
         defer { self.cleanupDirectory(dir) }
 
         let parseGate = AsyncGate()
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = .empty
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -618,14 +612,14 @@ struct ScrobblingCoordinatorMixTests {
 
         let parseGate = AsyncGate()
         let chapters = [
-            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300, timeText: nil, thumbnailURL: nil),
+            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100),
+            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200),
+            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300),
         ]
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: chapters)
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -678,14 +672,14 @@ struct ScrobblingCoordinatorMixTests {
 
         let parseGate = AsyncGate()
         let chapters = [
-            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300, timeText: nil, thumbnailURL: nil),
+            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100),
+            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200),
+            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300),
         ]
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: chapters)
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")
@@ -748,14 +742,14 @@ struct ScrobblingCoordinatorMixTests {
 
         let parseGate = AsyncGate()
         let chapters = [
-            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200, timeText: nil, thumbnailURL: nil),
-            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300, timeText: nil, thumbnailURL: nil),
+            YouTubeChapter(videoId: "mix1", title: "Artist 0 - Track 0", startTime: 0, endTime: 100),
+            YouTubeChapter(videoId: "mix1", title: "Artist 1 - Track 1", startTime: 100, endTime: 200),
+            YouTubeChapter(videoId: "mix1", title: "Artist 2 - Track 2", startTime: 200, endTime: 300),
         ]
-        let mockYouTube = MockYouTubeClient()
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: chapters)
         mockYouTube.beforeWatchNextReturn = { _ in await parseGate.wait() }
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
 
         let mockService = MockScrobbleService()
         mockService.authState = .connected(username: "testuser")

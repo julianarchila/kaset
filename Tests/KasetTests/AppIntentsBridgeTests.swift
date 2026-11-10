@@ -137,16 +137,15 @@ struct AppIntentsBridgeTests {
     @Test("Media keys only accept intent commands when there is something to control")
     func transportTargetRequiresMedia() {
         let empty = PlayerService()
-        #expect(!NowPlayingManager.hasTransportTarget(player: empty, routesToYouTubeVideo: false))
-        #expect(NowPlayingManager.hasTransportTarget(player: empty, routesToYouTubeVideo: true))
+        #expect(!NowPlayingManager.hasTransportTarget(player: empty))
 
         let loaded = PlayerService()
         loaded.currentTrack = TestFixtures.makeSong(id: "loaded")
-        #expect(NowPlayingManager.hasTransportTarget(player: loaded, routesToYouTubeVideo: false))
+        #expect(NowPlayingManager.hasTransportTarget(player: loaded))
 
         let restored = PlayerService()
         restored.pendingPlayVideoId = "restored"
-        #expect(NowPlayingManager.hasTransportTarget(player: restored, routesToYouTubeVideo: false))
+        #expect(NowPlayingManager.hasTransportTarget(player: restored))
     }
 
     // MARK: - Rating

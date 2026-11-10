@@ -14,11 +14,6 @@
 //    action <endpoint> <body>      - Explore a JSON action endpoint (body as JSON)
 //    wire-action <endpoint> <body> - Safely inspect JSON, streaming, or opaque responses
 //    discover <endpoint> <body>    - Inspect and follow read-only navigation, with values redacted
-//    ask-video-audit <videoId>     - Audit YouTube Ask Gemini / YouChat API surfaces
-//    ask-video-parity <videoId>    - Compare read-only Ask request profiles
-//    ask-video-live-test <videoId> - Replay server-issued summary/follow-up suggestions
-//    ask-video-free-text-test <videoId>
-//                                  - Guarded one-shot free-text validation
 //    search-audit <query>          - Audit live YouTube Music search shapes and filters
 //    continuation <token> [ep]     - Explore a continuation (ep: browse, search, or next)
 //    analyze-file <path>           - Safely summarize a saved JSON response
@@ -30,10 +25,6 @@
 //    -v, --verbose                 - Show raw JSON or expand audits; discover/queue-probe stay redacted
 //    -o, --output <file>           - Save mode-0600 output; discover/queue-probe stay redacted
 //    --client-version <version>    - Override the resolved InnerTube client version
-//    --confirm-live-ai             - Required acknowledgement for live AI requests
-//    --prompt-file <path|->         - Read a private free-text prompt from a mode-0600 file or stdin
-//    --fresh-chats N               - Run 1-3 independent summary chats
-//    --follow-up                   - Replay one server-issued follow-up suggestion
 //    --youtube, --yt               - Target regular YouTube (www.youtube.com, WEB client)
 //                                    instead of YouTube Music
 //    --ios-music, --android-music  - Use a mobile Music request profile with discover
@@ -48,9 +39,6 @@
 //    swift run api-explorer browse FEmusic_charts
 //    swift run api-explorer browse FEmusic_liked_playlists   # Requires auth
 //    swift run api-explorer action search '{"query":"never gonna give you up"}'
-//    swift run api-explorer ask-video-parity <VIDEO_ID>
-//    swift run api-explorer ask-video-live-test <VIDEO_ID> --confirm-live-ai --follow-up
-//    swift run api-explorer ask-video-free-text-test <VIDEO_ID> --confirm-live-ai --prompt-file -
 //    swift run api-explorer continuation <token> next        # Mix queue continuation
 //    swift run api-explorer auth
 //    swift run api-explorer list
@@ -2674,6 +2662,25 @@ func requiresRedactedWireInspection(_ endpoint: String) -> Bool {
     endpoint == "next" || requiresPrivateBodySource(endpoint)
 }
 
+/// Summarizes a wire response without printing any decoded values: status,
+/// content type, size, and (for JSON objects) the sorted top-level keys.
+func wireResponseAuditSummary(data: Data, statusCode: Int, contentType: String?) -> String {
+    var lines = [
+        "Status: \(statusCode)",
+        "Content-Type: \(contentType ?? "unknown")",
+        "Bytes: \(data.count)",
+    ]
+    if let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+        lines.append("Format: JSON object")
+        lines.append("Top-level keys: \(object.keys.sorted().joined(separator: ", "))")
+    } else if (try? JSONSerialization.jsonObject(with: data)) != nil {
+        lines.append("Format: JSON (non-object)")
+    } else {
+        lines.append("Format: non-JSON or streaming payload")
+    }
+    return lines.joined(separator: "\n")
+}
+
 func exploreWireAction(
     _ endpoint: String, bodyJson: String, outputFile: String? = nil
 ) async {
@@ -3884,8 +3891,6 @@ func listEndpoints() {
         streaming_panel               Chunked engagement-panel response transport
         get_watch                     Combined player + watch-next bootstrap transport
 
-        Audit a video:                swift run api-explorer ask-video-audit <VIDEO_ID>
-        Compare Ask request profiles: swift run api-explorer ask-video-parity <VIDEO_ID>
         Inspect wire format:          swift run api-explorer --youtube wire-action <ep> '{}'
         Discover read-only routes:    swift run api-explorer discover help
         Signed-in Library filters:   swift run api-explorer discover browse '{"browseId":"FEmusic_library_landing"}'
@@ -3923,11 +3928,6 @@ func showHelp() {
           action <endpoint> [body]       Explore a JSON action endpoint
           wire-action <endpoint> [body]  Safely inspect JSON, streaming, or opaque responses
           discover <endpoint> [body]     Inspect read-only navigation, filters, and response shapes
-          ask-video-audit <videoId>      Audit Ask Gemini / YouChat without sending a prompt
-          ask-video-parity <videoId>     Compare ordered read-only Ask request profiles
-          ask-video-live-test <videoId>  Replay the server-issued summary suggestion
-          ask-video-free-text-test <videoId>
-                                         Validate one server-commanded free-text request
           search-audit <query>           Audit live Music search shapes, filters, and continuations
           continuation <token> [ep]      Explore a continuation (ep: 'browse', 'search', or 'next')
           queue-probe <videoId> [playlistId]
@@ -3949,10 +3949,6 @@ func showHelp() {
           -v, --verbose                  Show raw JSON or expand audits; discover/queue-probe stay redacted
           -o, --output <file>            Save mode-0600 output; discover/queue-probe stay redacted
           --body-file <path|->           Read a sensitive JSON body from a chmod-600 file or stdin
-          --prompt-file <path|->         Read a private prompt from a mode-0600 file or stdin
-          --confirm-live-ai              Required acknowledgement for live Ask commands
-          --fresh-chats N                Run 1-3 independent summary chats (default: 1)
-          --follow-up                    Replay the first server-issued follow-up suggestion
           --follow <index>               Follow a numbered discover entry, repeat up to 5 times
           --limit N                      Show 1-500 discover entries (default: 40)
           --authuser N                   Use Google account at index N (for multi-account)
@@ -3981,10 +3977,6 @@ func showHelp() {
           swift run api-explorer --youtube --guest action search '{"query":"swift concurrency"}'
           swift run api-explorer --youtube action next '{"videoId":"dQw4w9WgXcQ"}'
           swift run api-explorer --youtube action guide '{}'          # Sidebar + subscriptions list
-          swift run api-explorer ask-video-audit dQw4w9WgXcQ          # Redacted AI audit
-          swift run api-explorer ask-video-parity dQw4w9WgXcQ         # Read-only profile matrix
-          swift run api-explorer ask-video-live-test dQw4w9WgXcQ --confirm-live-ai --follow-up
-          swift run api-explorer ask-video-free-text-test dQw4w9WgXcQ --confirm-live-ai --prompt-file -
           swift run api-explorer --youtube wire-action get_watch '{"playerRequest":{"videoId":"dQw4w9WgXcQ"},"watchNextRequest":{"videoId":"dQw4w9WgXcQ"}}'
           swift run api-explorer --youtube wire-action streaming_panel --body-file /path/to/private-body.json
 
@@ -4072,12 +4064,8 @@ private func commandLineOptionValue(
 func runMain() async {
     let args = Array(CommandLine.arguments.dropFirst())
     var verbose = false
-    var confirmLiveAI = false
-    var includeAskFollowUp = false
-    var freshChatCount = 1
     var outputFile: String?
     var bodyFile: String?
-    var promptFile: String?
     var discoveryFollowIndices: [Int] = []
     var discoveryLimit = 40
     var discoveryLimitWasSpecified = false
@@ -4114,10 +4102,6 @@ func runMain() async {
             index += 1
         case "--no-auth", "--guest":
             forceUnauthenticatedRequests = true
-        case "--confirm-live-ai":
-            confirmLiveAI = true
-        case "--follow-up":
-            includeAskFollowUp = true
         case "--follow":
             guard let rawValue = commandLineOptionValue(after: index, in: args),
                   let value = Int(rawValue), value >= 0,
@@ -4160,17 +4144,6 @@ func runMain() async {
             }
             index += 1
             bodyFile = value
-        case "--prompt-file":
-            guard let value = commandLineOptionValue(
-                after: index,
-                in: args,
-                allowSingleDash: true
-            ) else {
-                print("❌ --prompt-file requires a path or -")
-                return
-            }
-            index += 1
-            promptFile = value
         case "--authuser":
             guard let rawValue = commandLineOptionValue(after: index, in: args),
                   let value = Int(rawValue),
@@ -4214,16 +4187,6 @@ func runMain() async {
             }
             cachedClientVersion = value
             clientVersionWasForced = true
-        case "--fresh-chats":
-            guard let rawValue = commandLineOptionValue(after: index, in: args),
-                  let value = Int(rawValue),
-                  (1 ... 3).contains(value)
-            else {
-                print("❌ --fresh-chats requires an integer between 1 and 3")
-                return
-            }
-            index += 1
-            freshChatCount = value
         case "--":
             filteredArgs.append(contentsOf: args.dropFirst(index + 1))
             index = args.count
@@ -4236,10 +4199,6 @@ func runMain() async {
 
     guard let command = filteredArgs.first else {
         showHelp()
-        return
-    }
-    guard promptFile == nil || command == "ask-video-free-text-test" else {
-        print("❌ --prompt-file is supported only by ask-video-free-text-test")
         return
     }
     guard command == "discover" || (discoveryFollowIndices.isEmpty && !discoveryLimitWasSpecified) else {
@@ -4352,94 +4311,6 @@ func runMain() async {
             )
         } catch {
             print("❌ \(error.localizedDescription)")
-        }
-
-    case "ask-video-audit":
-        guard filteredArgs.count >= 2 else {
-            print("❌ Usage: ask-video-audit <videoId>")
-            return
-        }
-        if outputFile != nil {
-            print("⚠️ --output is ignored by ask-video-audit; the audit never saves raw payloads")
-        }
-        await auditAskVideo(filteredArgs[1], verbose: verbose)
-
-    case "ask-video-parity":
-        guard filteredArgs.count >= 2 else {
-            print("❌ Usage: ask-video-parity <videoId>")
-            return
-        }
-        await auditAskVideoRequestParity(
-            filteredArgs[1],
-            hasUnsupportedOptions: filteredArgs.count != 2
-                || outputFile != nil
-                || bodyFile != nil
-                || clientVersionWasForced
-                || includeAskFollowUp
-                || freshChatCount != 1
-        )
-
-    case "ask-video-live-test":
-        guard filteredArgs.count == 2 else {
-            print("❌ Usage: ask-video-live-test <videoId> --confirm-live-ai [--follow-up] [--fresh-chats N]")
-            return
-        }
-        guard confirmLiveAI else {
-            print("❌ ask-video-live-test requires --confirm-live-ai")
-            print("   This command sends the server-issued summary suggestion to YouTube.")
-            return
-        }
-        guard outputFile == nil,
-              bodyFile == nil,
-              !clientVersionWasForced,
-              !forceUnauthenticatedRequests,
-              !authUserOptionWasSpecified,
-              globalBrandAccountId == nil
-        else {
-            print("❌ ask-video-live-test received an unsupported authentication, client, or file option")
-            print("   Supported options: --confirm-live-ai, --follow-up, --fresh-chats N, --verbose")
-            return
-        }
-        await liveTestAskVideo(
-            filteredArgs[1],
-            freshChatCount: freshChatCount,
-            includeFollowUp: includeAskFollowUp,
-            verbose: verbose
-        )
-
-    case "ask-video-free-text-test":
-        guard filteredArgs.count == 2 else {
-            print("❌ Usage: ask-video-free-text-test <videoId> --confirm-live-ai --prompt-file <chmod-600-path|->")
-            return
-        }
-        guard confirmLiveAI else {
-            print("❌ ask-video-free-text-test requires --confirm-live-ai")
-            print("   This command submits one private free-text prompt to YouTube.")
-            return
-        }
-        guard let promptFile else {
-            print("❌ ask-video-free-text-test requires --prompt-file <chmod-600-path|->")
-            return
-        }
-        guard outputFile == nil,
-              bodyFile == nil,
-              !verbose,
-              !clientVersionWasForced,
-              !forceUnauthenticatedRequests,
-              !authUserOptionWasSpecified,
-              globalBrandAccountId == nil,
-              !includeAskFollowUp,
-              freshChatCount == 1
-        else {
-            print("❌ ask-video-free-text-test received an unsupported option or account mode")
-            print("   Supported options: --confirm-live-ai and --prompt-file <chmod-600-path|->")
-            return
-        }
-        do {
-            let prompt = try loadPrivatePrompt(from: promptFile)
-            await liveTestAskVideoFreeText(filteredArgs[1], prompt: prompt)
-        } catch {
-            print("❌ Could not load the private prompt: \(error.localizedDescription)")
         }
 
     case "search-audit":

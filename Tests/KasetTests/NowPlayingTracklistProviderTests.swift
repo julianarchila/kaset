@@ -12,10 +12,6 @@ struct NowPlayingTracklistProviderTests {
     private func makeWatchNextData(chapters: [YouTubeChapter]) -> WatchNextData {
         WatchNextData(
             videoTitle: "Long Mix",
-            viewCountText: nil,
-            publishedText: nil,
-            channel: nil,
-            related: [],
             chapters: chapters
         )
     }
@@ -26,9 +22,7 @@ struct NowPlayingTracklistProviderTests {
                 videoId: videoId,
                 title: "Artist \(index) - Track \(index)",
                 startTime: TimeInterval(index) * 600,
-                endTime: TimeInterval(index + 1) * 600,
-                timeText: nil,
-                thumbnailURL: nil
+                endTime: TimeInterval(index + 1) * 600
             )
         }
     }
@@ -37,10 +31,10 @@ struct NowPlayingTracklistProviderTests {
         chapters: [YouTubeChapter],
         retryDelay: Duration = .seconds(1),
         maxTransientRetryAttempts: Int = 1
-    ) -> (NowPlayingTracklistProvider, MockYouTubeClient) {
-        let mockYouTube = MockYouTubeClient()
+    ) -> (NowPlayingTracklistProvider, MockWatchNextProvider) {
+        let mockYouTube = MockWatchNextProvider()
         mockYouTube.watchNextData = self.makeWatchNextData(chapters: chapters)
-        let parser = MixTracklistParser(youTubeClient: mockYouTube)
+        let parser = MixTracklistParser(watchNextProvider: mockYouTube)
         return (
             NowPlayingTracklistProvider(
                 parser: parser,

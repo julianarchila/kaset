@@ -6,13 +6,11 @@ import Observation
 @Observable
 final class SettingsManager {
     static let shared = SettingsManager()
-    nonisolated static let defaultAmbientBackdropStyle: AmbientBackdropStyle = .soft
 
     // MARK: - Settings Keys
 
     enum Keys {
         static let appearance = "settings.appearance"
-        static let appSource = "settings.appSource"
         static let showNowPlayingNotifications = "settings.showNowPlayingNotifications"
         static let defaultLaunchPage = "settings.defaultLaunchPage"
         static let hapticFeedbackEnabled = "settings.hapticFeedbackEnabled"
@@ -27,15 +25,10 @@ final class SettingsManager {
         static let romanizationEnabled = "settings.romanizationEnabled"
         static let contentLanguage = "settings.contentLanguage"
         static let keepMiniPlayerOnTop = "settings.keepMiniPlayerOnTop"
-        static let keepYouTubeVideoOnTop = "settings.keepYouTubeVideoOnTop"
         static let smartShuffleEnabled = "settings.smartShuffleEnabled"
         static let smartShuffleSuggestEveryN = "settings.smartShuffleSuggestEveryN"
         static let smartShuffleBurst = "settings.smartShuffleBurst"
         static let smartShuffleSuggestionsAhead = "settings.smartShuffleSuggestionsAhead"
-        static let ambientBackdropEnabled = "settings.ambientBackdropEnabled"
-        static let ambientBackdropStyle = "settings.ambientBackdropStyle"
-        static let popOutVideoOnNavigateAway = "settings.popOutVideoOnNavigateAway"
-        static let showYouTubeControlsOnVideo = "settings.showYouTubeControlsOnVideo"
         #if DEBUG
             static let useLegacyMacOS15UI = "settings.debug.useLegacyMacOS15UI"
         #endif
@@ -255,13 +248,6 @@ final class SettingsManager {
         }
     }
 
-    /// The active content source (YouTube Music or regular YouTube).
-    var appSource: AppSource {
-        didSet {
-            UserDefaults.standard.set(self.appSource.rawValue, forKey: Keys.appSource)
-        }
-    }
-
     /// Whether to show system notifications when the track changes.
     var showNowPlayingNotifications: Bool {
         didSet {
@@ -371,13 +357,6 @@ final class SettingsManager {
         }
     }
 
-    /// Whether the regular YouTube video window floats above standard windows.
-    var keepYouTubeVideoOnTop: Bool {
-        didSet {
-            UserDefaults.standard.set(self.keepYouTubeVideoOnTop, forKey: Keys.keepYouTubeVideoOnTop)
-        }
-    }
-
     // MARK: - Smart Shuffle defaults & ranges (single source of truth)
 
     /// Default cadence: insert a burst of suggestions every N originals.
@@ -437,60 +416,6 @@ final class SettingsManager {
         }
     }
 
-    /// Whether the ambient color backdrop is shown on the YouTube watch page.
-    /// Applies to regular YouTube videos only, not the Music experience.
-    var ambientBackdropEnabled: Bool {
-        didSet {
-            UserDefaults.standard.set(self.ambientBackdropEnabled, forKey: Keys.ambientBackdropEnabled)
-        }
-    }
-
-    /// The chosen ambient backdrop style when the feature is enabled.
-    var ambientBackdropStyle: AmbientBackdropStyle {
-        didSet {
-            UserDefaults.standard.set(self.ambientBackdropStyle.rawValue, forKey: Keys.ambientBackdropStyle)
-        }
-    }
-
-    /// Whether a playing YouTube video pops out into the floating window when
-    /// the user navigates away from the inline watch view. When disabled,
-    /// playback stops instead. Applies to regular YouTube videos only, not the
-    /// Music experience.
-    var popOutVideoOnNavigateAway: Bool {
-        didSet {
-            UserDefaults.standard.set(self.popOutVideoOnNavigateAway, forKey: Keys.popOutVideoOnNavigateAway)
-        }
-    }
-
-    /// Whether the YouTube player controls overlay the docked watch-page video,
-    /// auto-hiding like a regular video player, instead of sitting in the bar at
-    /// the bottom of the window. Applies to regular YouTube videos only, not the
-    /// Music experience.
-    var showYouTubeControlsOnVideo: Bool {
-        didSet {
-            UserDefaults.standard.set(self.showYouTubeControlsOnVideo, forKey: Keys.showYouTubeControlsOnVideo)
-        }
-    }
-
-    /// The style the YouTube watch page should request: the chosen style when
-    /// enabled, `.off` when the feature is disabled. Runtime energy/accessibility
-    /// downgrades are applied inside `AmbientVideoBackdrop`, which observes those
-    /// external states directly.
-    var resolvedAmbientStyle: AmbientBackdropStyle {
-        Self.resolveAmbientStyle(
-            enabled: self.ambientBackdropEnabled,
-            preferredStyle: self.ambientBackdropStyle
-        )
-    }
-
-    nonisolated static func resolveAmbientStyle(
-        enabled: Bool,
-        preferredStyle: AmbientBackdropStyle
-    ) -> AmbientBackdropStyle {
-        guard enabled, preferredStyle != .off else { return .off }
-        return preferredStyle
-    }
-
     /// The language used for the app interface and API content.
     var contentLanguage: ContentLanguage {
         didSet {
@@ -513,14 +438,6 @@ final class SettingsManager {
     #endif
 
     // MARK: - Initialization
-
-    static func loadKeepYouTubeVideoOnTop(from defaults: UserDefaults) -> Bool {
-        defaults.object(forKey: Keys.keepYouTubeVideoOnTop) as? Bool ?? false
-    }
-
-    static func loadShowYouTubeControlsOnVideo(from defaults: UserDefaults) -> Bool {
-        defaults.object(forKey: Keys.showYouTubeControlsOnVideo) as? Bool ?? false
-    }
 
     static func loadAppearance(from defaults: UserDefaults) -> AppAppearance {
         defaults.string(forKey: Keys.appearance).flatMap(AppAppearance.init(rawValue:)) ?? .system
@@ -547,7 +464,6 @@ final class SettingsManager {
         self.syncedLyricsEnabled = UserDefaults.standard.object(forKey: Keys.syncedLyricsEnabled) as? Bool ?? true
         self.romanizationEnabled = UserDefaults.standard.object(forKey: Keys.romanizationEnabled) as? Bool ?? true
         self.keepMiniPlayerOnTop = UserDefaults.standard.object(forKey: Keys.keepMiniPlayerOnTop) as? Bool ?? false
-        self.keepYouTubeVideoOnTop = Self.loadKeepYouTubeVideoOnTop(from: UserDefaults.standard)
         self.smartShuffleEnabled = UserDefaults.standard.object(forKey: Keys.smartShuffleEnabled) as? Bool ?? true
         // Property observers do not fire for assignments in init, so clamp persisted values here too.
         self.smartShuffleSuggestEveryN = Self.clamp(
@@ -562,9 +478,6 @@ final class SettingsManager {
             UserDefaults.standard.object(forKey: Keys.smartShuffleSuggestionsAhead) as? Int ?? Self.smartShuffleSuggestionsAheadDefault,
             to: Self.smartShuffleSuggestionsAheadRange
         )
-        self.ambientBackdropEnabled = UserDefaults.standard.object(forKey: Keys.ambientBackdropEnabled) as? Bool ?? true
-        self.popOutVideoOnNavigateAway = UserDefaults.standard.object(forKey: Keys.popOutVideoOnNavigateAway) as? Bool ?? true
-        self.showYouTubeControlsOnVideo = Self.loadShowYouTubeControlsOnVideo(from: UserDefaults.standard)
         #if DEBUG
             self.useLegacyMacOS15UI = UserDefaults.standard.object(forKey: Keys.useLegacyMacOS15UI) as? Bool ?? false
         #endif
@@ -585,15 +498,6 @@ final class SettingsManager {
             self.playbackAudioQuality = .auto
         }
 
-        if let rawValue = UserDefaults.standard.string(forKey: Keys.ambientBackdropStyle),
-           let style = AmbientBackdropStyle(rawValue: rawValue),
-           style != .off
-        {
-            self.ambientBackdropStyle = style
-        } else {
-            self.ambientBackdropStyle = Self.defaultAmbientBackdropStyle
-        }
-
         if let rawValue = UserDefaults.standard.string(forKey: Keys.defaultLaunchPage),
            let page = LaunchPage(rawValue: rawValue)
         {
@@ -608,14 +512,6 @@ final class SettingsManager {
             self.contentLanguage = language
         } else {
             self.contentLanguage = .system
-        }
-
-        if let rawValue = UserDefaults.standard.string(forKey: Keys.appSource),
-           let source = AppSource(rawValue: rawValue)
-        {
-            self.appSource = source
-        } else {
-            self.appSource = .music
         }
 
         AppLocalization.setLanguage(self.contentLanguage.languageCode)

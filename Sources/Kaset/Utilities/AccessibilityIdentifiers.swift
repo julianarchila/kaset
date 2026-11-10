@@ -8,7 +8,6 @@ enum AccessibilityID {
     static func isAuxiliaryPlayerWindowIdentifier(_ identifier: String?) -> Bool {
         identifier == VideoWindow.container
             || identifier == MiniPlayer.container
-            || identifier == YouTubeContent.videoWindow
     }
 
     // MARK: - Sidebar
@@ -216,9 +215,4 @@ enum AccessibilityID {
         static let container = "videoWindow"
         static let videoContent = "videoWindow.content"
     }
-}
-
-extension AccessibilityID.YouTubeContent {
-    static let videoWindow = "youtubeContent.videoWindow"
-    static let videoWindowFloatOnTop = "youtubeContent.videoWindow.floatOnTop"
 }

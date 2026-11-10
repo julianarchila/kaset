@@ -45,25 +45,6 @@ struct PlaybackWebViewTeardownTests {
         #expect(!playerService.isAirPlayConnected)
     }
 
-    @Test("YouTube teardown releases its coordinator while the WebView remains retained")
-    func youtubeTeardownReleasesCoordinator() {
-        let singleton = YouTubeWatchWebView.makeTestInstance()
-
-        let webKitManager = WebKitManager.makeTestInstance()
-        let playerService = YouTubePlayerService(webKitManager: webKitManager)
-        let retainedWebView = singleton.getWebView(
-            webKitManager: webKitManager,
-            playerService: playerService
-        )
-        weak var coordinator = singleton.coordinator
-
-        #expect(coordinator != nil)
-        singleton.tearDown()
-
-        #expect(retainedWebView.navigationDelegate == nil)
-        #expect(coordinator == nil)
-    }
-
     @Test("Extension host unregister closes its tab and window")
     func extensionHostUnregisterClosesTabAndWindow() {
         #if compiler(>=5.9)

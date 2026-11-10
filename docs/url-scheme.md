@@ -3,7 +3,7 @@
 Kaset supports deep links for opening content directly from other apps, scripts, or the command line. There are two URL families:
 
 - `kasetfork://...` custom-scheme links for YouTube Music content
-- Regular YouTube watch links (`youtube.com/watch` and `youtu.be`) routed into the YouTube source
+- Regular YouTube watch links (`youtube.com/watch` and `youtu.be`), which play the video ID as a YouTube Music song
 
 ## YouTube Music Custom Scheme
 
@@ -42,7 +42,7 @@ Kaset also recognizes common `music.youtube.com` URLs:
 
 ## Regular YouTube Links
 
-Regular YouTube watch links switch Kaset to the YouTube source and open the video in the floating YouTube player when they are delivered to Kaset. From Terminal, target the app explicitly so macOS does not hand the HTTPS URL to the default browser:
+Regular YouTube watch links play the video ID through YouTube Music, like `kasetfork://play`, when they are delivered to Kaset. From Terminal, target the app explicitly so macOS does not hand the HTTPS URL to the default browser:
 
 ```bash
 open -a KasetFork "https://www.youtube.com/watch?v=VIDEO_ID"
@@ -59,7 +59,7 @@ Recognized hosts are `youtube.com`, `www.youtube.com`, `m.youtube.com`, and `you
 # Play a YouTube Music song
 open "kasetfork://play?v=VIDEO_ID"
 
-# Open a regular YouTube video in YouTube mode
+# Play a regular YouTube link through YouTube Music
 open -a KasetFork "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
@@ -76,6 +76,5 @@ Use the "Open URLs" action with `kasetfork://play?v=VIDEO_ID`. For regular YouTu
 
 ## See Also
 
-- [YouTube Mode](youtube.md) — Regular YouTube source architecture and playback behavior
 - [Playback System](playback.md) — YouTube Music WebView playback
 - [AppleScript Support](applescript.md) — Automate playback with scripts, Raycast, Alfred, and Shortcuts
