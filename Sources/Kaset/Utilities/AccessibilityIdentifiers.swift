@@ -22,7 +22,10 @@ enum AccessibilityID {
         static let newReleasesItem = "sidebar.newReleases"
         static let podcastsItem = "sidebar.podcasts"
         static let likedMusicItem = "sidebar.likedMusic"
-        static let libraryItem = "sidebar.library"
+        static let libraryArtistsItem = "sidebar.libraryArtists"
+        static let libraryAlbumsItem = "sidebar.libraryAlbums"
+        static let libraryPodcastsItem = "sidebar.libraryPodcasts"
+        static let libraryPlaylistsItem = "sidebar.libraryPlaylists"
         static let historyItem = "sidebar.history"
     }
 

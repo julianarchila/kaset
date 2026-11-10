@@ -43,6 +43,37 @@ extension View {
     func compatTranslucentSidebar() -> some View {
         self.modifier(CompatTranslucentSidebarModifier())
     }
+
+    /// Pin a bar to the bottom edge of a scroll view so content scrolling
+    /// beneath it stays legible.
+    ///
+    /// On macOS 26 this is `safeAreaBar`, which applies the system scroll-edge
+    /// blur. On the legacy macOS 15 path it is a `safeAreaInset` backed by
+    /// `.ultraThinMaterial`.
+    func compatBottomBar(@ViewBuilder _ bar: () -> some View) -> some View {
+        self.modifier(CompatBottomBarModifier(bar: bar()))
+    }
+}
+
+// MARK: - CompatBottomBarModifier
+
+private struct CompatBottomBarModifier<Bar: View>: ViewModifier {
+    @Environment(\.usesLegacyMacOS15UI) private var usesLegacyMacOS15UI
+
+    let bar: Bar
+
+    func body(content: Content) -> some View {
+        if !self.usesLegacyMacOS15UI, #available(macOS 26.0, *) {
+            content.safeAreaBar(edge: .bottom, spacing: 0) {
+                self.bar
+            }
+        } else {
+            content.safeAreaInset(edge: .bottom, spacing: 0) {
+                self.bar
+                    .background(.ultraThinMaterial)
+            }
+        }
+    }
 }
 
 // MARK: - CompatGlassModifier

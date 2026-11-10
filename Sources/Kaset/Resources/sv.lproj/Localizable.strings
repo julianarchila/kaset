@@ -632,3 +632,6 @@
 "No songs found for “%@”." = "Inga låtar hittades för ”%@”.";
 "Couldn't play “%@”." = "Kunde inte spela ”%@”.";
 "Couldn't rate “%@”." = "Kunde inte betygsätta ”%@”.";
+"All Playlists" = "Alla spellistor";
+"Pinned" = "Fästa";
+"Saved Podcasts" = "Sparade poddar";

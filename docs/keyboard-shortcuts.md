@@ -24,7 +24,7 @@ Mute is still available from the Playback menu and AppleScript, but Kaset intent
 | -------- | ---------------- |
 | `⌘1`     | Go to Home       |
 | `⌘2`     | Go to Explore    |
-| `⌘3`     | Go to Library    |
+| `⌘3`     | Go to Playlists  |
 | `⌘F`     | Go to Search     |
 | `⇧⌘R`    | Refresh Home suggestions |
 

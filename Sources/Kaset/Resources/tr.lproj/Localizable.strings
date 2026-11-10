@@ -632,3 +632,6 @@
 "No songs found for “%@”." = "“%@” için şarkı bulunamadı.";
 "Couldn't play “%@”." = "“%@” çalınamadı.";
 "Couldn't rate “%@”." = "“%@” derecelendirilemedi.";
+"All Playlists" = "Tüm Çalma Listeleri";
+"Pinned" = "Sabitlenenler";
+"Saved Podcasts" = "Kaydedilen Podcastler";

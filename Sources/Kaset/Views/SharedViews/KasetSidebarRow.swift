@@ -14,7 +14,11 @@ struct KasetSidebarRow: View {
     let title: String
     let systemImage: String
     let isSelected: Bool
+    /// Optional artwork (playlist or album cover) shown instead of the symbol.
+    var artworkURL: URL?
     let action: () -> Void
+
+    private static let artworkSize: CGFloat = 20
 
     var body: some View {
         Button(action: self.action) {
@@ -24,8 +28,12 @@ struct KasetSidebarRow: View {
                     .fontWeight(self.isSelected ? .semibold : .regular)
                     .foregroundStyle(.primary)
             } icon: {
-                Image(systemName: self.systemImage)
-                    .foregroundStyle(PackageResourceLookup.brandAccent)
+                if let artworkURL {
+                    self.artwork(url: artworkURL)
+                } else {
+                    Image(systemName: self.systemImage)
+                        .foregroundStyle(PackageResourceLookup.brandAccent)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 5)
@@ -35,6 +43,22 @@ struct KasetSidebarRow: View {
         .listRowInsets(EdgeInsets(top: 1, leading: 10, bottom: 1, trailing: 10))
         .listRowBackground(self.selectionBackground)
         .accessibilityAddTraits(self.isSelected ? .isSelected : [])
+    }
+
+    private func artwork(url: URL) -> some View {
+        CachedAsyncImage(
+            url: url,
+            targetSize: CGSize(width: Self.artworkSize * 2, height: Self.artworkSize * 2)
+        ) { image in
+            image
+                .resizable()
+                .scaledToFill()
+        } placeholder: {
+            Image(systemName: self.systemImage)
+                .foregroundStyle(PackageResourceLookup.brandAccent)
+        }
+        .frame(width: Self.artworkSize, height: Self.artworkSize)
+        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
     }
 
     @ViewBuilder

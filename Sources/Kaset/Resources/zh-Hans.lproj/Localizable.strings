@@ -630,3 +630,6 @@
 "No songs found for “%@”." = "未找到与“%@”匹配的歌曲。";
 "Couldn't play “%@”." = "无法播放“%@”。";
 "Couldn't rate “%@”." = "无法评价“%@”。";
+"All Playlists" = "所有播放列表";
+"Pinned" = "已固定";
+"Saved Podcasts" = "已保存的播客";

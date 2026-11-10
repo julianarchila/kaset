@@ -458,6 +458,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                     selection: self.$navigationSelection,
                     pinnedSelection: self.$selectedSidebarPinnedItem,
                     client: self.client,
+                    libraryViewModel: self.libraryViewModel,
                     onReselectNavigationItem: { item in
                         self.sidebarNavigationReselectGenerations.wrappedValue[item, default: 0] += 1
                         if item == .search {
@@ -609,11 +610,12 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                         for: .likedMusic
                     )
                 }
-            case .library:
+            case .libraryArtists, .libraryAlbums, .libraryPodcasts, .libraryPlaylists:
                 if self.requiresSignIn(item) {
                     self.signInRequiredView(for: item)
-                } else if let vm = libraryViewModel {
-                    LibraryView(viewModel: vm)
+                } else if let vm = libraryViewModel, let scope = LibraryView.Scope(navigationItem: item) {
+                    LibraryView(viewModel: vm, scope: scope)
+                        .id(item)
                 }
             case .history:
                 if self.requiresSignIn(item) {
@@ -934,7 +936,10 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
     case newReleases = "New Releases"
     case podcasts = "Podcasts"
     case likedMusic = "Liked Music"
-    case library = "Library"
+    case libraryArtists = "Artists"
+    case libraryAlbums = "Albums"
+    case libraryPodcasts = "Saved Podcasts"
+    case libraryPlaylists = "All Playlists"
     case history = "History"
 
     var id: String {
@@ -959,8 +964,14 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             String(localized: "Podcasts")
         case .likedMusic:
             String(localized: "Liked Music")
-        case .library:
-            String(localized: "Library")
+        case .libraryArtists:
+            String(localized: "Artists")
+        case .libraryAlbums:
+            String(localized: "Albums")
+        case .libraryPodcasts:
+            String(localized: "Saved Podcasts")
+        case .libraryPlaylists:
+            String(localized: "All Playlists")
         case .history:
             String(localized: "History")
         }
@@ -984,8 +995,14 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             "mic.fill"
         case .likedMusic:
             "heart.fill"
-        case .library:
-            "square.stack.fill"
+        case .libraryArtists:
+            "music.mic"
+        case .libraryAlbums:
+            "square.stack"
+        case .libraryPodcasts:
+            "mic.fill"
+        case .libraryPlaylists:
+            "square.grid.2x2"
         case .history:
             "clock.arrow.circlepath"
         }
@@ -995,7 +1012,7 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
         switch self {
         case .home, .explore, .search, .charts, .moodsAndGenres, .newReleases, .podcasts:
             false
-        case .likedMusic, .library, .history:
+        case .likedMusic, .libraryArtists, .libraryAlbums, .libraryPodcasts, .libraryPlaylists, .history:
             true
         }
     }

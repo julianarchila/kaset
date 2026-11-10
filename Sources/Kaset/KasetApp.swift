@@ -387,9 +387,9 @@ struct KasetApp: App {
                 }
                 .keyboardShortcut("2", modifiers: .command)
 
-                // Library - ⌘3
-                Button(String(localized: "Library")) {
-                    self.navigationSelection = .library
+                // Playlists - ⌘3
+                Button(String(localized: "Playlists")) {
+                    self.navigationSelection = .libraryPlaylists
                 }
                 .keyboardShortcut("3", modifiers: .command)
 

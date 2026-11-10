@@ -11,7 +11,7 @@ enum TestAccessibilityID {
         static let homeItem = "sidebar.home"
         static let exploreItem = "sidebar.explore"
         static let likedMusicItem = "sidebar.likedMusic"
-        static let libraryItem = "sidebar.library"
+        static let libraryPlaylistsItem = "sidebar.libraryPlaylists"
     }
 
     enum Home {
@@ -102,6 +102,8 @@ class KasetUITestCase: XCTestCase {
 
         // Add UI test mode arguments
         self.app.launchArguments.append("-UITestMode")
+        // Discover starts collapsed for users; expand it so tests can reach its rows.
+        self.app.launchArguments.append(contentsOf: ["-sidebar.discoverExpanded", "YES"])
         self.app.launchArguments.append("-SkipAuth")
 
         // Also set via environment (more reliable with XCUIApplication(url:))
@@ -322,7 +324,7 @@ class KasetUITestCase: XCTestCase {
 
     /// Navigates to Library via sidebar.
     func navigateToLibrary() {
-        self.navigateToSidebarItem(TestAccessibilityID.Sidebar.libraryItem)
+        self.navigateToSidebarItem(TestAccessibilityID.Sidebar.libraryPlaylistsItem)
     }
 
     /// Navigates to Liked Music via sidebar.

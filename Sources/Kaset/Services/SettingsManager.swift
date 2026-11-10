@@ -69,7 +69,7 @@ final class SettingsManager {
             case .moodsAndGenres: .moodsAndGenres
             case .newReleases: .newReleases
             case .likedMusic: .likedMusic
-            case .playlists: .library
+            case .playlists: .libraryPlaylists
             case .lastUsed: .home // Fallback, actual value comes from lastUsedPage
             }
         }

@@ -77,3 +77,4 @@ What becomes easier or more difficult because of this change?
 | [0040](0040-core-animation-for-repeating-animations.md) | Core Animation for repeating animations | Accepted |
 | [0041](0041-non-destructive-session-loss.md) | Non-destructive session loss | Accepted |
 | [0042](0042-fork-identity.md) | Fork identity and scope | Accepted |
+| [0043](0043-sidebar-library-layout.md) | Sidebar layout with Library destinations | Accepted |

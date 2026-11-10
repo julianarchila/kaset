@@ -632,3 +632,6 @@
 "No songs found for “%@”." = "Geen nummers gevonden voor ‘%@’.";
 "Couldn't play “%@”." = "Kon ‘%@’ niet afspelen.";
 "Couldn't rate “%@”." = "Kon ‘%@’ niet beoordelen.";
+"All Playlists" = "Alle afspeellijsten";
+"Pinned" = "Vastgezet";
+"Saved Podcasts" = "Bewaarde podcasts";

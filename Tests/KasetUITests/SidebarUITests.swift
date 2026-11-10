@@ -13,7 +13,7 @@ final class SidebarUITests: KasetUITestCase {
         let homeItem = app.buttons[TestAccessibilityID.Sidebar.homeItem]
         let exploreItem = app.buttons[TestAccessibilityID.Sidebar.exploreItem]
         let likedMusicItem = app.buttons[TestAccessibilityID.Sidebar.likedMusicItem]
-        let playlistsItem = app.buttons[TestAccessibilityID.Sidebar.libraryItem]
+        let playlistsItem = app.buttons[TestAccessibilityID.Sidebar.libraryPlaylistsItem]
 
         XCTAssertTrue(searchItem.waitForExistence(timeout: 10), "Search item should exist")
         XCTAssertTrue(homeItem.exists, "Home item should exist")

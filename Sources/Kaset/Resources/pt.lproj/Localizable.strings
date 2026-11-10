@@ -632,3 +632,6 @@
 "No songs found for “%@”." = "Nenhuma música encontrada para “%@”.";
 "Couldn't play “%@”." = "Não foi possível reproduzir “%@”.";
 "Couldn't rate “%@”." = "Não foi possível avaliar “%@”.";
+"All Playlists" = "Todas as listas de reprodução";
+"Pinned" = "Fixados";
+"Saved Podcasts" = "Podcasts salvos";

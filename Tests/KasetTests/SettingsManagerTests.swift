@@ -46,7 +46,7 @@ struct SettingsManagerTests {
         #expect(SettingsManager.LaunchPage.moodsAndGenres.navigationItem == .moodsAndGenres)
         #expect(SettingsManager.LaunchPage.newReleases.navigationItem == .newReleases)
         #expect(SettingsManager.LaunchPage.likedMusic.navigationItem == .likedMusic)
-        #expect(SettingsManager.LaunchPage.playlists.navigationItem == .library)
+        #expect(SettingsManager.LaunchPage.playlists.navigationItem == .libraryPlaylists)
         #expect(SettingsManager.LaunchPage.lastUsed.navigationItem == .home) // Fallback
     }
 

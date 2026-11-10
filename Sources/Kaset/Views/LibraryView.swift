@@ -47,8 +47,53 @@ enum LibraryFilter: String, CaseIterable, Identifiable {
 // MARK: - LibraryView
 
 /// Library view displaying the user's saved music and followed content.
+///
+/// With a `scope`, the view shows a single sidebar destination (for example
+/// Albums) without filter chips; without one it shows the combined library.
 struct LibraryView: View {
+    /// A single Library destination reachable from the sidebar.
+    enum Scope: Hashable {
+        case playlists
+        case albums
+        case artists
+        case podcasts
+
+        init?(navigationItem: NavigationItem) {
+            switch navigationItem {
+            case .libraryPlaylists: self = .playlists
+            case .libraryAlbums: self = .albums
+            case .libraryArtists: self = .artists
+            case .libraryPodcasts: self = .podcasts
+            default: return nil
+            }
+        }
+
+        var navigationItem: NavigationItem {
+            switch self {
+            case .playlists: .libraryPlaylists
+            case .albums: .libraryAlbums
+            case .artists: .libraryArtists
+            case .podcasts: .libraryPodcasts
+            }
+        }
+
+        var filter: LibraryFilter {
+            switch self {
+            case .playlists: .playlists
+            case .albums: .albums
+            case .artists: .artists
+            case .podcasts: .podcasts
+            }
+        }
+
+        /// Localization key for the navigation title, matching the sidebar row.
+        var titleKey: String {
+            self.navigationItem.rawValue
+        }
+    }
+
     @State var viewModel: LibraryViewModel
+    var scope: Scope?
     @Environment(PlayerService.self) private var playerService
     @Environment(\.usesLegacyMacOS15UI) private var usesLegacyMacOS15UI
     @State private var networkMonitor = NetworkMonitor.shared
@@ -84,7 +129,7 @@ struct LibraryView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .localizedNavigationTitle("Library")
+            .localizedNavigationTitle(self.scope?.titleKey ?? "Library")
             .navigationDestination(for: Playlist.self) { playlist in
                 if !self.usesLegacyMacOS15UI, #available(macOS 26.0, *) {
                     PlaylistDetailView(
@@ -148,7 +193,7 @@ struct LibraryView: View {
         .refreshable {
             await self.viewModel.refresh()
         }
-        .popsNavigationStackOnSidebarReselect(path: self.$navigationPath, for: .library)
+        .popsNavigationStackOnSidebarReselect(path: self.$navigationPath, for: self.scope?.navigationItem ?? .libraryPlaylists)
     }
 
     // MARK: - Views
@@ -156,8 +201,10 @@ struct LibraryView: View {
     private var contentView: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
-                // Filter chips
-                self.filterChips
+                // Filter chips (only for the combined, unscoped library)
+                if self.scope == nil {
+                    self.filterChips
+                }
 
                 // Combined grid with filtered content
                 self.libraryGrid
@@ -199,11 +246,16 @@ struct LibraryView: View {
         .buttonStyle(.plain)
     }
 
+    /// The fixed scope's filter, or the chip selection for the combined library.
+    private var activeFilter: LibraryFilter {
+        self.scope?.filter ?? self.selectedFilter
+    }
+
     /// All library items combined and filtered.
     private var filteredItems: [LibraryItem] {
         var items: [LibraryItem] = []
 
-        switch self.selectedFilter {
+        switch self.activeFilter {
         case .all:
             items = self.uploadItems
                 + self.viewModel.playlists.map { .playlist($0) }
@@ -211,7 +263,10 @@ struct LibraryView: View {
                 + self.viewModel.artists.map { .artist($0) }
                 + self.viewModel.podcastShows.map { .podcast($0) }
         case .playlists:
-            items = self.viewModel.playlists.map { .playlist($0) }
+            // The sidebar's All Playlists destination also hosts the uploads tile,
+            // since uploads have no sidebar row of their own.
+            let uploads = self.scope == .playlists ? self.uploadItems : []
+            items = uploads + self.viewModel.playlists.map { .playlist($0) }
         case .albums:
             items = self.viewModel.albums.map { .album($0) }
         case .uploads:
@@ -261,7 +316,7 @@ struct LibraryView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 12) {
-            Image(systemName: self.selectedFilter.icon)
+            Image(systemName: self.activeFilter.icon)
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
 
@@ -279,7 +334,7 @@ struct LibraryView: View {
     }
 
     private var emptyStateTitle: String {
-        switch self.selectedFilter {
+        switch self.activeFilter {
         case .all:
             String(localized: "Your library is empty")
         case .playlists:
@@ -296,7 +351,7 @@ struct LibraryView: View {
     }
 
     private var emptyStateMessage: String {
-        switch self.selectedFilter {
+        switch self.activeFilter {
         case .all:
             String(localized: "Save playlists, follow artists, and subscribe to podcasts on YouTube Music to see them here.")
         case .playlists:

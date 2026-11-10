@@ -52,3 +52,6 @@
 // App Intents (Shortcuts, Siri, Spotlight)
 "Playing %@ by %@." = "Playing %1$@ by %2$@.";
 "Now playing %@ by %@." = "Now playing %1$@ by %2$@.";
+"All Playlists" = "All Playlists";
+"Pinned" = "Pinned";
+"Saved Podcasts" = "Saved Podcasts";
