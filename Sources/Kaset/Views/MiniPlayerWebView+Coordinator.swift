@@ -735,19 +735,13 @@ extension SingletonPlayerWebView {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            if let cancelledNavigation = SingletonPlayerWebView.shared.consumeCancelledDocumentNavigation(
-                navigation
-            ) {
-                if cancelledNavigation.shouldReportFailure {
-                    SingletonPlayerWebView.shared.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
-                }
+            if SingletonPlayerWebView.shared.consumeCancelledDocumentNavigation(navigation) != nil {
                 return
             }
             guard SingletonPlayerWebView.shared.handleDocumentNavigationFinish(
                 navigation,
                 webView: webView
             ) else {
-                SingletonPlayerWebView.shared.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
                 return
             }
             guard WebPlaybackDocumentGeneration.isExpectedPlaybackURL(

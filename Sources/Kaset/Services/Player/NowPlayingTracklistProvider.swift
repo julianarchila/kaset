@@ -4,12 +4,10 @@ import Foundation
 
 /// Owns the sub-track breakdown (a `MixTracklist`) of the currently-playing item and the machinery
 /// that fetches it for playback UI. It is the segmented seek bar's source of truth for "what are the
-/// sub-tracks of the now-playing video." `ScrobblingCoordinator` retains a separate classification
-/// state machine for provisional credit, timeouts, and post-exit finalization; both consumers share
-/// the cached, in-flight-coalescing `MixTracklistParser`.
+/// sub-tracks of the now-playing video." It uses the cached, in-flight-coalescing
+/// `MixTracklistParser`.
 ///
-/// It is deliberately decoupled from scrobbling: mix segmentation is a playback concern, so the
-/// fetch runs regardless of whether Last.fm is connected. The provider is *driven* — `PlayerService`
+/// The provider is *driven* — `PlayerService`
 /// calls `update(track:duration:)` whenever the current track or its correlated playback duration
 /// changes — but owns all the fetch policy: the once-per-video latch and the duration gate that
 /// together resolve the race where YouTube reports a track's duration a beat after the track object
@@ -21,7 +19,7 @@ final class NowPlayingTracklistProvider {
     private(set) var tracklist: MixTracklist?
 
     /// Minimum correlated playback duration before attempting a tracklist fetch: below this a video
-    /// can't be a mix worth segmenting. Matches the scrobbler's mix-detection floor.
+    /// can't be a mix worth segmenting.
     private static let minMixDuration: TimeInterval = 600
 
     private let parser: MixTracklistParser?
@@ -44,7 +42,7 @@ final class NowPlayingTracklistProvider {
     private var transientRetryAttempts = 0
 
     /// Whether a tracklist parse is in flight for the current video. Consumers that would act on
-    /// "this is not a mix" (e.g. whole-track scrobbling) should wait until this settles.
+    /// "this is not a mix" should wait until this settles.
     var isParsing: Bool {
         self.parseTask != nil || self.retryTask != nil
     }

@@ -55,7 +55,6 @@ let package = Package(
                 .process("Resources/zh-Hans.lproj"),
                 .process("Resources/zh-Hant.lproj"),
                 .process("Resources/Kaset.sdef"),
-                .copy("Extensions"),
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),

@@ -662,7 +662,6 @@ final class SingletonPlayerWebView {
         newWebView.navigationDelegate = self.coordinator
         newWebView.customUserAgent = WebKitManager.userAgent
         self.webKitManager = webKitManager
-        webKitManager.registerExtensionHostWebView(newWebView, role: .musicPlayer)
 
         #if DEBUG
             newWebView.isInspectable = true
@@ -725,7 +724,6 @@ final class SingletonPlayerWebView {
     func ensureInHierarchy(container: NSView) {
         guard let webView else { return }
         self.currentContainer = container
-        self.webKitManager?.extensionHostWebViewDidBecomeActive(webView)
         guard webView.superview !== container else { return }
         webView.removeFromSuperview()
         container.addSubview(webView)
@@ -787,7 +785,6 @@ final class SingletonPlayerWebView {
         )
         webView.navigationDelegate = nil
         webView.removeFromSuperview()
-        self.webKitManager?.unregisterExtensionHostWebView(role: .musicPlayer)
         self.webView = nil
         self.playbackBridgeMultiplexer = nil
         self.coordinator?.cancelPlaybackBridgeTasks()
@@ -1579,7 +1576,6 @@ extension SingletonPlayerWebView {
            url.host?.lowercased() == "music.youtube.com",
            url.path.isEmpty || url.path == "/"
         {
-            self.webKitManager?.extensionHostWebViewWillNavigate(webView, to: url)
             decisionHandler(.allow)
             return
         }
@@ -1588,10 +1584,6 @@ extension SingletonPlayerWebView {
             from: webView.url,
             to: navigationAction.request.url
         ) {
-            self.webKitManager?.extensionHostWebViewWillNavigate(
-                webView,
-                to: navigationAction.request.url
-            )
             decisionHandler(.allow)
             return
         }
@@ -1631,10 +1623,6 @@ extension SingletonPlayerWebView {
                 }
                 return
             }
-            self.webKitManager?.extensionHostWebViewWillNavigate(
-                webView,
-                to: navigationAction.request.url
-            )
             decisionHandler(.allow)
             return
         }
@@ -1773,7 +1761,6 @@ extension SingletonPlayerWebView {
         guard self.trackDocumentNavigationStart(navigation, webView: webView),
               self.beginDocumentNavigation(navigation, in: webView)
         else { return }
-        self.webKitManager?.extensionHostWebViewDidStartNavigation(webView)
     }
 
     func handleDocumentNavigationRedirect(_ navigation: WKNavigation?, webView: WKWebView) {
@@ -1977,7 +1964,6 @@ extension SingletonPlayerWebView {
                 host: "music.youtube.com"
             )
         guard finishedTrackedNavigation || finishedHomePreload else { return false }
-        self.webKitManager?.extensionHostWebViewDidFinishNavigation(webView)
         return true
     }
 
@@ -2058,17 +2044,9 @@ extension SingletonPlayerWebView {
             guard let navigation,
                   let trackedNavigation = self.documentNavigations[navigation]
             else {
-                if let navigation,
-                   let cancelledNavigation = self.cancelledDocumentNavigations.removeValue(
-                       forKey: navigation
-                   )
-                {
-                    if cancelledNavigation.shouldReportFailure {
-                        self.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
-                    }
-                    return
+                if let navigation {
+                    self.cancelledDocumentNavigations.removeValue(forKey: navigation)
                 }
-                self.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
                 return
             }
             let hasSameGenerationSuccessor = self.documentNavigations.contains { key, candidate in
@@ -2080,12 +2058,10 @@ extension SingletonPlayerWebView {
                || self.continuationGenerationsAwaitingStart.contains(trackedNavigation.generation)
             {
                 self.documentNavigations.removeValue(forKey: navigation)
-                self.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
                 return
             }
         }
         self.failDocumentNavigation(navigation, webView: webView)
-        self.webKitManager?.extensionHostWebViewDidFailNavigation(webView)
     }
 
     func recoverFromContentProcessTermination(webView: WKWebView) {

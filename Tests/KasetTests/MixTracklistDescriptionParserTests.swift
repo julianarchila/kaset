@@ -614,8 +614,8 @@ struct MixTracklistDescriptionParserTests {
         #expect(tracklist?.entries.map(\.title) == ["Track One", "Track Two", "Track Three"])
     }
 
-    /// The parser is shared by the seek bar and the scrobbler, which can both request the same video
-    /// before either fetch returns. Concurrent requests must coalesce onto a single watch-next call.
+    /// Several callers can request the same video before the first fetch returns. Concurrent
+    /// requests must coalesce onto a single watch-next call.
     @MainActor
     @Test("Concurrent parses for the same video issue a single fetch")
     func coalescesConcurrentParsesForSameVideo() async {

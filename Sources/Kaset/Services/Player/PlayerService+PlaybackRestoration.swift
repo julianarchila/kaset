@@ -84,8 +84,8 @@ extension PlayerService {
         duration: Double,
         observedVideoId: String?
     ) {
-        // Preserve bridge-observation provenance for consumers such as mix
-        // scrobbling even when this sample is stale for PlayerService state.
+        // Preserve bridge-observation provenance even when this sample is
+        // stale for PlayerService state.
         self.recordPlaybackStateObservation(videoId: observedVideoId)
         guard self.observedPlaybackMatchesCurrentTarget(videoId: observedVideoId) else {
             self.logger.debug(

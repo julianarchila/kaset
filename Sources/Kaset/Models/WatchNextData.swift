@@ -21,7 +21,7 @@ struct YouTubeChapter: Identifiable, Hashable {
 
 /// The parts of a regular YouTube `next` response that YouTube Music mixes need:
 /// the video title, chapters, and full description. `MixTracklistParser` builds
-/// seek-bar segments and per-track scrobbles from them.
+/// seek-bar segments from them.
 struct WatchNextData {
     let videoTitle: String?
     /// Navigation chapters for the current video, when YouTube exposes them.

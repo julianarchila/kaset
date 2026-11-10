@@ -1,7 +1,7 @@
 # ADR 0014: Extensions — User-Managed Web Extensions
 
 **Date:** 2026-04-03  
-**Status:** Accepted
+**Status:** Superseded by [ADR-0042](0042-fork-identity.md)
 
 ## Context
 

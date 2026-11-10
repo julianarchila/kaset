@@ -44,30 +44,4 @@ struct PlaybackWebViewTeardownTests {
         singleton.recoverFromContentProcessTermination(webView: webView)
         #expect(!playerService.isAirPlayConnected)
     }
-
-    @Test("Extension host unregister closes its tab and window")
-    func extensionHostUnregisterClosesTabAndWindow() {
-        #if compiler(>=5.9)
-            if #available(macOS 15.4, *) {
-                let controller = WKWebExtensionController()
-                let host = KasetWebExtensionHost(controller: controller)
-                let configuration = WKWebViewConfiguration()
-                configuration.websiteDataStore = .nonPersistent()
-                configuration.webExtensionController = controller
-                let webView = WKWebView(
-                    frame: CGRect(x: 0, y: 0, width: 320, height: 180),
-                    configuration: configuration
-                )
-                let tab = host.register(webView: webView, role: .musicPlayer)
-
-                host.unregister(role: .musicPlayer)
-
-                #expect(host.registeredTabCount == 0)
-                #expect(host.openWindows.isEmpty)
-                #expect(host.focusedWindow == nil)
-                #expect(tab?.webView == nil)
-                #expect(tab?.window == nil)
-            }
-        #endif
-    }
 }

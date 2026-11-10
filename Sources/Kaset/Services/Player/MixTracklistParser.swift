@@ -57,7 +57,7 @@ final class MixTracklistParser {
     /// same video share one underlying task. The last cancelled waiter removes and cancels that
     /// request so a same-video retry can start immediately.
     private var inFlight: [String: InFlightParse] = [:]
-    private let logger = DiagnosticsLogger.scrobbling
+    private let logger = DiagnosticsLogger.player
 
     init(watchNextProvider: any WatchNextProviding) {
         self.watchNextProvider = watchNextProvider

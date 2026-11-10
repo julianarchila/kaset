@@ -20,125 +20,16 @@ struct WebKitManagerTests {
         #expect(self.webKitManager.dataStore.isPersistent == false)
     }
 
-    @Test("Test instance starts without loaded extensions")
-    func instanceStartsWithoutLoadedExtensions() {
-        #expect(self.webKitManager.isExtensionLoaded == false)
-        #expect(self.webKitManager.loadedExtensionCount == 0)
-    }
-
     @Test("Create WebView configuration")
     func createWebViewConfiguration() {
         let configuration = self.webKitManager.createWebViewConfiguration()
         #expect(configuration.websiteDataStore === self.webKitManager.dataStore)
     }
 
-    @Test("Extension host registers playback WebViews as extension-visible tabs")
-    @MainActor
-    func extensionHostRegistersPlaybackWebViews() {
-        #if compiler(>=5.9)
-            if #available(macOS 15.4, *) {
-                let controller = WKWebExtensionController()
-                let host = KasetWebExtensionHost(controller: controller)
-                let configuration = WKWebViewConfiguration()
-                configuration.websiteDataStore = .nonPersistent()
-                configuration.webExtensionController = controller
-
-                let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 180), configuration: configuration)
-                let tab = host.register(webView: webView, role: .musicPlayer)
-
-                #expect(tab != nil)
-                #expect(host.registeredTabCount == 1)
-                #expect(host.openWindows.count == 1)
-                #expect(host.focusedWindow != nil)
-
-                // Re-registering the same WebView should activate the existing tab, not create another one.
-                _ = host.register(webView: webView, role: .musicPlayer)
-                #expect(host.registeredTabCount == 1)
-
-                // Rebuilding the playback WebView for the same role should replace the tab's target,
-                // not leave a stale ghost tab behind.
-                let replacementWebView = WKWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 180), configuration: configuration)
-                _ = host.register(webView: replacementWebView, role: .musicPlayer)
-                #expect(host.registeredTabCount == 1)
-            }
-        #endif
-    }
-
-    @Test("Extension window does not invent an active tab after deactivation")
-    @MainActor
-    func extensionWindowDoesNotInventActiveTab() async throws {
-        #if compiler(>=5.9)
-            if #available(macOS 15.4, *) {
-                let tempDirectory = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("KasetWebExtensionWindowTests-\(UUID().uuidString)", isDirectory: true)
-                try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
-                defer { try? FileManager.default.removeItem(at: tempDirectory) }
-
-                let manifest: [String: Any] = [
-                    "manifest_version": 3,
-                    "name": "Window Active Tab Test",
-                    "description": "Test extension",
-                    "version": "1.0",
-                ]
-                let manifestData = try JSONSerialization.data(withJSONObject: manifest, options: [.sortedKeys])
-                try manifestData.write(to: tempDirectory.appendingPathComponent("manifest.json"))
-
-                let webExtension = try await WKWebExtension(resourceBaseURL: tempDirectory)
-                let context = WKWebExtensionContext(for: webExtension)
-
-                let window = KasetWebExtensionWindow()
-                let configuration = WKWebViewConfiguration()
-                configuration.websiteDataStore = .nonPersistent()
-                let webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 180), configuration: configuration)
-                let tab = KasetWebExtensionTab(role: .youtubeWatch, webView: webView)
-                window.append(tab)
-
-                #expect(window.activeTab(for: context) != nil)
-
-                window.activeTab = nil
-
-                #expect(window.activeTab(for: context) == nil)
-            }
-        #endif
-    }
-
-    @Test("Content script match patterns are extracted for permission grants")
-    @MainActor
-    func contentScriptMatchPatternsAreExtracted() {
-        #if compiler(>=5.9)
-            if #available(macOS 15.4, *) {
-                let manifest: [AnyHashable: Any] = [
-                    "content_scripts": [
-                        [
-                            "matches": [
-                                "https://*.youtube.com/*",
-                                "https://www.youtube-nocookie.com/embed/*",
-                                "https://*.youtube.com/*",
-                            ],
-                        ],
-                    ],
-                ]
-
-                let patterns = WebKitManager.contentScriptMatchPatterns(from: manifest).map(\.string).sorted()
-
-                #expect(patterns == [
-                    "https://*.youtube.com/*",
-                    "https://www.youtube-nocookie.com/embed/*",
-                ])
-            }
-        #endif
-    }
-
-    @Test("Session switch WebView configuration excludes extensions")
+    @Test("Session switch WebView configuration shares the data store")
     func createSessionSwitchWebViewConfiguration() {
         let configuration = self.webKitManager.createSessionSwitchWebViewConfiguration()
         #expect(configuration.websiteDataStore === self.webKitManager.dataStore)
-
-        #if compiler(>=5.9)
-            if #available(macOS 14.0, *) {
-                #expect(configuration.webExtensionController == nil)
-            }
-        #endif
     }
 
     @Test("Origin constant")
@@ -706,28 +597,6 @@ struct WebKitManagerTests {
             primarySessionValue: "mock-token",
             stabilityFingerprint: data
         )
-    }
-
-    @Test("Extension resource URL resolves relative paths against the extension base URL")
-    func extensionResourceURLUsesExtensionBaseURL() throws {
-        let baseURL = try #require(URL(string: "webkit-extension://example-extension/"))
-        let resolvedURL = WebKitManager.extensionResourceURL(
-            relativePath: "/pages/options.html",
-            baseURL: baseURL
-        )
-
-        #expect(resolvedURL?.absoluteString == "webkit-extension://example-extension/pages/options.html")
-    }
-
-    @Test("Extension resource URL rejects absolute external paths")
-    func extensionResourceURLRejectsAbsoluteURLs() throws {
-        let baseURL = try #require(URL(string: "webkit-extension://example-extension/"))
-        let resolvedURL = WebKitManager.extensionResourceURL(
-            relativePath: "https://example.com/options.html",
-            baseURL: baseURL
-        )
-
-        #expect(resolvedURL == nil)
     }
 
     // MARK: - DATASYNC_ID Identity Matching

@@ -45,10 +45,10 @@ What becomes easier or more difficult because of this change?
 | [0008](0008-nonisolated-network-helpers.md) | Nonisolated Network Helpers for MainActor Classes | Accepted |
 | [0009](0009-prompt-request-workflow.md) | Prompt Request Workflow | Accepted |
 | [0010](0010-airplay-fix.md) | Fix AirPlay for WebView-Based Playback | Implemented (with known limitations) |
-| [0011](0011-scrobbling-support.md) | Scrobbling Support (Last.fm) | Accepted |
+| [0011](0011-scrobbling-support.md) | Scrobbling Support (Last.fm) | Superseded by ADR-0042 |
 | [0012](0012-synced-lyrics-architecture.md) | Synced Lyrics Provider Architecture | Accepted |
 | [0013](0013-localization-strategy.md) | Localization Strategy (String Catalogs) | Proposed |
-| [0014](0014-extensions.md) | Extensions — User-Managed Web Extensions | Accepted |
+| [0014](0014-extensions.md) | Extensions — User-Managed Web Extensions | Superseded by ADR-0042 |
 | [0015](0015-command-bar-local-first-routing.md) | Command Bar Local-First Routing | Superseded by ADR-0042 |
 | [0016](0016-staged-command-parsing-and-queue-analysis.md) | Staged Command Parsing And Queue Analysis | Superseded by ADR-0042 |
 | [0017](0017-equalizer.md) | 6-Band Equalizer via Core Audio Process Tap | Implemented |

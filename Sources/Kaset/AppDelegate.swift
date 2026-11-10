@@ -29,7 +29,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Reference to the PlayerService for dock menu actions.
     /// Set by KasetApp after initialization.
     weak var playerService: PlayerService?
-    weak var scrobblingCoordinator: ScrobblingCoordinator?
 
     /// URLs received before the SwiftUI scene is ready to observe deep links.
     private var pendingOpenURLs: [URL] = []
@@ -43,7 +42,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Tracks when the app is quitting so we can allow window closures.
     private var isTerminating = false
-    private var isPreparingTermination = false
 
     func applicationWillFinishLaunching(_: Notification) {
         SettingsManager.shared.appearance.apply()
@@ -74,18 +72,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DiagnosticsLogger.player.info("Application will terminate - saved queue for persistence")
     }
 
-    func applicationShouldTerminate(_ application: NSApplication) -> NSApplication.TerminateReply {
+    func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
         self.isTerminating = true
-        guard let scrobblingCoordinator else { return .terminateNow }
-        guard !self.isPreparingTermination else { return .terminateLater }
-
-        self.isPreparingTermination = true
-        Task { @MainActor in
-            await scrobblingCoordinator.prepareForTermination()
-            self.playerService?.saveQueueForPersistence()
-            application.reply(toApplicationShouldTerminate: true)
-        }
-        return .terminateLater
+        return .terminateNow
     }
 
     /// Registers for system sleep and wake notifications to handle playback appropriately.

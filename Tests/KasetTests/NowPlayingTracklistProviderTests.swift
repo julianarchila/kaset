@@ -59,7 +59,7 @@ struct NowPlayingTracklistProviderTests {
 
     /// Regression: the tracklist fetch is gated on track duration, which YouTube reports a beat after
     /// the track object appears. A one-shot check at track-start always missed, so every mix silently
-    /// fell back to whole-video scrobbling. The provider must retry as duration settles, then fire
+    /// fell back to an unsegmented seek bar. The provider must retry as duration settles, then fire
     /// exactly once per video.
     @Test("Fetch is deferred until duration is known, then fires exactly once")
     func fetchDeferredUntilDurationKnown() async {
@@ -254,8 +254,8 @@ struct NowPlayingTracklistProviderTests {
 
     // MARK: - Driver Integration
 
-    /// The provider is driven by PlayerService's `currentTrack`/`duration` observers, independent of
-    /// scrobbling. A change to either must reach the provider and resolve segments.
+    /// The provider is driven by PlayerService's `currentTrack`/`duration` observers. A change to
+    /// either must reach the provider and resolve segments.
     @Test("PlayerService drives the provider when track and duration change")
     func playerServiceDrivesProvider() async {
         let (provider, _) = self.makeProvider(chapters: self.makeMixChapters())

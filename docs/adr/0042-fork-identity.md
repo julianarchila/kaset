@@ -53,6 +53,12 @@ Several upstream settings tied a fork build to the upstream app:
 - AI features removed: the Command Bar (⌘K), lyrics explanations, playlist
   refinement, the Intelligence settings tab, and every Foundation Models
   dependency. This supersedes ADR-0004, ADR-0005, ADR-0015, and ADR-0016.
+- Last.fm and web extensions removed: Last.fm scrobbling, its settings tab,
+  and the Cloudflare Worker proxy; user-managed WebKit extensions and their
+  settings tab. The playback WebViews no longer attach a
+  `WKWebExtensionController`. Mix tracklists keep segmenting the seek bar
+  through `MixTracklistParser` and `NowPlayingTracklistProvider`. This
+  supersedes ADR-0011 and ADR-0014.
 
 ## Consequences
 

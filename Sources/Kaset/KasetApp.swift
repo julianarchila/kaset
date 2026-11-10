@@ -43,7 +43,6 @@ struct KasetApp: App {
     @State private var sidebarPinnedItemsManager = SidebarPinnedItemsManager.shared
     @State private var likeStatusManager = SongLikeStatusManager.shared
     @State private var accountService: AccountService?
-    @State private var scrobblingCoordinator: ScrobblingCoordinator
     @State private var nowPlayingTracklistProvider: NowPlayingTracklistProvider
     @State private var syncedLyricsService: SyncedLyricsService
     @State private var equalizerService = EqualizerService.shared
@@ -146,29 +145,15 @@ struct KasetApp: App {
         _accountService = State(initialValue: account)
 
         // Playback-UI tracklist provider: owns seek-bar segmentation for the current item and is
-        // driven by the player, so segments show even without Last.fm connected. Scrobbling keeps
-        // its provisional classification state but shares the same cached/coalescing parser.
+        // driven by the player.
         let mixTracklistParser = MixTracklistParser(watchNextProvider: watchNextFetcher)
         let tracklistProvider = NowPlayingTracklistProvider(parser: mixTracklistParser)
         player.setNowPlayingTracklistProvider(tracklistProvider)
         _nowPlayingTracklistProvider = State(initialValue: tracklistProvider)
 
-        // Create the scrobbling coordinator with the shared parser. Its classification lifecycle is
-        // intentionally independent from the current-item UI provider.
-        let lastFMService = LastFMService(credentialStore: KeychainCredentialStore())
-        let scrobblingCoordinator = ScrobblingCoordinator(
-            playerService: player,
-            services: [lastFMService],
-            mixTracklistParser: mixTracklistParser
-        )
-        scrobblingCoordinator.restoreAuthState()
-        scrobblingCoordinator.startMonitoring()
-        _scrobblingCoordinator = State(initialValue: scrobblingCoordinator)
-
         // Wire up PlayerService to AppDelegate immediately (not in onAppear)
         // This ensures playerService is available for lifecycle events like queue restoration
         self.appDelegate.playerService = player
-        self.appDelegate.scrobblingCoordinator = scrobblingCoordinator
 
         if UITestConfig.isUITestMode {
             DiagnosticsLogger.ui.info("App launched in UI Test mode")
@@ -198,7 +183,6 @@ struct KasetApp: App {
                 .environment(self.sidebarPinnedItemsManager)
                 .environment(self.likeStatusManager)
                 .environment(self.accountService)
-                .environment(self.scrobblingCoordinator)
                 .environment(self.nowPlayingTracklistProvider)
                 .environment(self.syncedLyricsService)
                 .environment(self.equalizerService)
@@ -297,7 +281,6 @@ struct KasetApp: App {
                 .environment(\.locale, self.settings.contentLanguage.locale)
                 .environment(self.authService)
                 .environment(self.accountService)
-                .environment(self.scrobblingCoordinator)
                 .environment(self.equalizerService)
         }
         .commands {
@@ -648,9 +631,6 @@ struct KasetApp: App {
 
 /// Main settings view with tabbed navigation.
 struct SettingsView: View {
-    @Environment(ScrobblingCoordinator.self) private var scrobblingCoordinator
-    @State private var settings = SettingsManager.shared
-
     var body: some View {
         TabView {
             GeneralSettingsView()
@@ -666,17 +646,6 @@ struct SettingsView: View {
             EqualizerSettingsView()
                 .tabItem {
                     Label(String(localized: "Equalizer"), systemImage: "slider.vertical.3")
-                }
-
-            ScrobblingSettingsView()
-                .environment(self.scrobblingCoordinator)
-                .tabItem {
-                    Label(String(localized: "Scrobbling"), systemImage: "music.note.list")
-                }
-
-            ExtensionsSettingsView()
-                .tabItem {
-                    Label(String(localized: "Extensions"), systemImage: "puzzlepiece.extension")
                 }
         }
         // 520×520 fits the Equalizer tab's six-band slider grid + curve

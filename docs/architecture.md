@@ -142,7 +142,7 @@ Makes authenticated requests to YouTube Music's internal API:
 
 **File**: `Sources/Kaset/Services/API/YouTubeWatchNextFetcher.swift`
 
-The only request the app sends to regular YouTube (`www.youtube.com/youtubei/v1/next`, `WEB` client). The YouTube Music `next` endpoint omits chapters and the video description, so `MixTracklistParser` reads them here to build seek-bar segments and per-track scrobbles for long mixes. It uses the `www.youtube.com` origin for `SAPISIDHASH`, `Origin`, `Referer`, and `X-Origin`, and does not cache responses. `WatchNextParser` extracts the title, chapters, and description.
+The only request the app sends to regular YouTube (`www.youtube.com/youtubei/v1/next`, `WEB` client). The YouTube Music `next` endpoint omits chapters and the video description, so `MixTracklistParser` reads them here to build seek-bar segments for long mixes. It uses the `www.youtube.com` origin for `SAPISIDHASH`, `Origin`, `Referer`, and `X-Origin`, and does not cache responses. `WatchNextParser` extracts the title, chapters, and description.
 
 ### API Parsers
 
