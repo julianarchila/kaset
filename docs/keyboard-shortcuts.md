@@ -26,7 +26,6 @@ Mute is still available from the Playback menu and AppleScript, but Kaset intent
 | `⌘2`     | Go to Explore    |
 | `⌘3`     | Go to Library    |
 | `⌘F`     | Go to Search     |
-| `⌘K`     | Open Command Bar |
 | `⇧⌘R`    | Refresh Home suggestions |
 
 `⇧⌘R` refreshes the Home feed and bypasses its cached suggestions.

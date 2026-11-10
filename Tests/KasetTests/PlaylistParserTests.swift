@@ -233,8 +233,8 @@ struct PlaylistParserTests { // swiftlint:disable:this type_body_length
         #expect(page.isRecognized)
     }
 
-    @Test("Parse command-executor saved albums continuation")
-    func parseLibraryAlbumsCommandExecutorContinuation() {
+    @Test("Parse music-shelf saved albums continuation")
+    func parseLibraryAlbumsMusicShelfContinuation() {
         let page = PlaylistParser.parseLibraryAlbumsContinuation([
             "continuationContents": [
                 "musicShelfContinuation": [

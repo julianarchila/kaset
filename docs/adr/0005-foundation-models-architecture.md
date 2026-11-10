@@ -1,7 +1,7 @@
 # ADR 0005: Foundation Models Architecture
 
 **Date**: 2025-12-22  
-**Status**: Accepted  
+**Status**: Superseded by [ADR-0042](0042-fork-identity.md)  
 **Context**: Apple Intelligence integration for natural language music control  
 
 ## Context

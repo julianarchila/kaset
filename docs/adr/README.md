@@ -38,8 +38,8 @@ What becomes easier or more difficult because of this change?
 | [0001](0001-webview-playback.md) | WebView-Based Playback | Accepted |
 | [0002](0002-protocol-based-services.md) | Protocol-Based Service Design | Accepted |
 | [0003](0003-modular-api-parsers.md) | Modular API Response Parsers | Accepted |
-| [0004](0004-streaming-foundation-models.md) | Streaming Responses for Foundation Models | Accepted |
-| [0005](0005-foundation-models-architecture.md) | Foundation Models Architecture | Accepted |
+| [0004](0004-streaming-foundation-models.md) | Streaming Responses for Foundation Models | Superseded by ADR-0042 |
+| [0005](0005-foundation-models-architecture.md) | Foundation Models Architecture | Superseded by ADR-0042 |
 | [0006](0006-swift-testing-migration.md) | Swift Testing Migration | Accepted |
 | [0007](0007-sparkle-auto-updates.md) | Sparkle Auto-Updates | Superseded by ADR-0042 |
 | [0008](0008-nonisolated-network-helpers.md) | Nonisolated Network Helpers for MainActor Classes | Accepted |
@@ -49,8 +49,8 @@ What becomes easier or more difficult because of this change?
 | [0012](0012-synced-lyrics-architecture.md) | Synced Lyrics Provider Architecture | Accepted |
 | [0013](0013-localization-strategy.md) | Localization Strategy (String Catalogs) | Proposed |
 | [0014](0014-extensions.md) | Extensions — User-Managed Web Extensions | Accepted |
-| [0015](0015-command-bar-local-first-routing.md) | Command Bar Local-First Routing | Accepted |
-| [0016](0016-staged-command-parsing-and-queue-analysis.md) | Staged Command Parsing And Queue Analysis | Accepted |
+| [0015](0015-command-bar-local-first-routing.md) | Command Bar Local-First Routing | Superseded by ADR-0042 |
+| [0016](0016-staged-command-parsing-and-queue-analysis.md) | Staged Command Parsing And Queue Analysis | Superseded by ADR-0042 |
 | [0017](0017-equalizer.md) | 6-Band Equalizer via Core Audio Process Tap | Implemented |
 | [0018](0018-artist-page-episodes.md) | Artist Page — Episodes, Singles, Playlists, Podcasts, Related Artists | Accepted |
 | [0019](0019-podcasts-availability.md) | Region-Aware Podcasts Tab Visibility | Implemented |

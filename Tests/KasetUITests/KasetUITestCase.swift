@@ -35,7 +35,6 @@ enum TestAccessibilityID {
 
     enum MainWindow {
         static let container = "mainWindow"
-        static let commandBarInput = "mainWindow.commandBarInput"
     }
 
     enum PlayerBar {

@@ -50,6 +50,9 @@ Several upstream settings tied a fork build to the upstream app:
   still read chapters and descriptions from regular YouTube's `next` endpoint
   through the small `YouTubeWatchNextFetcher`, because the YouTube Music
   `next` endpoint omits them.
+- AI features removed: the Command Bar (⌘K), lyrics explanations, playlist
+  refinement, the Intelligence settings tab, and every Foundation Models
+  dependency. This supersedes ADR-0004, ADR-0005, ADR-0015, and ADR-0016.
 
 ## Consequences
 

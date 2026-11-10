@@ -18,7 +18,7 @@
 ### Playback
 
 - 🎚️ **Equalizer** — System-wide 6-band parametric EQ with Spotify-style presets, applied to WebKit playback output
-- 📜 **Lyrics** — View plain and synced lyrics with line-by-line highlighting when timing data is available, plus AI-powered explanations and mood analysis on macOS 26+
+- 📜 **Lyrics** — View plain and synced lyrics with line-by-line highlighting when timing data is available
 - 📃 **Queue Management** — View, reorder, shuffle, and clear your playback queue
 - 🔀 **Smart Shuffle** — Beyond plain shuffle: blends suggested tracks into the queue based on what you're playing, with cadence and how many are queued ahead configurable in Settings
 - 🔊 **Background Audio** — Music continues playing when the window is closed; stops on quit
@@ -35,7 +35,6 @@
 ### macOS Integration
 
 - 🎛️ **System Integration** — Now Playing in Control Center, media key support, Dock menu controls
-- ✨ **Apple Intelligence** — On-device AI for natural language commands, lyrics explanations, and playlist refinement on macOS 26+
 - ⌨️ **[Keyboard Shortcuts](docs/keyboard-shortcuts.md)** — Full keyboard control for playback, navigation, and more
 - 📳 **Haptic Feedback** — Tactile feedback on Force Touch trackpads for player controls and navigation
 - 📣 **Share** — Share songs, playlists, albums, and artists via the native macOS share sheet
@@ -51,7 +50,6 @@
 ## Requirements
 
 - macOS 15.4 or later
-- Apple Intelligence features require macOS 26.0 or later
 - [Google](https://accounts.google.com) account for YouTube Music personalization
 
 ## Installation

@@ -6,7 +6,6 @@ import SwiftUI
 struct QueueView: View {
     @Environment(PlayerService.self) private var playerService
     @Environment(AuthService.self) private var authService
-    @Environment(\.showCommandBar) private var showCommandBar
 
     /// Namespace for glass effect morphing.
     @Namespace private var queueNamespace

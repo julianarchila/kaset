@@ -95,12 +95,6 @@ struct LiquidGlassCompatTests {
         #expect(String(describing: view).isEmpty == false)
     }
 
-    @Test("legacy macOS 15 UI override disables macOS 26-only UI capabilities")
-    func legacyUIOverrideDisablesModernUICapabilities() {
-        #expect(PlatformCapabilities.supportsCommandBar(usesLegacyMacOS15UI: true) == false)
-        #expect(PlatformCapabilities.supportsFoundationModels(usesLegacyMacOS15UI: true) == false)
-    }
-
     #if DEBUG
         @Test("debug legacy macOS 15 UI setting persists")
         func debugLegacyUISettingPersists() {

@@ -24,9 +24,6 @@ enum DiagnosticsLogger {
     /// Logger for notification-related events.
     static let notification = Logger(subsystem: Self.subsystem, category: "Notification")
 
-    /// Logger for AI/Foundation Models-related events.
-    static let ai = Logger(subsystem: Self.subsystem, category: "AI")
-
     /// Logger for haptic feedback-related events.
     static let haptic = Logger(subsystem: Self.subsystem, category: "Haptic")
 

@@ -31,7 +31,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @Environment(PodcastsAvailabilityService.self) private var podcastsAvailability
     @Environment(\.searchFocusTrigger) private var searchFocusTrigger
     @Environment(\.sidebarNavigationReselectGenerations) private var sidebarNavigationReselectGenerations
-    @Environment(\.showCommandBar) private var showCommandBar
     @Environment(\.usesLegacyMacOS15UI) private var usesLegacyMacOS15UI
 
     /// Binding to navigation selection for keyboard shortcut control from parent.
@@ -47,7 +46,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     let client: any YTMusicClientProtocol
 
     @State private var showLoginSheet = false
-    @State private var isCommandBarPresented = false
     @State private var selectedSidebarPinnedItem: SidebarPinnedItem?
     @State private var contentResetID = UUID()
     @State private var guestRefreshTask: Task<Void, Never>?
@@ -256,32 +254,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         .sheet(isPresented: self.$showLoginSheet) {
             LoginSheet()
         }
-        .overlay {
-            // Command bar overlay - dismisses when clicking outside
-            if self.supportsCommandBarUI, self.isCommandBarPresented {
-                ZStack {
-                    // Background tap area to dismiss
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(Rectangle())
-                        .ignoresSafeArea()
-                        .accessibilityIdentifier(AccessibilityID.MainWindow.commandBarOverlay)
-                        .onTapGesture {
-                            self.isCommandBarPresented = false
-                        }
-
-                    VStack(spacing: 0) {
-                        self.commandBar
-                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-
-                        Spacer(minLength: 0)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .padding(.top, MainWindowLayout.aiTaskSurfaceTopPadding)
-                }
-                .animation(.easeInOut(duration: 0.15), value: self.isCommandBarPresented)
-            }
-        }
         .overlay(alignment: .top) {
             // Error toast for account switching failures
             AccountErrorToast()
@@ -315,20 +287,8 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
     private var appLifecycleContent: some View {
         self.windowChrome
-            .onChange(of: self.showCommandBar.wrappedValue) { _, newValue in
-                if newValue {
-                    self.presentCommandBarIfAvailable()
-                    self.showCommandBar.wrappedValue = false
-                }
-            }
             .onChange(of: self.homeRefreshRequestID) { _, _ in
                 Task { await self.refreshActiveHome() }
-            }
-            .onChange(of: self.usesLegacyMacOS15UI) { _, usesLegacyUI in
-                if usesLegacyUI {
-                    self.isCommandBarPresented = false
-                    self.showCommandBar.wrappedValue = false
-                }
             }
             .modifier(PinnedNavigationPathLifecycleModifier(
                 navigationSelection: self.$navigationSelection,
@@ -536,36 +496,10 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         .animation(.easeInOut(duration: 0.25), value: self.playerService.showQueue)
         .toolbar(self.isShowingFullScreenPlayer ? .hidden : .automatic, for: .windowToolbar)
         .frame(minWidth: MainWindowLayout.minimumWidth, minHeight: MainWindowLayout.minimumHeight)
-        .toolbar {
-            if self.supportsCommandBarUI {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        self.presentCommandBarIfAvailable()
-                    } label: {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.primary)
-                    }
-                    .keyboardShortcut("k", modifiers: .command)
-                    .help(String(localized: "Open Command Bar (⌘K)"))
-                    .accessibilityIdentifier(AccessibilityID.MainWindow.aiButton)
-                }
-            }
-        }
     }
 
     private var isShowingFullScreenPlayer: Bool {
         self.playerService.showFullScreenPlayer
-    }
-
-    private func presentCommandBarIfAvailable() {
-        guard self.supportsCommandBarUI else { return }
-        self.isCommandBarPresented = true
-    }
-
-    private var supportsCommandBarUI: Bool {
-        PlatformCapabilities.supportsCommandBar(usesLegacyMacOS15UI: self.usesLegacyMacOS15UI)
-            && self.hasPersonalAccount
     }
 
     /// Right sidebar overlay showing either lyrics or queue as glass panels (mutually exclusive).
@@ -619,21 +553,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    @ViewBuilder
-    private var commandBar: some View {
-        if !self.usesLegacyMacOS15UI, #available(macOS 26.0, *) {
-            CommandBarView(
-                client: self.client,
-                playerService: self.playerService,
-                isPresented: self.$isCommandBarPresented,
-                navigationSelection: self.$navigationSelection,
-                searchFocusTrigger: self.searchFocusTrigger,
-                sidebarNavigationReselectGenerations: self.sidebarNavigationReselectGenerations,
-                searchViewModel: self.searchViewModel
-            )
-        }
     }
 
     /// Returns the view for a specific navigation item.

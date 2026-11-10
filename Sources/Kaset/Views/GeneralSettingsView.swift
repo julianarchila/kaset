@@ -113,10 +113,6 @@ struct GeneralSettingsView: View {
                 Section {
                     Toggle(String(localized: "Use Legacy macOS 15 UI"), isOn: self.$settings.useLegacyMacOS15UI)
                         .help(String(localized: "Force macOS 15 fallback views and materials while running on macOS 26+ for compatibility debugging"))
-
-                    Text(String(localized: "Disables Liquid Glass, the Command Bar, and Apple Intelligence UI surfaces until toggled off."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 } header: {
                     Text(String(localized: "Debug"))
                 }

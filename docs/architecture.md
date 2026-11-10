@@ -745,18 +745,6 @@ enum AccessibilityID {
 
 **Benefits**: Prevents string duplication, enables IDE autocomplete in tests.
 
-### IntelligenceModifier
-
-**File**: `Sources/Kaset/Utilities/IntelligenceModifier.swift`
-
-SwiftUI modifier to hide AI features when unavailable:
-
-```swift
-.requiresIntelligence()  // Hides view if Apple Intelligence unavailable
-```
-
-Checks `FoundationModelsService.shared.isAvailable` and applies opacity/disabled state.
-
 ### RetryPolicy
 
 **File**: `Sources/Kaset/Utilities/RetryPolicy.swift`
@@ -939,101 +927,6 @@ The app uses Apple's **Liquid Glass** design language introduced in macOS 26 whe
 4. **Avoid glass-on-glass** — don't apply `.buttonStyle(.glass)` to buttons already inside a glass container
 5. **Reserve glass for navigation/floating controls** — don't apply a glass *material* to content. Content may, however, pass *beneath* the system-provided navigation glass: on macOS 26 detail content slides under the floating `NavigationSplitView` sidebar and refracts through it (see ADR-0021)
 
-## Foundation Models (Apple Intelligence)
-
-Kaset integrates Apple's on-device Foundation Models framework for AI-powered features. See [ADR-0005: Foundation Models Architecture](adr/0005-foundation-models-architecture.md) for detailed design decisions.
-
-### Architecture Overview
-
-```
-User Input (natural language)
-    │
-    ▼
-┌─────────────────────────────────────────────────┐
-│ FoundationModelsService                         │
-│  → Check availability                           │
-│  → Create session with tools                    │
-└─────────────────────────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────────────────────────┐
-│ LanguageModelSession                            │
-│  → Parse input to @Generable type               │
-│  → Call tools for grounded data                 │
-│  → Return structured response                   │
-└─────────────────────────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────────────────────────┐
-│ Execute Action                                  │
-│  → MusicIntent → PlayerService                  │
-│  → QueueIntent → PlayerService queue methods    │
-│  → LyricsSummary → Display in UI                │
-└─────────────────────────────────────────────────┘
-```
-
-### Key Components
-
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| `FoundationModelsService` | `Sources/Kaset/Services/AI/` | Singleton managing AI availability and sessions |
-| `@Generable` Models | `Sources/Kaset/Models/AI/` | Type-safe structured outputs (`MusicIntent`, `LyricsSummary`, etc.) |
-| Tools | `Sources/Kaset/Services/AI/Tools/` | Ground AI responses in real catalog data |
-| `AIErrorHandler` | `Sources/Kaset/Services/AI/` | User-friendly error messages |
-| `RequiresIntelligenceModifier` | `Sources/Kaset/Utilities/` | Hide AI features when unavailable |
-
-### AI Tools
-
-Tools ground AI responses in real data from the YouTube Music catalog, preventing hallucination.
-
-**MusicSearchTool** (`Sources/Kaset/Services/AI/Tools/MusicSearchTool.swift`)
-
-Searches the YouTube Music catalog for songs, artists, and albums:
-
-```swift
-@Generable
-struct MusicSearchResult {
-    let songs: [SongResult]
-    let artists: [ArtistResult]
-    let albums: [AlbumResult]
-}
-```
-
-**QueueTool** (`Sources/Kaset/Services/AI/Tools/QueueTool.swift`)
-
-Provides access to the current playback queue for AI-driven queue management:
-
-- Returns current queue contents
-- Used by `QueueIntent` for natural language queue manipulation
-- Enables commands like "remove duplicates" or "play upbeat songs next"
-
-### @Generable Models
-
-Type-safe structured outputs for AI responses:
-
-| Model | File | Purpose |
-|-------|------|---------|
-| `MusicIntent` | `Sources/Kaset/Models/AI/MusicIntent.swift` | Parsed user commands (play, pause, search, etc.) |
-| `LyricsSummary` | `Sources/Kaset/Models/AI/LyricsSummary.swift` | Lyrics explanation with themes and mood |
-| `PlaylistChanges` | `Sources/Kaset/Models/AI/PlaylistChanges.swift` | Queue refinement operations |
-
-### AI Features
-
-| Feature | Trigger | Model Used |
-|---------|---------|------------|
-| Command Bar | ⌘K | `MusicIntent`, `MusicQuery` |
-| Lyrics Explanation | "Explain" button in lyrics view | `LyricsSummary` |
-| Queue Management | Natural language in command bar | `QueueIntent` |
-| Queue Refinement | Refine button in queue view | `QueueChanges` |
-
-### Best Practices
-
-1. **Token Limit**: 4,096 tokens per session. Chunk large playlists, truncate long lyrics.
-2. **Streaming**: Use `streamResponse` for long-form content (lyrics explanation).
-3. **Tools**: Always use tools to ground responses in real data—prevents hallucination.
-4. **Graceful Degradation**: Use `.requiresIntelligence()` modifier to hide unavailable features.
-5. **Error Handling**: Use `AIErrorHandler` for user-friendly messages.
-
 ## UI Components
 
 This section documents key SwiftUI views and their integration patterns.
@@ -1062,23 +955,9 @@ Right sidebar panel displaying song lyrics:
 - Falls back to `YTMusicClient.getLyrics(videoId:)` for plain YouTube Music lyrics when synced providers return `.unavailable`
 - Starts 10 Hz WebView playback polling only while rendering `.synced` lyrics so line highlighting stays aligned without constant idle polling
 - `SyncedLyricsDisplayView` auto-centers the current line and supports tap-to-seek
-- "Explain" button triggers AI-powered `LyricsSummary` generation for either synced or plain lyrics
 - Width: 280px, animated show/hide
 
 **Integration**: Toggled via `PlayerService.showLyrics`, persists across all navigation states, and consumes playback time from `PlayerService.currentTimeMs`.
-
-### CommandBarView
-
-**File**: `Sources/Kaset/Views/CommandBarView.swift`
-
-Spotlight-style command palette triggered by ⌘K:
-
-- Natural language input parsed via `MusicIntent`
-- Shows suggestions and action previews
-- Supports commands: play, pause, skip, search, queue management
-- Floating overlay with glass effect
-
-**Trigger**: `@Environment(\.showCommandBar)` environment key.
 
 ### ToastView
 
@@ -1217,15 +1096,5 @@ var mainContent: some View {
 **Pattern**: Global overlays/sidebars → `MainWindow` level, outside `NavigationSplitView`
 
 ### @available Attributes
-
-Foundation Models-backed AI components remain macOS 26.0+ only:
-
-```swift
-@available(macOS 26.0, *)
-struct CommandBarView: View { ... }
-
-@available(macOS 26.0, *)
-struct LyricsView: View { ... }
-```
 
 Core navigation and playback surfaces should avoid macOS 26-only annotations and use compatibility wrappers or explicit fallback views instead.

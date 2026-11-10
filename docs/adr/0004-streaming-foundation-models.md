@@ -1,7 +1,7 @@
 # ADR 0004: Streaming Responses for Foundation Models
 
 **Date**: 2025-12-21  
-**Status**: Accepted  
+**Status**: Superseded by [ADR-0042](0042-fork-identity.md)  
 **Context**: Foundation Models integration improvement  
 
 ## Context

@@ -62,8 +62,7 @@ Tests/
 │   │   ├── search_response.json
 │   │   ├── playlist_detail.json
 │   │   └── YouTube/                 # Sanitized regular YouTube watch-next fixture
-│   ├── *Tests.swift                 # Other app unit tests (Swift Testing)
-│   └── MusicIntentIntegrationTests.swift  # Apple Intelligence integration tests
+│   └── *Tests.swift                 # Other app unit tests (Swift Testing)
 └── APIExplorerTests/
 ```
 
@@ -383,72 +382,6 @@ Button {
 ```
 
 ## Integration Testing
-
-### AI Integration Tests (Apple Intelligence)
-
-The `MusicIntentIntegrationTests` suite validates LLM parsing of natural language commands into `MusicIntent` structs.
-
-#### Requirements
-
-- macOS 26+ with Apple Intelligence enabled
-- Tests skip gracefully when AI is unavailable via `throw TestSkipped()`
-
-#### Flakiness Mitigation
-
-LLM outputs are inherently non-deterministic. These tests mitigate flakiness by:
-
-1. **Retry logic**: Each test retries up to 3 times before failing (with 500ms delays)
-2. **Relaxed matching**: Checks multiple fields (e.g., `mood` OR `query`) for expected content
-3. **Case-insensitive**: All string comparisons are lowercased
-4. **Fresh sessions**: Each attempt uses a new `LanguageModelSession` to avoid context drift
-5. **Tagged for exclusion**: Use `-skip-test-tag integration` in CI to skip these tests
-
-#### Recommended CI Configuration
-
-For stable CI pipelines, **exclude integration tests** and run them separately in a scheduled job. These are CI/Xcode-specific commands; keep day-to-day local verification on the default CLI loop above:
-
-```bash
-# CI: Run unit tests only (stable)
-xcodebuild test -scheme Kaset -destination 'platform=macOS' \
-  -only-testing:KasetTests -skip-test-tag integration
-
-# Scheduled job: Run integration tests (may need re-runs)
-xcodebuild test -scheme Kaset -destination 'platform=macOS' \
-  -only-testing:KasetTests/MusicIntentIntegrationTests
-```
-
-#### What's Tested
-
-| Category         | Test Count | Example Prompts                              |
-| ---------------- | ---------- | -------------------------------------------- |
-| Basic Actions    | 5          | "Play music", "Skip", "Pause", "Like this"   |
-| Mood Queries     | 5          | "Play something chill", "Play upbeat music"  |
-| Genre Queries    | 5          | "Play jazz", "Play rock", "Play electronic"  |
-| Era Queries      | 4          | "Play 80s hits", "Play 90s top songs"        |
-| Artist Queries   | 3          | "Play Beatles", "Play Taylor Swift"          |
-| Activity Queries | 4          | "Music for studying", "Workout songs"        |
-| Complex Queries  | 3          | "Chill jazz from the 80s", "Acoustic covers" |
-| Queue Action     | 1          | "Add jazz to the queue"                      |
-| **Total**        | **~30**    |                                              |
-
-#### Run Commands
-
-```bash
-# Special-case: run ONLY integration tests (requires Apple Intelligence)
-xcodebuild test -scheme Kaset -destination 'platform=macOS' \
-  -only-testing:KasetTests/MusicIntentIntegrationTests
-
-# Default local run for the non-UI test suite
-swift test --skip KasetUITests
-```
-
-#### Test Characteristics
-
-- **Tagged**: `.integration` and `.slow` for easy filtering
-- **Auto-skip**: Uses `.enabled(if:)` to skip entire suite when AI unavailable
-- **Parameterized**: Efficient coverage with Swift Testing's `arguments:`
-- **Retry-enabled**: Up to 3 attempts per test to handle LLM non-determinism
-- **Relaxed validation**: Checks multiple fields to accommodate LLM output variance
 
 ### Manual Test Checklist
 

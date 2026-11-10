@@ -155,15 +155,6 @@ extension PlaylistDetailView {
     @ViewBuilder
     private func playlistManagementButtons(_ detail: PlaylistDetail, showsTitles: Bool) -> some View {
         if !detail.isAlbum, !detail.isUploadedSongs {
-            Button {
-                self.showRefineSheet = true
-            } label: {
-                self.headerActionLabel(localized: "Refine", systemImage: "sparkles", showsTitle: showsTitles)
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .requiresIntelligence()
-
             self.deletePlaylistButton(detail, showsTitles: showsTitles)
         }
     }

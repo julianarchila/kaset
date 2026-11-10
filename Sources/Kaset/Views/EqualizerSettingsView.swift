@@ -126,8 +126,7 @@ struct EqualizerSettingsView: View {
 
 // MARK: - EQStatusRow
 
-/// Two-line status row matching the visual language of
-/// ``IntelligenceSettingsView`` — an icon, a headline, and a subtitle.
+/// Two-line status row: an icon, a headline, and a subtitle.
 /// When the failure suggests a permission denial, a deep-link button
 /// opens System Settings → Privacy & Security → Screen & System Audio
 /// Recording directly.

@@ -1,4 +1,3 @@
-import FoundationModels
 import SwiftUI
 
 // MARK: - PlaylistDetailView
@@ -15,18 +14,8 @@ struct PlaylistDetailView: View {
     @Environment(\.libraryViewModel) var libraryViewModel: LibraryViewModel?
     @Environment(\.dismiss) var dismiss
     @Environment(\.onPlaylistDeleted) var onPlaylistDeleted
-    /// Whether the refine playlist sheet is visible.
-    @State var showRefineSheet: Bool = false
     /// Whether an add/remove Library request is currently in flight.
     @State var libraryMutationActivity = PlaylistDetailLibraryMutationActivity()
-    /// AI-generated playlist changes.
-    @State private var playlistChanges: PlaylistChanges?
-    /// Partial playlist changes during streaming.
-    @State private var partialChanges: PlaylistChanges.PartiallyGenerated?
-    /// Whether AI is processing the refine request.
-    @State private var isRefining: Bool = false
-    /// Error message from refine operation.
-    @State private var refineError: String?
     /// Computed property to check if playlist is in library.
     var isInLibrary: Bool {
         if self.playlist.isAlbum {
@@ -45,8 +34,6 @@ struct PlaylistDetailView: View {
     var hasPersonalAccount: Bool {
         self.authService.hasPersonalAccount
     }
-
-    private let logger = DiagnosticsLogger.ai
 
     init(playlist: Playlist, viewModel: PlaylistDetailViewModel) {
         self.playlist = playlist
@@ -105,25 +92,6 @@ struct PlaylistDetailView: View {
             for event in batch.events {
                 guard LikedMusicPlaylist.matches(id: self.playlist.id) else { return }
                 self.viewModel.handleLikeStatusChange(event)
-            }
-        }
-        .sheet(isPresented: self.$showRefineSheet) {
-            if let detail = viewModel.playlistDetail {
-                RefinePlaylistSheet(
-                    tracks: detail.tracks,
-                    isProcessing: self.$isRefining,
-                    changes: self.$playlistChanges,
-                    partialChanges: self.$partialChanges,
-                    errorMessage: self.$refineError,
-                    onRefine: { prompt in
-                        await self.refinePlaylist(tracks: detail.tracks, prompt: prompt)
-                    },
-                    onApply: {
-                        // Playlist modification via API not yet implemented
-                        // For now, just close the sheet
-                        self.showRefineSheet = false
-                    }
-                )
             }
         }
     }
@@ -517,116 +485,6 @@ struct PlaylistDetailView: View {
             tracks.filter(\.isPlayable), fallbackArtist: fallbackArtist,
             fallbackAlbum: fallbackAlbum
         )
-    }
-
-    private func refinePlaylist(tracks: [Song], prompt: String) async {
-        self.isRefining = true
-        self.refineError = nil
-        self.playlistChanges = nil
-        self.partialChanges = nil
-
-        self.logger.info("Refining playlist with prompt: \(prompt)")
-
-        let promptVersion = FoundationModelsPromptVersion.current
-        let instructions = FoundationModelsPromptLibrary.playlistRefinementInstructions(
-            version: promptVersion
-        )
-        self.logger.debug("Using Foundation Models playlist prompt version \(promptVersion.logDescription)")
-
-        // Use analysis session for creative playlist curation
-        guard let session = FoundationModelsService.shared.createAnalysisSession(
-            instructions: instructions
-        )
-        else {
-            self.refineError = "Apple Intelligence is not available"
-            self.isRefining = false
-            return
-        }
-
-        // Build track list - start with 25 and trim further on 26.4+ if token budget requires it.
-        let initialTrackLimit = min(tracks.count, 25)
-        let trackLines = FoundationModelsPromptLibrary.playlistTrackLines(
-            from: tracks,
-            limit: initialTrackLimit
-        )
-        let trackLimit = await FoundationModelsService.shared.fittedLineCount(
-            context: "playlist refinement",
-            instructions: instructions,
-            lines: trackLines,
-            generationSchema: PlaylistChanges.generationSchema
-        ) { candidateLines in
-            FoundationModelsPromptLibrary.playlistRefinementPrompt(
-                trackList: candidateLines.joined(separator: "\n"),
-                totalTracks: tracks.count,
-                shownTracks: candidateLines.count,
-                request: prompt,
-                version: promptVersion
-            )
-        }
-        let trackList = Array(trackLines.prefix(trackLimit)).joined(separator: "\n")
-        let fittedRequest = await FoundationModelsService.shared.fittedPromptContent(
-            context: "playlist refinement request",
-            instructions: instructions,
-            content: prompt,
-            generationSchema: PlaylistChanges.generationSchema
-        ) { candidateRequest in
-            FoundationModelsPromptLibrary.playlistRefinementPrompt(
-                trackList: trackList,
-                totalTracks: tracks.count,
-                shownTracks: trackLimit,
-                request: candidateRequest,
-                version: promptVersion
-            )
-        }
-
-        let userPrompt = FoundationModelsPromptLibrary.playlistRefinementPrompt(
-            trackList: trackList,
-            totalTracks: tracks.count,
-            shownTracks: trackLimit,
-            request: fittedRequest,
-            version: promptVersion
-        )
-
-        do {
-            // Use streaming for progressive UI updates
-            let stream = session.streamResponse(
-                to: userPrompt,
-                generating: PlaylistChanges.self
-            )
-
-            for try await snapshot in stream {
-                // Update partial content for streaming UI
-                self.partialChanges = snapshot.content
-            }
-
-            // Stream complete - convert final partial to complete changes
-            if let final = self.partialChanges,
-               let removals = final.removals,
-               let reasoning = final.reasoning
-            {
-                let normalizedChanges = PlaylistChanges(
-                    removals: removals,
-                    reorderedIds: final.reorderedIds,
-                    reasoning: reasoning
-                )
-                .normalized(forOriginalTrackIds: tracks.map(\.videoId))
-                self.playlistChanges = normalizedChanges
-                self.logger.info(
-                    """
-                    Got playlist changes: \(removals.count) removals, \
-                    reordered=\(normalizedChanges.reorderedIds != nil)
-                    """
-                )
-            }
-        } catch {
-            // Use centralized error handler for consistent messaging
-            if let message = AIErrorHandler.handleAndMessage(error, context: "playlist refinement") {
-                self.refineError = message
-            }
-        }
-
-        self.partialChanges = nil
-        self.isRefining = false
     }
 }
 

@@ -4,7 +4,7 @@ Date: 2026-04-15
 
 ## Status
 
-Accepted
+Superseded by [ADR-0042](0042-fork-identity.md)
 
 ## Context
 

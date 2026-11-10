@@ -14,10 +14,6 @@ extension EnvironmentValues {
 }
 
 extension EnvironmentValues {
-    @Entry var showCommandBar: Binding<Bool> = .constant(false)
-}
-
-extension EnvironmentValues {
     @Entry var usesLegacyMacOS15UI = false
 }
 
@@ -67,8 +63,7 @@ struct KasetApp: App {
     /// Monotonic command request consumed by `MainWindow` to refresh the active Home feed.
     @State private var homeRefreshRequestID = 0
 
-    /// Whether the command bar is visible.
-    @State private var showCommandBar = false
+    // Whether the command bar is visible.
 
     /// Incoming app URLs received before auth initialization and guest-startup
     /// cleanup complete. These are replayed only after guest cleanup has run so
@@ -211,7 +206,6 @@ struct KasetApp: App {
                 .environment(\.searchFocusTrigger, self.$searchFocusTrigger)
                 .environment(\.sidebarNavigationReselectGenerations, self.$sidebarNavigationReselectGenerations)
                 .environment(\.navigationSelection, self.$navigationSelection)
-                .environment(\.showCommandBar, self.$showCommandBar)
                 .environment(\.usesLegacyMacOS15UI, self.settings.useLegacyMacOS15UI)
                 .background {
                     MainWindowRegistrationView(
@@ -269,13 +263,6 @@ struct KasetApp: App {
                     // This task owns account loading for startup, login, and recovery.
                     self.accountService?.authenticationIdentityDidChange()
                     await self.accountService?.fetchAccounts()
-
-                    // Warm up Foundation Models in background (macOS 26+ only)
-                    if !self.settings.useLegacyMacOS15UI, #available(macOS 26.0, *),
-                       !FoundationModelsService.shared.isWarmedUp
-                    {
-                        await FoundationModelsService.shared.warmup()
-                    }
                 }
                 // Claim deep links for this existing window so macOS does not
                 // spawn/tear down a second scene around `kasetfork://`.
@@ -430,14 +417,6 @@ struct KasetApp: App {
                     self.activateMusicSearch()
                 }
                 .keyboardShortcut("f", modifiers: .command)
-
-                // Command Bar - ⌘K
-                if PlatformCapabilities.supportsCommandBar(usesLegacyMacOS15UI: self.settings.useLegacyMacOS15UI) {
-                    Button(String(localized: "Command Bar")) {
-                        self.showCommandBar = true
-                    }
-                    .keyboardShortcut("k", modifiers: .command)
-                }
 
                 Divider()
 
@@ -694,17 +673,6 @@ struct SettingsView: View {
                 .tabItem {
                     Label(String(localized: "Scrobbling"), systemImage: "music.note.list")
                 }
-
-            // Conditionally rendered (Apple Intelligence is macOS 26+ and
-            // hidden in legacy UI mode). Placed near the end so that when it is
-            // absent, only the trailing Extensions tab shifts — the stable core
-            // tabs (General…Scrobbling) keep their positions.
-            if !self.settings.useLegacyMacOS15UI, #available(macOS 26.0, *) {
-                IntelligenceSettingsView()
-                    .tabItem {
-                        Label(String(localized: "Intelligence"), systemImage: "sparkles")
-                    }
-            }
 
             ExtensionsSettingsView()
                 .tabItem {
