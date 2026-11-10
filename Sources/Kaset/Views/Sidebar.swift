@@ -2,9 +2,8 @@ import SwiftUI
 
 /// Sidebar navigation for the main window, styled like Apple Music.
 ///
-/// Layout: the native search field, Home, and New at the top; a collapsible Discover
-/// section; the Library destinations; pinned items; and every playlist in the
-/// user's library.
+/// Layout: the native search field, Home, and Explore at the top; the Library
+/// destinations; pinned items; and every playlist in the user's library.
 struct Sidebar: View {
     private enum SidebarSelection: Hashable {
         case navigation(NavigationItem)
@@ -29,11 +28,9 @@ struct Sidebar: View {
     @Environment(AuthService.self) private var authService
     @Environment(PlayerService.self) private var playerService
     @Environment(SidebarPinnedItemsManager.self) private var sidebarPinnedItemsManager
-    @Environment(PodcastsAvailabilityService.self) private var podcastsAvailability
     @State private var isCreatingPlaylist = false
     @State private var isHoveringPlaylistsHeader = false
     @State private var pinnedSelectionOrigin: PinnedSelectionOrigin = .pinned
-    @AppStorage("sidebar.discoverExpanded") private var isDiscoverExpanded = false
     @AppStorage("sidebar.libraryExpanded") private var isLibraryExpanded = true
     @AppStorage("sidebar.pinnedExpanded") private var isPinnedExpanded = true
     @AppStorage("sidebar.playlistsExpanded") private var isPlaylistsExpanded = true
@@ -45,26 +42,9 @@ struct Sidebar: View {
                 self.navigationRow(.home)
                     .accessibilityIdentifier(AccessibilityID.Sidebar.homeItem)
 
-                self.navigationRow(.newReleases, title: String(localized: "New"))
-                    .accessibilityIdentifier(AccessibilityID.Sidebar.newReleasesItem)
-            }
-
-            Section(isExpanded: self.$isDiscoverExpanded) {
+                // Explore links to new releases, charts, and moods & genres.
                 self.navigationRow(.explore)
                     .accessibilityIdentifier(AccessibilityID.Sidebar.exploreItem)
-
-                self.navigationRow(.charts)
-                    .accessibilityIdentifier(AccessibilityID.Sidebar.chartsItem)
-
-                self.navigationRow(.moodsAndGenres)
-                    .accessibilityIdentifier(AccessibilityID.Sidebar.moodsAndGenresItem)
-
-                if self.podcastsAvailability.availability != .unavailable {
-                    self.navigationRow(.podcasts)
-                        .accessibilityIdentifier(AccessibilityID.Sidebar.podcastsItem)
-                }
-            } header: {
-                Text(String(localized: "Discover"))
             }
 
             if self.hasPersonalAccount {
@@ -145,9 +125,9 @@ struct Sidebar: View {
         return nil
     }
 
-    private func navigationRow(_ item: NavigationItem, title: String? = nil) -> some View {
+    private func navigationRow(_ item: NavigationItem) -> some View {
         KasetSidebarRow(
-            title: title ?? item.displayName,
+            title: item.displayName,
             systemImage: item.icon,
             isSelected: self.currentSidebarSelection == .navigation(item)
         ) {
@@ -346,5 +326,4 @@ struct Sidebar: View {
         .environment(authService)
         .environment(PlayerService())
         .environment(SidebarPinnedItemsManager(skipLoad: true))
-        .environment(PodcastsAvailabilityService())
 }

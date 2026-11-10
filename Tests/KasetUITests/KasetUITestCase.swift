@@ -93,8 +93,6 @@ class KasetUITestCase: XCTestCase {
 
         // Add UI test mode arguments
         self.app.launchArguments.append("-UITestMode")
-        // Discover starts collapsed for users; expand it so tests can reach its rows.
-        self.app.launchArguments.append(contentsOf: ["-sidebar.discoverExpanded", "YES"])
         self.app.launchArguments.append("-SkipAuth")
 
         // Also set via environment (more reliable with XCUIApplication(url:))

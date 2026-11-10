@@ -15,12 +15,14 @@ own playlists only appeared after pinning them by hand.
 ## Decision
 
 - Top: the native sidebar search field (`.searchable(placement: .sidebar)`
-  with `.searchSuggestions`), then Home and New (New Releases). Typing a query
-  switches the detail column to Search results; Enter searches immediately and
-  ⌘F focuses the field. `SearchView` no longer has its own field.
+  with `.searchSuggestions`), then Home and Explore. Typing a query switches
+  the detail column to Search results; Enter searches immediately and ⌘F
+  focuses the field. `SearchView` no longer has its own field.
 - Sidebar symbols use the user's macOS accent color (see ADR-0042).
-- Discover (Explore, Charts, Moods & Genres, Podcasts) is a collapsible section,
-  collapsed by default. Sections use the native sidebar disclosure control:
+- New Releases, Charts, Moods & Genres, and Podcasts have no sidebar rows;
+  Explore already links to new releases, charts, and moods & genres. They are
+  also no longer launch-page options (a stored one falls back to the default).
+  Sections use the native sidebar disclosure control:
   a custom header button cannot toggle `Section(isExpanded:)` reliably,
   because the binding it receives inside a sidebar `List` header never updates
   the real state (measured with a trace).
@@ -43,7 +45,6 @@ verified with the API explorer.
 
 ## Consequences
 
-- Section expansion persists in `@AppStorage` (`sidebar.*Expanded`). UI tests
-  launch with `-sidebar.discoverExpanded YES` to reach Discover rows.
+- Section expansion persists in `@AppStorage` (`sidebar.*Expanded`).
 - The combined Library page with chips is no longer reachable from the
   sidebar; `LibraryView` without a scope still supports it.

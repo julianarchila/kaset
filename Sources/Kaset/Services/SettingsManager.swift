@@ -36,9 +36,6 @@ final class SettingsManager {
     enum LaunchPage: String, CaseIterable, Identifiable {
         case home
         case explore
-        case charts
-        case moodsAndGenres
-        case newReleases
         case likedMusic
         case playlists
         case lastUsed
@@ -51,9 +48,6 @@ final class SettingsManager {
             switch self {
             case .home: String(localized: "Home")
             case .explore: String(localized: "Explore")
-            case .charts: String(localized: "Charts")
-            case .moodsAndGenres: String(localized: "Moods & Genres")
-            case .newReleases: String(localized: "New Releases")
             case .likedMusic: String(localized: "Liked Music")
             case .playlists: String(localized: "Playlists")
             case .lastUsed: String(localized: "Last Used")
@@ -65,9 +59,6 @@ final class SettingsManager {
             switch self {
             case .home: .home
             case .explore: .explore
-            case .charts: .charts
-            case .moodsAndGenres: .moodsAndGenres
-            case .newReleases: .newReleases
             case .likedMusic: .likedMusic
             case .playlists: .libraryPlaylists
             case .lastUsed: .home // Fallback, actual value comes from lastUsedPage
