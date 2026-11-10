@@ -44,4 +44,26 @@ struct NowPlayingClaimTests {
         #expect(NowPlayingManager.isNativeClaim(webKitInfo) == false)
         #expect(NowPlayingManager.isNativeClaim(nil) == false)
     }
+
+    @Test("An active WebKit Now Playing session releases the native claim in every state")
+    func webKitSessionReleasesClaim() {
+        let track = (title: "Song", artist: "Artist")
+        let states: [PlayerService.PlaybackState] = [.idle, .loading, .buffering, .playing, .paused, .ended, .error("boom")]
+        for state in states {
+            #expect(NowPlayingManager.desiredClaim(state: state, track: track, webKitHasSession: true) == .release)
+        }
+    }
+
+    @Test("Without a WebKit session, or when unknown, the paused fallback claim is kept")
+    func missingOrUnknownWebKitSessionKeepsClaim() {
+        let track = (title: "Song", artist: "Artist")
+        let expected = NowPlayingManager.NowPlayingClaim.claim(
+            title: "Song",
+            artist: "Artist",
+            playbackState: .paused
+        )
+        #expect(NowPlayingManager.desiredClaim(state: .paused, track: track, webKitHasSession: false) == expected)
+        #expect(NowPlayingManager.desiredClaim(state: .paused, track: track, webKitHasSession: nil) == expected)
+        #expect(NowPlayingManager.desiredClaim(state: .loading, track: track, webKitHasSession: false) == .handsOff)
+    }
 }

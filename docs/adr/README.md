@@ -79,3 +79,4 @@ What becomes easier or more difficult because of this change?
 | [0042](0042-fork-identity.md) | Fork identity and scope | Accepted |
 | [0043](0043-sidebar-library-layout.md) | Sidebar layout with Library destinations | Accepted |
 | [0044](0044-home-greeting-featured-quick-picks.md) | Home greeting, featured cards, and Quick picks grid | Accepted |
+| [0045](0045-single-now-playing-card.md) | One Now Playing card | Accepted |

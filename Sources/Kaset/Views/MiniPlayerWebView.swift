@@ -489,7 +489,15 @@ final class SingletonPlayerWebView {
         return instance
     }
 
-    private(set) var webView: WKWebView?
+    private(set) var webView: WKWebView? {
+        didSet {
+            guard self.webView !== oldValue else { return }
+            self.onWebViewChange?(self.webView)
+        }
+    }
+
+    /// Notified when the playback WebView is created or torn down.
+    var onWebViewChange: ((WKWebView?) -> Void)?
     weak var webKitManager: WebKitManager?
     private weak var currentContainer: NSView?
     private var usesCookieFreeDataStore: Bool?

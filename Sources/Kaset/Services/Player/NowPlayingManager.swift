@@ -117,8 +117,10 @@ final class RemoteMusicCommandIngress: @unchecked Sendable {
 // MARK: - NowPlayingManager
 
 /// Manages remote-command routing and the app's Now Playing ownership.
-/// WebKit publishes the rich card during confirmed playback; Kaset publishes tagged minimal
-/// metadata during paused or loading gaps so media keys continue routing to the active source.
+/// WebKit publishes the rich card from its GPU process, which macOS lists as its own Now Playing
+/// client; it keeps that session while paused. Kaset publishes tagged minimal metadata only while
+/// WebKit has no session (page loads, cold start) so media keys keep routing to Kaset, and
+/// releases it as soon as WebKit's session exists so the two never appear side by side (ADR-0045).
 @MainActor
 @Observable
 final class NowPlayingManager {
@@ -131,6 +133,11 @@ final class NowPlayingManager {
     /// True while Kaset is asserting a tagged native Now Playing claim.
     /// The tag lets release logic distinguish our metadata from a newer WebKit card.
     private var isAssertingNativeClaim = false
+    /// Tracks WebKit's own Now Playing session so the native fallback never duplicates it.
+    @ObservationIgnored private lazy var webKitSessionObserver = WebKitNowPlayingSessionObserver { [weak self] in
+        self?.updateNowPlayingClaim()
+    }
+
     @ObservationIgnored private var nowPlayingObservationGeneration: UInt64 = 0
 
     private let settings = SettingsManager.shared
@@ -148,8 +155,9 @@ final class NowPlayingManager {
     }
 
     /// What Kaset should tell the system Now Playing center for the current player state.
-    /// `handsOff` lets WebKit replace an existing fallback during active playback, while
-    /// `release` clears a native claim only when no resumable media remains.
+    /// `handsOff` keeps an existing fallback during active playback until WebKit reports its own
+    /// session, while `release` clears the native claim when WebKit has a session or no resumable
+    /// media remains.
     enum NowPlayingClaim: Equatable {
         case handsOff
         case release
@@ -159,10 +167,17 @@ final class NowPlayingManager {
     /// Pure decision: given the music player's state, what claim do we want?
     /// Active playback stays hands-off so WebKit owns the rich Control Center card, while
     /// inactive music keeps a minimal claim so the Play key resumes Kaset instead of Apple Music.
+    /// WebKit publishes from its GPU process, which macOS lists as a separate Now Playing entry,
+    /// so the claim is released whenever WebKit reports its own session (`webKitHasSession`).
+    /// `nil` means WebKit's state is unknown and keeps the fallback.
     nonisolated static func desiredClaim(
         state: PlayerService.PlaybackState,
-        track: (title: String, artist: String)?
+        track: (title: String, artist: String)?,
+        webKitHasSession: Bool? = nil
     ) -> NowPlayingClaim {
+        if webKitHasSession == true {
+            return .release
+        }
         switch state {
         case .playing, .buffering, .loading:
             return .handsOff
@@ -178,7 +193,11 @@ final class NowPlayingManager {
         let track = player.currentTrack.map { song in
             (title: song.title, artist: song.artists.map(\.name).joined(separator: ", "))
         }
-        let claim = Self.desiredClaim(state: player.state, track: track)
+        let claim = Self.desiredClaim(
+            state: player.state,
+            track: track,
+            webKitHasSession: self.webKitSessionObserver.hasActiveSession
+        )
         self.applyNowPlayingClaim(claim)
     }
 
@@ -192,8 +211,8 @@ final class NowPlayingManager {
                 self.isAssertingNativeClaim = false
                 return
             }
-            // Preserve the fallback until WebKit atomically replaces the app-wide metadata.
-            // A non-destructive state update cannot clear a concurrently published WebKit card.
+            // Keep the fallback until WebKit reports its own session (then the claim is released):
+            // WebKit's card belongs to a separate GPU-process client and never replaces ours.
             center.playbackState = .playing
         case .release:
             guard self.isAssertingNativeClaim else { return }
@@ -260,6 +279,11 @@ final class NowPlayingManager {
         self.logger.info("NowPlayingManager configured")
 
         self.observeSettingsChanges()
+
+        SingletonPlayerWebView.shared.onWebViewChange = { [weak self] webView in
+            self?.webKitSessionObserver.observe(webView)
+        }
+        self.webKitSessionObserver.observe(SingletonPlayerWebView.shared.webView)
 
         self.updateNowPlayingClaim()
         self.restartNowPlayingObservation()
