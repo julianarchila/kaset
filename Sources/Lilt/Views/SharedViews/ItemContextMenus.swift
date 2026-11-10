@@ -279,8 +279,6 @@ struct PlaylistContextMenu: View {
                         libraryViewModel: self.libraryViewModel
                     )
                 }
-                guard self.playerService.acceptsAccountMutationOwner(owner) else { return }
-                HapticService.success()
             } catch is CancellationError {
                 return
             } catch {

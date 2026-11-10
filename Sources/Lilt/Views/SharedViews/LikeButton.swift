@@ -29,7 +29,6 @@ struct LikeButton: View {
         if self.allowsActions {
             Button {
                 guard self.allowsActions else { return }
-                HapticService.success()
                 if isLiked {
                     SongActionsHelper.unlikeSong(self.song, likeStatusManager: self.likeStatusManager)
                 } else {

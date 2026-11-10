@@ -14,9 +14,6 @@ struct InteractiveCardStyle: ButtonStyle {
     /// Scale factor when pressed.
     var pressScale: CGFloat = 0.98
 
-    /// Optional haptic feedback type to trigger on press.
-    var hapticFeedback: HapticService.FeedbackType?
-
     @State private var isHovering = false
 
     /// Hover tracking is skipped entirely when hovering has no visual effect.
@@ -39,11 +36,6 @@ struct InteractiveCardStyle: ButtonStyle {
             )
             .animation(AppAnimation.spring, value: configuration.isPressed)
             .animation(AppAnimation.spring, value: self.isHovering)
-            .onChange(of: configuration.isPressed) { _, isPressed in
-                if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
-                }
-            }
 
         if self.tracksHover {
             label.onHover { hovering in
@@ -64,9 +56,6 @@ struct InteractiveRowStyle: ButtonStyle {
 
     /// Hover background color.
     var hoverColor: Color = .primary.opacity(0.06)
-
-    /// Optional haptic feedback type to trigger on press.
-    var hapticFeedback: HapticService.FeedbackType?
 
     /// Hover state from a parent that already tracks hover. When set, the style skips its
     /// own hover tracker, which adds up across the rows of a long list.
@@ -95,11 +84,6 @@ struct InteractiveRowStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.8 : 1.0)
             .animation(AppAnimation.quick, value: configuration.isPressed)
             .animation(AppAnimation.quick, value: isHovered)
-            .onChange(of: configuration.isPressed) { _, isPressed in
-                if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
-                }
-            }
     }
 }
 
@@ -110,19 +94,11 @@ struct PressableButtonStyle: ButtonStyle {
     /// Scale factor when pressed.
     var pressScale: CGFloat = 0.9
 
-    /// Optional haptic feedback type to trigger on press.
-    var hapticFeedback: HapticService.FeedbackType?
-
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? self.pressScale : 1.0)
             .opacity(configuration.isPressed ? 0.7 : 1.0)
             .animation(AppAnimation.quick, value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { _, isPressed in
-                if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
-                }
-            }
     }
 }
 
@@ -157,14 +133,12 @@ extension ButtonStyle where Self == InteractiveCardStyle {
     static func interactiveCard(
         showShadow: Bool = true,
         hoverScale: CGFloat = 1.02,
-        pressScale: CGFloat = 0.98,
-        hapticFeedback: HapticService.FeedbackType? = nil
+        pressScale: CGFloat = 0.98
     ) -> InteractiveCardStyle {
         InteractiveCardStyle(
             showShadow: showShadow,
             hoverScale: hoverScale,
-            pressScale: pressScale,
-            hapticFeedback: hapticFeedback
+            pressScale: pressScale
         )
     }
 }
@@ -175,14 +149,13 @@ extension ButtonStyle where Self == InteractiveRowStyle {
         InteractiveRowStyle()
     }
 
-    /// Interactive row style with custom corner radius, optional haptic feedback, and an
-    /// optional hover state supplied by a parent that already tracks hover.
+    /// Interactive row style with custom corner radius and an optional hover state
+    /// supplied by a parent that already tracks hover.
     static func interactiveRow(
         cornerRadius: CGFloat = 8,
-        hapticFeedback: HapticService.FeedbackType? = nil,
         isHovered: Bool? = nil
     ) -> InteractiveRowStyle {
-        InteractiveRowStyle(cornerRadius: cornerRadius, hapticFeedback: hapticFeedback, isHovered: isHovered)
+        InteractiveRowStyle(cornerRadius: cornerRadius, isHovered: isHovered)
     }
 }
 
@@ -190,11 +163,6 @@ extension ButtonStyle where Self == PressableButtonStyle {
     /// Pressable button style with scale feedback.
     static var pressable: PressableButtonStyle {
         PressableButtonStyle()
-    }
-
-    /// Pressable button style with optional haptic feedback.
-    static func pressable(hapticFeedback: HapticService.FeedbackType?) -> PressableButtonStyle {
-        PressableButtonStyle(hapticFeedback: hapticFeedback)
     }
 }
 

@@ -166,7 +166,6 @@ struct FullScreenPlayerView: View {
                         label: String(localized: "Like"),
                         accessibilityValue: Self.likeAccessibilityValue(for: self.playerService.currentTrackLikeStatus)
                     ) {
-                        HapticService.toggle()
                         self.playerService.likeCurrentTrack()
                     }
                 }
@@ -221,7 +220,6 @@ struct FullScreenPlayerView: View {
                 accessibilityValue: Self.shuffleAccessibilityValue(for: self.playerService.shuffleMode)
             ) {
                 // Same cycle as the player bar, so Smart Shuffle stays reachable here.
-                HapticService.toggle()
                 self.playerService.cycleShuffleMode()
             }
 
@@ -290,7 +288,6 @@ struct FullScreenPlayerView: View {
                 systemName: "rectangle.inset.bottomright.filled",
                 label: String(localized: "Switch to Mini Player")
             ) {
-                HapticService.toggle()
                 self.close()
                 _ = self.playerService.toggleMiniPlayer(mode: .switchFromMainWindow)
             }
@@ -318,7 +315,6 @@ struct FullScreenPlayerView: View {
             isSelected: isSelected,
             accessibilityValue: isSelected ? String(localized: "Showing") : String(localized: "Hidden")
         ) {
-            HapticService.toggle()
             self.sidePane = isSelected ? nil : pane
         }
     }
