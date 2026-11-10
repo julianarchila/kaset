@@ -768,7 +768,7 @@ extension DiscoveryAuditTests {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let appSupport = directory.appendingPathComponent("Library/Application Support")
         let legacy = appSupport.appendingPathComponent("Kaset/cookies.dat")
-        let container = directory.appendingPathComponent("Library/Containers/com.sertacozercan.Kaset/Data/Library/Application Support/Kaset/cookies.dat")
+        let container = directory.appendingPathComponent("Library/Containers/com.julianarchila.KasetFork/Data/Library/Application Support/Kaset/cookies.dat")
         try FileManager.default.createDirectory(at: legacy.deletingLastPathComponent(), withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
@@ -782,7 +782,7 @@ extension DiscoveryAuditTests {
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
 
         #expect(FileManager.default.createFile(atPath: container.path, contents: Data("test-cookie".utf8)))
-        let debugContainer = directory.appendingPathComponent("Library/Containers/com.sertacozercan.Kaset.debug/Data/Library/Application Support/Kaset/cookies.dat")
+        let debugContainer = directory.appendingPathComponent("Library/Containers/com.julianarchila.KasetFork.debug/Data/Library/Application Support/Kaset/cookies.dat")
         try FileManager.default.createDirectory(at: debugContainer.deletingLastPathComponent(), withIntermediateDirectories: true)
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
         #expect(FileManager.default.createFile(atPath: debugContainer.path, contents: Data("test-cookie".utf8)))

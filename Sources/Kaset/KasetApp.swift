@@ -18,10 +18,6 @@ extension EnvironmentValues {
 }
 
 extension EnvironmentValues {
-    @Entry var showWhatsNew: Binding<Bool> = .constant(false)
-}
-
-extension EnvironmentValues {
     @Entry var usesLegacyMacOS15UI = false
 }
 
@@ -50,7 +46,6 @@ struct KasetApp: App {
     @State private var sharedClient: any YTMusicClientProtocol
     @State private var sharedYouTubeClient: any YouTubeClientProtocol
     @State private var notificationService: NotificationService?
-    @State private var updaterService = UpdaterService()
     @State private var favoritesManager = FavoritesManager.shared
     @State private var sidebarPinnedItemsManager = SidebarPinnedItemsManager.shared
     @State private var likeStatusManager = SongLikeStatusManager.shared
@@ -80,9 +75,6 @@ struct KasetApp: App {
 
     /// Whether the command bar is visible.
     @State private var showCommandBar = false
-
-    /// Whether the "What's New" sheet should be shown.
-    @State private var showWhatsNew = false
 
     /// Incoming app URLs received before auth initialization and guest-startup
     /// cleanup complete. These are replayed only after guest cleanup has run so
@@ -256,7 +248,6 @@ struct KasetApp: App {
                 .environment(\.sidebarNavigationReselectGenerations, self.$sidebarNavigationReselectGenerations)
                 .environment(\.navigationSelection, self.$navigationSelection)
                 .environment(\.showCommandBar, self.$showCommandBar)
-                .environment(\.showWhatsNew, self.$showWhatsNew)
                 .environment(\.usesLegacyMacOS15UI, self.settings.useLegacyMacOS15UI)
                 .background {
                     MainWindowRegistrationView(
@@ -325,7 +316,7 @@ struct KasetApp: App {
                     }
                 }
                 // Claim deep links for this existing window so macOS does not
-                // spawn/tear down a second scene around `kaset://`.
+                // spawn/tear down a second scene around `kasetfork://`.
                 .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
                 .onChange(of: self.playerService.isPlaying) { _, isPlaying in
                     // The Core Audio process tap needs WebKit's GPU
@@ -379,19 +370,10 @@ struct KasetApp: App {
                 .environment(\.locale, self.settings.contentLanguage.locale)
                 .environment(self.authService)
                 .environment(self.accountService)
-                .environment(self.updaterService)
                 .environment(self.scrobblingCoordinator)
                 .environment(self.equalizerService)
         }
         .commands {
-            // Check for Updates command in app menu
-            CommandGroup(after: .appInfo) {
-                Button(String(localized: "Check for Updates...")) {
-                    self.updaterService.checkForUpdates()
-                }
-                .disabled(!self.updaterService.canCheckForUpdates)
-            }
-
             // Playback commands — routed to whichever player is active
             // (the YouTube video player when it played last, music otherwise).
             CommandMenu("Playback") {
@@ -598,14 +580,6 @@ struct KasetApp: App {
                     self.showMainWindow()
                 }
                 .keyboardShortcut("0", modifiers: .command)
-            }
-
-            // Help menu - What's New
-            CommandGroup(after: .appInfo) {
-                Divider()
-                Button(String(localized: "What's New in Kaset")) {
-                    self.showWhatsNew = true
-                }
             }
         }
     }
@@ -845,13 +819,12 @@ struct KasetApp: App {
 
 /// Main settings view with tabbed navigation.
 struct SettingsView: View {
-    @Environment(UpdaterService.self) private var updaterService
     @Environment(ScrobblingCoordinator.self) private var scrobblingCoordinator
     @State private var settings = SettingsManager.shared
 
     var body: some View {
         TabView {
-            GeneralSettingsView(updaterService: self.updaterService)
+            GeneralSettingsView()
                 .tabItem {
                     Label(String(localized: "General"), systemImage: "gearshape")
                 }

@@ -142,7 +142,7 @@ final class NowPlayingManager {
     private let settings = SettingsManager.shared
     private let remoteMusicCommandIngress = RemoteMusicCommandIngress()
     private static let defaultSkipInterval: TimeInterval = 15
-    nonisolated static let nativeClaimServiceIdentifier = "com.sertacozercan.Kaset.native-now-playing-claim"
+    nonisolated static let nativeClaimServiceIdentifier = "com.julianarchila.KasetFork.native-now-playing-claim"
 
     private init() {}
 

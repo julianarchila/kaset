@@ -239,7 +239,7 @@ Handoff rules:
   (Settings → YouTube, default on); when disabled, navigating away **stops**
   playback instead of opening the floating window. The setting gates only this
   automatic hand-off — the player-bar PiP / Full-view buttons and the
-  `kaset://` URL scheme open the floating window regardless.
+  `kasetfork://` URL scheme open the floating window regardless.
 - **Toggling to Music pauses the docked video in place** — no pop-out
   appears, and toggling back restores the same watch view (the YouTube
   drill-in path lives in `YouTubeViewModelStore`, which survives source

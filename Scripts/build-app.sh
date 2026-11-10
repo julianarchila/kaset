@@ -13,8 +13,14 @@ source "$ROOT/version.env"
 CONF=${1:-release}
 SIGNING_MODE=${KASET_SIGNING:-dev}
 SKIP_MAIN_ASSETS=${KASET_SKIP_MAIN_ASSETS:-0}
+# APP_NAME is the SwiftPM product/module and executable name.
 APP_NAME="Kaset"
-RELEASE_BUNDLE_ID="com.sertacozercan.Kaset"
+# Fork identity: the user-visible name and bundle ID. Kept distinct from the
+# upstream Kaset app so both can be installed side by side without sharing a
+# sandbox container, cookies, preferences, or URL scheme.
+APP_DISPLAY_NAME="KasetFork"
+APP_URL_SCHEME="kasetfork"
+RELEASE_BUNDLE_ID="com.julianarchila.KasetFork"
 # Debug bundles get their own sandbox container, so they never share the release
 # app's WebKit cookie jar, saved sign-in data, or preferences.
 if [[ "$(printf '%s' "$CONF" | tr '[:upper:]' '[:lower:]')" == "debug" ]]; then
@@ -25,7 +31,7 @@ fi
 DEVELOPMENT_LOCALIZATION="en"
 MIN_MACOS_VERSION="15.4"
 BUILD_DIR="$ROOT/.build/app"
-APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
+APP_BUNDLE="$BUILD_DIR/$APP_DISPLAY_NAME.app"
 
 # App Intents: the compiler records the intents, entities, and App Shortcuts it sees as
 # "const values", which appintentsmetadataprocessor turns into Metadata.appintents.
@@ -485,34 +491,6 @@ else
   echo "⚠️  Warning: $ICON_SOURCE or $APP_ASSET_CATALOG not found. App will have incomplete assets."
 fi
 
-# ── Sparkle.framework ────────────────────────────────────────────────────────
-
-SPARKLE_FRAMEWORK=""
-for arch in "${ARCH_LIST[@]}"; do
-  CANDIDATE_DIR=$(build_product_dir "$arch")
-  if SPARKLE_FRAMEWORK=$(find_framework_in_product_dir "$CANDIDATE_DIR" "Sparkle.framework"); then
-    break
-  fi
-  SPARKLE_FRAMEWORK=""
-done
-if [[ -z "$SPARKLE_FRAMEWORK" ]]; then
-  for CANDIDATE_DIR in ".build/$CONF" ".build/$CONF/PackageFrameworks" ".build/$CONF/ExecutableModules"; do
-    if [[ -d "$CANDIDATE_DIR/Sparkle.framework" ]]; then
-      SPARKLE_FRAMEWORK="$CANDIDATE_DIR/Sparkle.framework"
-      break
-    fi
-  done
-fi
-
-if [[ -n "$SPARKLE_FRAMEWORK" ]]; then
-  echo "✨ Embedding Sparkle.framework..."
-  cp -R "$SPARKLE_FRAMEWORK" "$APP_BUNDLE/Contents/Frameworks/"
-  chmod -R a+rX "$APP_BUNDLE/Contents/Frameworks/Sparkle.framework"
-  install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP_BUNDLE/Contents/MacOS/$APP_NAME" 2>/dev/null || true
-else
-  echo "WARN: Sparkle.framework not found in build output. Auto-updates will not work."
-fi
-
 # ── SwiftPM resource bundles ──────────────────────────────────────────────────
 # Kaset_Kaset.bundle contains Assets.xcassets compiled for Bundle.module.
 # It is kept separate from the top-level Assets.car produced above.
@@ -606,9 +584,9 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>${APP_NAME}</string>
+    <string>${APP_DISPLAY_NAME}</string>
     <key>CFBundleDisplayName</key>
-    <string>${APP_NAME}</string>
+    <string>${APP_DISPLAY_NAME}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -620,7 +598,7 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>LSMinimumSystemVersion</key>
     <string>15.4</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Sertac Ozercan. All rights reserved.</string>
+    <string>Copyright © 2025 Sertac Ozercan and contributors. Fork maintained by Julian Archila. MIT License.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>LSUIElement</key>
@@ -631,29 +609,15 @@ ${APP_LOCALIZATIONS_PLIST}
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.sertacozercan.kaset</string>
+            <string>${BUNDLE_ID}</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>kaset</string>
+                <string>${APP_URL_SCHEME}</string>
             </array>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
         </dict>
     </array>
-
-    <!-- Sparkle Auto-Update Configuration -->
-    <key>SUFeedURL</key>
-    <string>https://raw.githubusercontent.com/sozercan/kaset/main/appcast.xml</string>
-    <key>SUPublicEDKey</key>
-    <string>qa2zoeXHqn+pluxQSGjn5HyIYA/iFtrEJz7S1BoslpI=</string>
-    <key>SUEnableAutomaticChecks</key>
-    <true/>
-    <key>SUScheduledCheckInterval</key>
-    <integer>86400</integer>
-    <key>SUAllowsAutomaticUpdates</key>
-    <true/>
-    <key>SUEnableInstallerLauncherService</key>
-    <true/>
 
     <!-- AppleScript Support -->
     <key>NSAppleScriptEnabled</key>
@@ -735,37 +699,8 @@ case "$SIGNING_MODE" in
     ;;
 esac
 
-resign() { codesign "${CODESIGN_ARGS[@]}" "$1"; }
-
-# Sign Sparkle components innermost-first
-SPARKLE="$APP_BUNDLE/Contents/Frameworks/Sparkle.framework"
-if [[ -d "$SPARKLE" ]]; then
-  echo "  → Signing Sparkle.framework..."
-  [[ -f "$SPARKLE/Versions/B/Sparkle" ]] && resign "$SPARKLE/Versions/B/Sparkle"
-  [[ -f "$SPARKLE/Versions/B/Autoupdate" ]] && resign "$SPARKLE/Versions/B/Autoupdate"
-  [[ -d "$SPARKLE/Versions/B/Updater.app" ]] && {
-    [[ -f "$SPARKLE/Versions/B/Updater.app/Contents/MacOS/Updater" ]] && resign "$SPARKLE/Versions/B/Updater.app/Contents/MacOS/Updater"
-    resign "$SPARKLE/Versions/B/Updater.app"
-  }
-  [[ -d "$SPARKLE/Versions/B/XPCServices/Downloader.xpc" ]] && {
-    [[ -f "$SPARKLE/Versions/B/XPCServices/Downloader.xpc/Contents/MacOS/Downloader" ]] && resign "$SPARKLE/Versions/B/XPCServices/Downloader.xpc/Contents/MacOS/Downloader"
-    resign "$SPARKLE/Versions/B/XPCServices/Downloader.xpc"
-  }
-  [[ -d "$SPARKLE/Versions/B/XPCServices/Installer.xpc" ]] && {
-    [[ -f "$SPARKLE/Versions/B/XPCServices/Installer.xpc/Contents/MacOS/Installer" ]] && resign "$SPARKLE/Versions/B/XPCServices/Installer.xpc/Contents/MacOS/Installer"
-    resign "$SPARKLE/Versions/B/XPCServices/Installer.xpc"
-  }
-  resign "$SPARKLE/Versions/B" 2>/dev/null || true
-  resign "$SPARKLE"
-fi
-
 if [[ -f "$ROOT/Kaset.entitlements" ]]; then
   ENTITLEMENTS="$ROOT/Kaset.entitlements"
-  if [[ "$BUNDLE_ID" != "$RELEASE_BUNDLE_ID" ]]; then
-    # Sparkle's installer services are named after the bundle identifier.
-    ENTITLEMENTS="$BUILD_DIR/Kaset.entitlements"
-    sed "s/${RELEASE_BUNDLE_ID//./\\.}-sp/${BUNDLE_ID}-sp/g" "$ROOT/Kaset.entitlements" > "$ENTITLEMENTS"
-  fi
   codesign "${CODESIGN_ARGS[@]}" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
 else
   codesign "${CODESIGN_ARGS[@]}" "$APP_BUNDLE"

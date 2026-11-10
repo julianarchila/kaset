@@ -474,7 +474,7 @@ Caches and syncs like/dislike status for songs:
 
 **File**: `Sources/Kaset/Services/URLHandler.swift`
 
-Parses YouTube Music URLs, regular YouTube watch links, and custom `kaset://` URLs:
+Parses YouTube Music URLs, regular YouTube watch links, and custom `kasetfork://` URLs:
 
 | URL Pattern | ParsedContent |
 |-------------|---------------|
@@ -484,10 +484,10 @@ Parses YouTube Music URLs, regular YouTube watch links, and custom `kaset://` UR
 | `music.youtube.com/channel/UCxxx` | `.artist(id:)` |
 | `youtube.com/watch?v=xxx` | `.youtubeVideo(videoId:)` |
 | `youtu.be/xxx` | `.youtubeVideo(videoId:)` |
-| `kaset://play?v=xxx` | `.song(videoId:)` |
-| `kaset://playlist?list=xxx` | `.playlist(id:)` |
-| `kaset://album?id=xxx` | `.album(id:)` |
-| `kaset://artist?id=xxx` | `.artist(id:)` |
+| `kasetfork://play?v=xxx` | `.song(videoId:)` |
+| `kasetfork://playlist?list=xxx` | `.playlist(id:)` |
+| `kasetfork://album?id=xxx` | `.album(id:)` |
+| `kasetfork://artist?id=xxx` | `.artist(id:)` |
 
 **Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.kasetOpenURLs` for `KasetApp.handleIncomingURL` to parse and route. Music song links play through `PlayerService`; regular YouTube watch links switch to the YouTube source and open playback in the floating video window.
 
@@ -556,25 +556,9 @@ end tell
 **Implementation Details**:
 
 - `MainWindow` publishes the Library to the bridge once it has loaded (empty when signed out); the bridge reindexes Spotlight and refreshes App Shortcut parameters.
-- Playback intents set `openAppWhenRun`, wait for `AppIntentsBridge.isReady` (the same gate as `kaset://` deep links), and show the main window before playing.
+- Playback intents set `openAppWhenRun`, wait for `AppIntentsBridge.isReady` (the same gate as `kasetfork://` deep links), and show the main window before playing.
 - `Scripts/build-app.sh` generates `Metadata.appintents` with `appintentsmetadataprocessor`, since SwiftPM has no App Intents build phase, and fails if `AppShortcuts.xcstrings` is out of sync with the phrases in code.
 - Intents only run in team-signed builds and from `/Applications` or `~/Applications`.
-
-### UpdaterService
-
-**File**: `Sources/Kaset/Services/UpdaterService.swift`
-
-Manages application updates via Sparkle framework:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `automaticChecksEnabled` | `Bool` | Auto-check on launch |
-| `canCheckForUpdates` | `Bool` | Whether check is allowed now |
-
-**Key Methods**:
-- `checkForUpdates()` — Manually trigger update check
-
-See [ADR-0007: Sparkle Auto-Updates](adr/0007-sparkle-auto-updates.md) for design details.
 
 ### AppDelegate
 

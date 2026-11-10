@@ -15,7 +15,7 @@ struct PlaybackWebViewTeardownTests {
             webKitManager: webKitManager,
             playerService: playerService
         )
-        weak let coordinator = singleton.coordinator
+        weak var coordinator = singleton.coordinator
 
         #expect(coordinator != nil)
         playerService.updateAirPlayStatus(isConnected: true)
@@ -55,7 +55,7 @@ struct PlaybackWebViewTeardownTests {
             webKitManager: webKitManager,
             playerService: playerService
         )
-        weak let coordinator = singleton.coordinator
+        weak var coordinator = singleton.coordinator
 
         #expect(coordinator != nil)
         singleton.tearDown()

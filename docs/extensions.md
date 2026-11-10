@@ -90,7 +90,7 @@ Click the **trash** icon next to any extension, then restart Kaset.
 - **Manifest not found:** Make sure you selected the folder that contains `manifest.json`.
 - **Extension not loading:** Restart Kaset after adding or enabling it.
 - **Extension updates not appearing:** Remove the extension from Kaset, then add the newer version folder.
-- **Still stuck:** Open Console.app and filter by `com.sertacozercan.Kaset`, then look for `Extensions` or `WebKit` messages.
+- **Still stuck:** Open Console.app and filter by `com.julianarchila.KasetFork`, then look for `Extensions` or `WebKit` messages.
 
 ## Architecture
 

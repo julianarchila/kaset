@@ -336,7 +336,7 @@ func selectedCookieBackupFile(
 
     // Packaged debug builds export cookies.dat into their own container; older
     // debug builds shared the release container.
-    let containerCookieFiles = ["com.sertacozercan.Kaset.debug", "com.sertacozercan.Kaset"].map { bundleID in
+    let containerCookieFiles = ["com.julianarchila.KasetFork.debug", "com.julianarchila.KasetFork"].map { bundleID in
         homeDirectory
             .appendingPathComponent("Library/Containers/\(bundleID)/Data", isDirectory: true)
             .appendingPathComponent("Library/Application Support/Kaset", isDirectory: true)

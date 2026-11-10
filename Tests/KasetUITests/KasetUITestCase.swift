@@ -93,12 +93,12 @@ class KasetUITestCase: XCTestCase {
         // Stop immediately when a failure occurs
         continueAfterFailure = false
 
-        // Create new app instance pointing to installed Kaset.app
-        let appURL = URL(fileURLWithPath: "/Applications/Kaset.app")
+        // Create new app instance pointing to installed KasetFork.app
+        let appURL = URL(fileURLWithPath: "/Applications/KasetFork.app")
         if FileManager.default.fileExists(atPath: appURL.path) {
             self.app = XCUIApplication(url: appURL)
         } else {
-            self.app = XCUIApplication(bundleIdentifier: "com.sertacozercan.Kaset")
+            self.app = XCUIApplication(bundleIdentifier: "com.julianarchila.KasetFork.debug")
         }
 
         // Add UI test mode arguments

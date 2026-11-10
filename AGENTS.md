@@ -8,7 +8,7 @@ Kaset is a native macOS client for YouTube Music and YouTube, written in Swift 6
 
 - **Keep real credentials out of everything.** Cookies, SAPISID values, auth tokens, and API keys must not appear in code, comments, logs, docs, test fixtures, or your output. Use placeholders such as `"REDACTED"`, `"mock-token"`, or `"test-cookie"`. The repo is public and the app holds signed-in Google sessions, so a leaked value compromises a real account.
 - **Ask before running UI tests.** They launch the app and take over the desktop.
-- **Ask before adding a third-party dependency.** The project keeps them minimal; Sparkle, for app updates, is currently the only one.
+- **Ask before adding a third-party dependency.** The project keeps them minimal and currently has none.
 - **Prefer the API clients over WebView.** Use `YTMusicClient` (YouTube Music) or `YouTubeClient` (YouTube) whenever the endpoint exists. WebView is only for DRM playback and sign-in.
 - **Extend the API explorer instead of writing one-off scripts.** API exploration and debugging tooling belongs in `Sources/APIExplorer/main.swift` so the next person can reuse it.
 - **Keep standard macOS shortcuts.** Don't rebind `⌘M`, `⌘W`, `⌘Q`, `⌘H`, or `⌘,` unless the human asks. For media shortcuts, follow macOS and Apple Music conventions and update `docs/keyboard-shortcuts.md`.
@@ -74,14 +74,14 @@ The app is sandboxed, which breaks most ad-hoc logging without any error:
 - Writes to a hardcoded `/tmp/...` path are blocked.
 - Window-screenshot automation is unreliable.
 
-Write throwaway traces to `NSTemporaryDirectory()`, `synchronize()` after each line, and read them from `~/Library/Containers/com.sertacozercan.Kaset/Data/tmp/` (`com.sertacozercan.Kaset.debug` for packaged debug builds). `docs/common-bug-patterns.md` has the trace template, the single-flight load pattern for the `.task`-restart cancellation deadlock, concurrency anti-patterns, and a pre-submit checklist.
+Write throwaway traces to `NSTemporaryDirectory()`, `synchronize()` after each line, and read them from `~/Library/Containers/com.julianarchila.KasetFork/Data/tmp/` (`com.julianarchila.KasetFork.debug` for packaged debug builds). `docs/common-bug-patterns.md` has the trace template, the single-flight load pattern for the `.task`-restart cancellation deadlock, concurrency anti-patterns, and a pre-submit checklist.
 
 ### Cookie storage in debug builds
 
 Sandboxed builds without a valid Developer ID or provisioning profile (local debug and ad-hoc builds) hang inside `SecItemCopyMatching` when they query the Keychain.
 
 - `#if DEBUG` builds therefore store cookies in Application Support at `Kaset/cookies.dat` and skip the Keychain. Launch with `KASET_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
-- Packaged debug builds use the bundle ID `com.sertacozercan.Kaset.debug`, which gives them their own container, UserDefaults, and WebKit cookie jar. Don't package a debug build with the release bundle ID: each build's startup would overwrite the other's session.
+- Packaged debug builds use the bundle ID `com.julianarchila.KasetFork.debug`, which gives them their own container, UserDefaults, and WebKit cookie jar. Don't package a debug build with the release bundle ID: each build's startup would overwrite the other's session.
 - The Keychain is shared, so `KASET_DEBUG_COOKIE_STORAGE=keychain` reads and writes the release archive.
 - The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state must not write the release key.
 

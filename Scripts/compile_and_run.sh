@@ -4,8 +4,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_BUNDLE="${ROOT_DIR}/.build/app/Kaset.app"
-APP_PROCESS_PATTERN="Kaset.app/Contents/MacOS/Kaset"
+# Fork bundle name. Matching on the full bundle path keeps this script from
+# killing an upstream Kaset.app installed in /Applications.
+APP_BUNDLE="${ROOT_DIR}/.build/app/KasetFork.app"
+APP_PROCESS_PATTERN="${APP_BUNDLE}/Contents/MacOS/Kaset"
 DEBUG_PROCESS_PATTERN="${ROOT_DIR}/.build/debug/Kaset"
 RELEASE_PROCESS_PATTERN="${ROOT_DIR}/.build/release/Kaset"
 LOCK_KEY="$(printf '%s' "${ROOT_DIR}" | shasum -a 256 | cut -c1-8)"
@@ -67,8 +69,7 @@ kill_all_kaset() {
   is_running() {
     pgrep -f "${APP_PROCESS_PATTERN}" >/dev/null 2>&1 \
       || pgrep -f "${DEBUG_PROCESS_PATTERN}" >/dev/null 2>&1 \
-      || pgrep -f "${RELEASE_PROCESS_PATTERN}" >/dev/null 2>&1 \
-      || pgrep -x "Kaset" >/dev/null 2>&1
+      || pgrep -f "${RELEASE_PROCESS_PATTERN}" >/dev/null 2>&1
   }
 
   # Phase 1: request termination (give the app time to exit cleanly).
@@ -76,7 +77,6 @@ kill_all_kaset() {
     pkill -f "${APP_PROCESS_PATTERN}" 2>/dev/null || true
     pkill -f "${DEBUG_PROCESS_PATTERN}" 2>/dev/null || true
     pkill -f "${RELEASE_PROCESS_PATTERN}" 2>/dev/null || true
-    pkill -x "Kaset" 2>/dev/null || true
     if ! is_running; then
       return 0
     fi
@@ -87,7 +87,6 @@ kill_all_kaset() {
   pkill -9 -f "${APP_PROCESS_PATTERN}" 2>/dev/null || true
   pkill -9 -f "${DEBUG_PROCESS_PATTERN}" 2>/dev/null || true
   pkill -9 -f "${RELEASE_PROCESS_PATTERN}" 2>/dev/null || true
-  pkill -9 -x "Kaset" 2>/dev/null || true
 
   for _ in {1..25}; do
     if ! is_running; then

@@ -8,15 +8,6 @@ import SwiftUI
 struct MainWindow: View { // swiftlint:disable:this type_body_length
     private static let accountResolutionGateTimeout: Duration = .seconds(2)
 
-    private struct PresentedWhatsNew: Identifiable {
-        let whatsNew: WhatsNew
-        let requestedVersion: WhatsNew.Version
-
-        var id: String {
-            "\(self.requestedVersion.description)::\(self.whatsNew.version.description)"
-        }
-    }
-
     private struct PodcastsProbeTaskID: Hashable {
         let authGeneration: UInt64
         let accountID: String
@@ -42,7 +33,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @Environment(\.searchFocusTrigger) private var searchFocusTrigger
     @Environment(\.sidebarNavigationReselectGenerations) private var sidebarNavigationReselectGenerations
     @Environment(\.showCommandBar) private var showCommandBar
-    @Environment(\.showWhatsNew) private var showWhatsNew
     @Environment(\.usesLegacyMacOS15UI) private var usesLegacyMacOS15UI
 
     /// Binding to navigation selection for keyboard shortcut control from parent.
@@ -71,7 +61,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
 
     @State private var showLoginSheet = false
     @State private var isCommandBarPresented = false
-    @State private var whatsNewToPresent: PresentedWhatsNew?
     @State private var selectedSidebarPinnedItem: SidebarPinnedItem?
     @State private var contentResetID = UUID()
     @State private var guestRefreshTask: Task<Void, Never>?
@@ -285,11 +274,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         .sheet(isPresented: self.$showLoginSheet) {
             LoginSheet()
         }
-        .sheet(item: self.$whatsNewToPresent) { presentedWhatsNew in
-            WhatsNewView(whatsNew: presentedWhatsNew.whatsNew) {
-                self.dismissWhatsNew(presentedWhatsNew)
-            }
-        }
         .overlay {
             // Command bar overlay - dismisses when clicking outside
             if self.supportsCommandBarUI, self.isCommandBarPresented {
@@ -362,15 +346,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 if usesLegacyUI {
                     self.isCommandBarPresented = false
                     self.showCommandBar.wrappedValue = false
-                }
-            }
-            .onChange(of: self.showWhatsNew.wrappedValue) { _, newValue in
-                if newValue {
-                    // Manual trigger from Help menu — fetch exact-version release notes, bypass version store
-                    Task { @MainActor in
-                        await self.presentCurrentWhatsNew(respectingPresentedVersions: false)
-                    }
-                    self.showWhatsNew.wrappedValue = false
                 }
             }
             .modifier(PinnedNavigationPathLifecycleModifier(
@@ -898,12 +873,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 self.youtubePlayerService.reloadCurrentVideoForAuthDataStoreChange(usesCookieFreeDataStore: false)
             }
             self.showLoginSheet = false
-            // Auto-present "What's New" — fetch from GitHub release notes
-            if self.whatsNewToPresent == nil {
-                Task { @MainActor in
-                    await self.presentCurrentWhatsNew()
-                }
-            }
             // KasetApp's state-keyed root task owns account loading for every
             // authenticated transition, after startup playback cleanup.
             // If we just completed login/reauth, refresh content. This handles
@@ -1026,28 +995,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             group.addTask { await self.exploreViewModel?.refresh() }
             group.addTask { await self.libraryViewModel?.load() }
         }
-    }
-
-    @MainActor
-    private func dismissWhatsNew(_ whatsNew: PresentedWhatsNew) {
-        WhatsNewVersionStore().markPresented(whatsNew.requestedVersion)
-        self.whatsNewToPresent = nil
-    }
-
-    @MainActor
-    private func presentCurrentWhatsNew(respectingPresentedVersions: Bool = true) async {
-        let currentVersion = WhatsNew.Version.current()
-        let whatsNew = await WhatsNewProvider.fetchWhatsNew(
-            for: currentVersion,
-            respectingPresentedVersions: respectingPresentedVersions
-        )
-
-        guard let whatsNew else { return }
-
-        self.whatsNewToPresent = PresentedWhatsNew(
-            whatsNew: whatsNew,
-            requestedVersion: currentVersion
-        )
     }
 
     /// Refreshes only public guest-safe surfaces after sign-out so prior

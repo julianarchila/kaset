@@ -14,11 +14,14 @@ import Foundation
 /// - `https://music.youtube.com/browse/MPLAUCxxx` - Open library artist
 /// - `https://www.youtube.com/watch?v=dQw4w9WgXcQ` - Play regular YouTube video
 /// - `https://youtu.be/dQw4w9WgXcQ` - Play regular YouTube video
-/// - `kaset://play?v=dQw4w9WgXcQ` - Custom scheme for song
-/// - `kaset://playlist?list=PLxxx` - Custom scheme for playlist
-/// - `kaset://album?id=MPRExxx` - Custom scheme for album
-/// - `kaset://artist?id=UCxxx` - Custom scheme for artist
+/// - `kasetfork://play?v=dQw4w9WgXcQ` - Custom scheme for song
+/// - `kasetfork://playlist?list=PLxxx` - Custom scheme for playlist
+/// - `kasetfork://album?id=MPRExxx` - Custom scheme for album
+/// - `kasetfork://artist?id=UCxxx` - Custom scheme for artist
 enum URLHandler {
+    /// Custom URL scheme registered by the fork (see `Scripts/build-app.sh`).
+    static let customScheme = "kasetfork"
+
     // MARK: - Types
 
     /// Represents the type of content from a parsed URL.
@@ -46,7 +49,7 @@ enum URLHandler {
     /// - Returns: The parsed content, or nil if the URL is not recognized.
     static func parse(_ url: URL) -> ParsedContent? {
         // Handle custom scheme
-        if url.scheme == "kaset" {
+        if url.scheme == self.customScheme {
             return self.parseKasetURL(url)
         }
 
@@ -95,9 +98,9 @@ enum URLHandler {
         return nil
     }
 
-    /// Parses a kaset:// custom scheme URL.
+    /// Parses a `kasetfork://` custom scheme URL.
     private static func parseKasetURL(_ url: URL) -> ParsedContent? {
-        guard url.scheme == "kaset" else { return nil }
+        guard url.scheme == self.customScheme else { return nil }
 
         let host = url.host?.lowercased() ?? ""
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -105,25 +108,25 @@ enum URLHandler {
 
         switch host {
         case "play":
-            // kaset://play?v=videoId
+            // kasetfork://play?v=videoId
             if let videoId = Self.queryValue(for: "v", in: queryItems), !videoId.isEmpty {
                 return .song(videoId: videoId)
             }
 
         case "playlist":
-            // kaset://playlist?list=playlistId
+            // kasetfork://playlist?list=playlistId
             if let listId = Self.queryValue(for: "list", in: queryItems), !listId.isEmpty {
                 return .playlist(id: listId)
             }
 
         case "album":
-            // kaset://album?id=albumId
+            // kasetfork://album?id=albumId
             if let albumId = Self.queryValue(for: "id", in: queryItems), !albumId.isEmpty {
                 return .album(id: albumId)
             }
 
         case "artist":
-            // kaset://artist?id=artistId
+            // kasetfork://artist?id=artistId
             if let artistId = Self.queryValue(for: "id", in: queryItems), !artistId.isEmpty {
                 return .artist(id: artistId)
             }

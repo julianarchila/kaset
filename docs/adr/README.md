@@ -41,7 +41,7 @@ What becomes easier or more difficult because of this change?
 | [0004](0004-streaming-foundation-models.md) | Streaming Responses for Foundation Models | Accepted |
 | [0005](0005-foundation-models-architecture.md) | Foundation Models Architecture | Accepted |
 | [0006](0006-swift-testing-migration.md) | Swift Testing Migration | Accepted |
-| [0007](0007-sparkle-auto-updates.md) | Sparkle Auto-Updates | Accepted |
+| [0007](0007-sparkle-auto-updates.md) | Sparkle Auto-Updates | Superseded by ADR-0042 |
 | [0008](0008-nonisolated-network-helpers.md) | Nonisolated Network Helpers for MainActor Classes | Accepted |
 | [0009](0009-prompt-request-workflow.md) | Prompt Request Workflow | Accepted |
 | [0010](0010-airplay-fix.md) | Fix AirPlay for WebView-Based Playback | Implemented (with known limitations) |
@@ -76,3 +76,4 @@ What becomes easier or more difficult because of this change?
 | [0039](0039-shared-item-context-menus.md) | Shared context menus per item type | Accepted |
 | [0040](0040-core-animation-for-repeating-animations.md) | Core Animation for repeating animations | Accepted |
 | [0041](0041-non-destructive-session-loss.md) | Non-destructive session loss | Accepted |
+| [0042](0042-fork-identity.md) | Fork identity and scope | Accepted |
