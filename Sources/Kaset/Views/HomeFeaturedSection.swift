@@ -11,6 +11,23 @@ struct HomeFeaturedItem: Identifiable, Equatable {
     var id: String {
         self.item.id
     }
+
+    /// "From Listen again". Shelf titles that already start with the localized
+    /// "From" word (YouTube's "From your library") are shown as they are.
+    var sourceLabel: String {
+        Self.sourceLabel(for: self.sourceTitle)
+    }
+
+    static func sourceLabel(for sourceTitle: String, locale: Locale = .current) -> String {
+        let prefix = String(localized: "From \("")")
+            .trimmingCharacters(in: .whitespaces)
+        if !prefix.isEmpty,
+           sourceTitle.lowercased(with: locale).hasPrefix(prefix.lowercased(with: locale) + " ")
+        {
+            return sourceTitle
+        }
+        return String(localized: "From \(sourceTitle)")
+    }
 }
 
 // MARK: - HomeFeaturedPicker
@@ -127,7 +144,7 @@ private struct HomeFeaturedCard: View {
             self.artwork
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "From \(self.featured.sourceTitle)"))
+                Text(self.featured.sourceLabel)
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)

@@ -95,6 +95,13 @@ struct HomeRedesignTests {
         #expect(picked.map(\.item.id) == ["playlist-p1", "playlist-p2"])
     }
 
+    @Test("Source label avoids a doubled From for titles that already start with it")
+    func sourceLabelAvoidsDoubleFrom() {
+        let english = Locale(identifier: "en")
+        #expect(HomeFeaturedItem.sourceLabel(for: "From your library", locale: english) == "From your library")
+        #expect(HomeFeaturedItem.sourceLabel(for: "Listen again", locale: english) == String(localized: "From \("Listen again")"))
+    }
+
     // MARK: - Greeting
 
     @Test(
