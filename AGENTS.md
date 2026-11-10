@@ -1,47 +1,38 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository.
-
-Lilt is a native macOS client for YouTube Music, written in Swift 6 and SwiftUI. The deployment target is macOS 15.4, with macOS 26 features such as Liquid Glass layered on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
+Lilt is a native macOS client for YouTube Music, written in Swift 6 and SwiftUI. It targets macOS 15.4 and layers macOS 26 features such as Liquid Glass on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
 
 ## Project
 
-- **Lilt is a personal, minimal fork of [Kaset](https://github.com/sozercan/kaset)**, maintained independently in `julianarchila/kaset` (the GitHub repo keeps its old name). Upstream fixes are cherry-picked when useful, never merged wholesale. Keep the upstream MIT notice in `LICENSE`.
-- **Scope is YouTube Music only.** The fork deliberately removed regular YouTube (video mode, Ask Gemini), Apple Intelligence features, Last.fm scrobbling, web extensions, Sparkle updates, What's New, and the Charts / Moods & Genres / New Releases / Podcasts pages. Ask before reintroducing any of them. ADR-0042 records the fork's identity and removals; later ADRs record its redesigns.
-- **Design direction is a stock macOS app**: native sidebar and search field, system accent color (no brand color), Apple Music–style layouts. Prefer system controls over custom chrome.
-- **Install** the user's copy with `Scripts/build-app.sh release && ditto .build/app/Lilt.app /Applications/Lilt.app`; quit the running app first (`com.julianarchila.Lilt`), and move the old bundle to the Trash instead of deleting it.
-- **Push over SSH** (`git@github.com:julianarchila/kaset.git`): the `gh` token lacks the `workflow` scope, so HTTPS pushes that touch `.github/workflows/` are rejected.
+- Lilt is a personal, minimal fork of [Kaset](https://github.com/sozercan/kaset), maintained in `julianarchila/kaset` (the GitHub repo kept its old name). Cherry-pick upstream fixes when useful and never merge upstream wholesale. Keep the upstream MIT notice in `LICENSE`.
+- The scope is YouTube Music only. The fork removed regular YouTube (video mode, Ask Gemini), Apple Intelligence features, Last.fm scrobbling, web extensions, Sparkle updates, What's New, and the Charts, Moods & Genres, New Releases, and Podcasts pages. Ask before bringing any of them back. ADR-0042 records the fork's identity and removals, and later ADRs record its redesigns.
+- The design target is a stock macOS app: native sidebar and search field, the system accent color, and Apple Music style layouts. Prefer system controls to custom chrome.
+- Work lands on `main` by fast-forward from worktree branches. There are no pull requests.
+- Push over SSH to `git@github.com:julianarchila/kaset.git`. The `gh` token lacks the `workflow` scope, so GitHub rejects HTTPS pushes that touch `.github/workflows/`.
+- To install the user's copy, quit the running app (`com.julianarchila.Lilt`), move `/Applications/Lilt.app` to the Trash, then run `Scripts/build-app.sh release && ditto .build/app/Lilt.app /Applications/Lilt.app`.
 
 ## Rules
 
 - **Keep real credentials out of everything.** Cookies, SAPISID values, auth tokens, and API keys must not appear in code, comments, logs, docs, test fixtures, or your output. Use placeholders such as `"REDACTED"`, `"mock-token"`, or `"test-cookie"`. The repo is public and the app holds signed-in Google sessions, so a leaked value compromises a real account.
 - **Ask before running UI tests.** They launch the app and take over the desktop.
-- **Ask before adding a third-party dependency.** The project keeps them minimal and currently has none.
-- **Prefer the API clients over WebView.** Use `YTMusicClient` whenever the endpoint exists. WebView is only for DRM playback and sign-in.
-- **Extend the API explorer instead of writing one-off scripts.** API exploration and debugging tooling belongs in `Sources/APIExplorer/main.swift` so the next person can reuse it.
-- **Keep standard macOS shortcuts.** Don't rebind `⌘M`, `⌘W`, `⌘Q`, `⌘H`, or `⌘,` unless the human asks. For media shortcuts, follow macOS and Apple Music conventions and update `docs/keyboard-shortcuts.md`.
+- **Ask before adding a third-party dependency.** The project has none.
+- **Use the API client, not WebView, for data.** Call `YTMusicClient` whenever the endpoint exists. WebView is only for DRM playback and sign-in.
+- **Extend the API explorer instead of writing one-off scripts.** API exploration and debugging tooling belongs in `Sources/APIExplorer/main.swift`.
+- **Keep standard macOS shortcuts.** Rebind `⌘M`, `⌘W`, `⌘Q`, `⌘H`, or `⌘,` only when the human asks. Media shortcuts follow macOS and Apple Music conventions; update `docs/keyboard-shortcuts.md` when they change.
 - **Record significant design changes** as an ADR in `docs/adr/`.
-
-## Working Style
-
-- Deliver what was asked, at the scope intended. Make routine judgment calls yourself, and check in only when different readings of the request would lead to materially different work.
-- Match existing implementations: a new detail view follows the existing detail views, a new parser follows `Sources/Lilt/Services/API/Parsers/`.
-- Adapt new code to existing public signatures, protocols, and model types instead of changing them, unless the task calls for it.
-- If an approach goes wrong, revert and re-scope rather than layering patches on it.
+- Match existing implementations. A new detail view follows the existing detail views, and a new parser follows `Sources/Lilt/Services/API/Parsers/`. Adapt new code to existing signatures, protocols, and model types unless the task calls for changing them.
 
 ## Build & Code Quality
 
 ```bash
 swift build                              # Build
-swift test --skip LiltUITests           # Unit tests (UI tests live in a separate Xcode project)
+swift test --skip LiltUITests            # Unit tests (UI tests live in a separate Xcode project)
 swiftlint --strict && swiftformat .      # Lint & format
 ```
 
-A code change is done when these pass for the code you touched. Stay CLI-first; use Xcode or `xcodebuild` only for UI tests, runtime debugging, screenshots, or scheme-specific investigation.
+A code change is done when all three pass. The unit test suite passes with zero failures, so treat any failure as a regression. Stay CLI-first and use Xcode or `xcodebuild` only for UI tests and scheme-specific investigation.
 
-CI pins the SwiftFormat version in `.github/workflows/lint.yml`; format with that version, since newer releases can rewrite unrelated files.
-
-`.swiftformat` uses `--self insert`: in static methods call other static methods as `Self.methodName()`, and in instance methods write `self.property` explicitly.
+Format with SwiftFormat 0.63.1, the version CI pins in `.github/workflows/lint.yml` (installed at `~/.local/bin/swiftformat`). Newer releases rewrite unrelated files. `.swiftformat` uses `--self insert`, so static methods call `Self.methodName()` and instance methods write `self.property`.
 
 ## Coding Rules
 
@@ -54,6 +45,7 @@ Project rules that differ from standard Swift/SwiftUI conventions and aren't mec
 
 - Mark `@Observable` classes with `@MainActor`.
 - Write new unit tests with Swift Testing (`@Test`, `#expect`).
+- Swift Testing runs suites in parallel. Give tests that touch `SingletonPlayerWebView.shared` the `.singletonPlayerWebView` trait, and give each test its own `UserDefaults` suite instead of `.standard`.
 - Throw `YTMusicError.authExpired` on HTTP 401/403.
 - Use `.task` instead of `.onAppear { Task { } }`.
 
@@ -61,60 +53,60 @@ Project rules that differ from standard Swift/SwiftUI conventions and aren't mec
 
 ## Localization
 
-`Sources/Lilt/Resources/Localizable.xcstrings` is the source of truth. Packaged builds compile the catalog, but SwiftPM/Xcode runtime builds read the checked-in `Sources/Lilt/Resources/*.lproj/Localizable.strings` mirrors, so the two must change together or the build types diverge.
+`Sources/Lilt/Resources/Localizable.xcstrings` is the source of truth. Packaged builds compile the catalog. SwiftPM and Xcode runtime builds read the checked-in `Sources/Lilt/Resources/*.lproj/Localizable.strings` mirrors, so the catalog and the mirrors must change together.
 
-- When adding keys or changing translations, update the catalog first, then the matching `.lproj/Localizable.strings` files in the same change.
+- Add or change a string in the catalog first, then in all 18 `.lproj/Localizable.strings` files in the same change.
 - Run `swift test --skip LiltUITests --filter LocalizationCatalogParityTests` after localization changes.
-- Siri phrases for App Shortcuts live in `Sources/Lilt/Resources/AppShortcuts.xcstrings` (no `.lproj` mirror). `Scripts/build-app.sh` fails if it drifts from `LiltShortcuts`, so update it whenever a phrase changes.
-- When adding a locale, also register its `.lproj` in `Package.swift`, add the `SettingsManager.ContentLanguage` case, and extend the localization tests.
+- Siri phrases for App Shortcuts live in `Sources/Lilt/Resources/AppShortcuts.xcstrings`, which has no `.lproj` mirror. `Scripts/build-app.sh` fails if it drifts from `LiltShortcuts`.
+- A new locale also needs its `.lproj` registered in `Package.swift`, a `SettingsManager.ContentLanguage` case, and updated localization tests.
 
 ## API Discovery
 
-YouTube's response shapes are undocumented and change without notice, so a parser written from inference compiles and then silently returns nothing. Before adding or changing an API call, request shape, or response parser, verify the real request and response with `swift run api-explorer` (see the `api-exploration` skill). Prefer read-only probes. Get explicit approval from the human before sending a live request that changes account data.
+YouTube's response shapes are undocumented and change without notice, so a parser written from inference compiles and then returns nothing. Before you add or change an API call, request shape, or response parser, check the real request and response with `swift run api-explorer` (see the `api-exploration` skill). Prefer read-only probes, and get the human's approval before a live request that changes account data.
 
 ## Debugging & Measurement
 
-For bugs about timing, lifecycle, or "why didn't this run/load/update" (SwiftUI `.task` or state churn, cold-launch ordering, perceived latency), measure before fixing. Reasoning about SwiftUI lifecycle or async ordering from source alone is unreliable, and a short timestamped trace settles in one launch what hypothesizing cannot. Add the trace, reproduce, fix what the data points at, re-measure, then remove the instrumentation before committing.
+For bugs about timing, lifecycle, or "why didn't this run/load/update", measure before fixing. Source reading alone is unreliable for SwiftUI lifecycle and async ordering. Add a timestamped trace, reproduce, fix what the data shows, measure again, and remove the trace before committing.
 
-The app is sandboxed, which breaks most ad-hoc logging without any error:
+The app is sandboxed:
 
-- `Logger`/`os_log` `.info` and `.debug` lines don't reliably appear in `log stream` or `log show`.
-- Writes to a hardcoded `/tmp/...` path are blocked.
-- Window-screenshot automation is unreliable.
+- `Logger`/`os_log` `.info` and `.debug` lines don't reliably reach `log stream` or `log show`.
+- The sandbox blocks writes to hardcoded `/tmp/...` paths. Write traces to `NSTemporaryDirectory()`, call `synchronize()` after each line, and read them from `~/Library/Containers/com.julianarchila.Lilt/Data/tmp/` (`com.julianarchila.Lilt.debug` for packaged debug builds).
 
-Write throwaway traces to `NSTemporaryDirectory()`, `synchronize()` after each line, and read them from `~/Library/Containers/com.julianarchila.Lilt/Data/tmp/` (`com.julianarchila.Lilt.debug` for packaged debug builds). `docs/common-bug-patterns.md` has the trace template, the single-flight load pattern for the `.task`-restart cancellation deadlock, concurrency anti-patterns, and a pre-submit checklist.
+`docs/common-bug-patterns.md` has the trace template, the single-flight load pattern for the `.task`-restart cancellation deadlock, concurrency anti-patterns, and a pre-submit checklist.
 
-### Cookie storage in debug builds
+Check UI changes in the running app with the `agent-desktop` CLI, using headless accessibility actions and window screenshots. `Scripts/compile_and_run.sh` packages and relaunches a debug build.
 
-Sandboxed builds without a valid Developer ID or provisioning profile (local debug and ad-hoc builds) hang inside `SecItemCopyMatching` when they query the Keychain.
+Media keys and Control Center reach WebKit's Now Playing session in the GPU process, not the app. The page forwards Media Session play, pause, next, and previous to Swift as `REMOTE_*` bridge messages. ADR-0045 has the measurements.
 
-- `#if DEBUG` builds, and release builds compiled with `LILT_FILE_COOKIE_STORAGE`, therefore store cookies in Application Support at `Lilt/cookies.dat` and skip the Keychain. `Scripts/build-app.sh` sets that flag for every build it does not sign with Developer ID (`LILT_SIGNING=developer-id`), so `Scripts/build-app.sh release` produces an installable optimized build without a paid developer account. Launch with `LILT_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
-- Packaged debug builds use the bundle ID `com.julianarchila.Lilt.debug`, which gives them their own container, UserDefaults, and WebKit cookie jar. Don't package a debug build with the release bundle ID: each build's startup would overwrite the other's session.
-- The Keychain is shared, so `LILT_DEBUG_COOKIE_STORAGE=keychain` reads and writes the release archive.
-- The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state must not write the release key.
+## Cookie Storage and Signing
+
+Sandboxed builds without a Developer ID signature hang inside `SecItemCopyMatching` when they query the Keychain.
+
+- `#if DEBUG` builds and release builds compiled with `LILT_FILE_COOKIE_STORAGE` store cookies in `Application Support/Lilt/cookies.dat` instead of the Keychain. `Scripts/build-app.sh` sets that flag unless `LILT_SIGNING=developer-id`, so `Scripts/build-app.sh release` produces an installable ad-hoc build.
+- Packaged debug builds use the bundle ID `com.julianarchila.Lilt.debug`, with their own container, UserDefaults, and WebKit cookie jar. They start signed out, so signed-in UI (like, Dislike, Library) needs a login or the user's installed release build. Keep the `.debug` bundle ID: sharing the release ID makes each build overwrite the other's session.
+- `LILT_DEBUG_COOKIE_STORAGE=keychain` tests the Keychain path. The Keychain is shared, so it reads and writes the release archive.
+- The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state writes only that key.
 
 ## Code Review
 
-Run the `autoreview` skill by default after committing non-trivial code changes and before pushing them. Skip it for docs-only or trivial changes, or when the human opts out. Finish the focused tests first, and don't run the review at the same time as tests: the CPU contention makes timing-sensitive tests flaky.
-
-Use these Lilt settings with the skill, from the repository root:
+Run the `autoreview` skill after committing non-trivial code changes and before pushing them. Skip it for docs-only or trivial changes, or when the human opts out. Finish the focused tests first and run the review afterwards, because CPU contention makes timing-sensitive tests flaky.
 
 ```bash
-python3 .agents/skills/autoreview/scripts/autoreview --mode branch --base origin/<base> --max-priority P3 \
-  --source-context-file AGENTS.md \
+python3 .agents/skills/autoreview/scripts/autoreview --mode branch --base origin/main --max-priority P3 \
+  --engine claude --source-context-file AGENTS.md \
   --prompt "Also report changes that violate the repository rules in the AGENTS.md source context, such as credential handling, API-over-WebView, localization parity, and the Coding Rules table."
 ```
 
-`<base>` is the PR's base branch (`gh pr view --json baseRefName --jq .baseRefName`), or `main` when there is no PR yet. If that lookup fails for any other reason, such as auth or network, fix it or ask; don't assume `main`.
+- Codex rejects the default models on this account, so the command passes `--engine claude`.
+- `--max-priority P3` reports every priority; the helper's default shows only P0.
+- `branch` mode reviews committed work only, so commit first. It also refuses modified binaries such as icons; review those changes per commit with `--mode commit --commit <sha>`.
+- `--source-context-file` works only in `branch` and `commit` modes.
 
-- `--max-priority P3` accepts findings at every priority (P0 through P3); the helper's default of P0 hides the rest in audit output.
-- `--source-context-file AGENTS.md` gives the reviewer these repo rules as evidence, and `--prompt` asks it to check them; the helper treats source files as evidence, not instructions. `--source-context-file` only works in `branch` and `commit` modes; drop it when asked to review uncommitted work with `--mode local`.
-- `branch` mode excludes uncommitted work, so format and commit your own changes first. For review-only requests, leave the checkout as it is.
+Check each finding against the real code path. Fix the ones that hold up and give a reason for each one you reject. After review-driven changes, rerun the focused tests and the review once. Report the command, the tests you ran, each finding's outcome, and the final result.
 
-Review findings are advisory, including P2 and P3: check each one against the real code path, fix the ones that hold up, and reject the rest only with a reason. After review-driven code changes, rerun the focused tests and the review once. When you report back, include the review command, the tests you ran, which findings you accepted or rejected and why, and the result of the final run.
-
-`.agents/skills/autoreview/` is an unmodified copy of [`sozercan/skills`](https://github.com/sozercan/skills/tree/main/skills/autoreview) (commit `1b8ef21`), without that directory's own `AGENTS.md`/`CLAUDE.md`, which only govern maintenance of the source repository. Don't edit it in place: change the source repository, then replace the whole directory with the new version, again leaving out those two files.
+`.agents/skills/autoreview/` is an unmodified copy of [`sozercan/skills`](https://github.com/sozercan/skills/tree/main/skills/autoreview) (commit `1b8ef21`). Update it by replacing the whole directory from that repository, leaving out its `AGENTS.md` and `CLAUDE.md`.
 
 ## Skills
 
-Repeatable, repo-specific workflows live in `.agents/skills/` (also exposed as `.claude/skills/`). Add new workflows there so this file stays focused on repo-wide rules.
+Repo-specific workflows live in `.agents/skills/` (also exposed as `.claude/skills/`). Add new workflows there so this file stays focused on repo-wide rules.
