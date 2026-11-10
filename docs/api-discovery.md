@@ -1214,7 +1214,7 @@ All parsers are located in `Sources/Lilt/Services/API/Parsers/`. Each parser is 
 | `PlaylistParser` | `PlaylistParser.swift` | Playlist/library response | `[Playlist]`, `[Album]`, `LibraryContent` | `VL{id}`, `VLLM`, `FEmusic_liked_playlists`, `FEmusic_liked_albums`, `FEmusic_library_landing` |
 | `ArtistParser` | `ArtistParser.swift` | Artist browse response | `ArtistDetail` with songs, albums | `UC{channelId}` |
 | `LyricsParser` | `LyricsParser.swift` | Next/lyrics response | `Lyrics` or lyrics browse ID | `next`, `MPLYt{id}` |
-| `PodcastParser` | `PodcastParser.swift` | Podcast browse response | `[PodcastSection]`, `PodcastShowDetail` | `FEmusic_podcasts`, `MPSPP{id}` |
+| `PodcastParser` | `PodcastParser.swift` | Podcast show browse response | `PodcastShowDetail`, `PodcastEpisodesContinuation` | `MPSPP{id}` |
 | `AccountsListParser` | `AccountsListParser.swift` | Accounts list response | `AccountsListResponse` with `[UserAccount]` | `account/accounts_list` |
 | `SongMetadataParser` | `SongMetadataParser.swift` | Next endpoint response | `Song` with full metadata | `next` endpoint |
 | `RadioQueueParser` | `RadioQueueParser.swift` | Next endpoint response | `RadioQueueResult` with songs + continuation | Radio/mix playback |

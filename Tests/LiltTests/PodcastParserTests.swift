@@ -5,54 +5,6 @@ import Testing
 /// Tests for the PodcastParser.
 @Suite(.tags(.parser))
 struct PodcastParserTests {
-    // MARK: - parseDiscovery Tests
-
-    @Test("Parse empty response returns empty sections")
-    func parseEmptyResponse() {
-        let data: [String: Any] = [:]
-        let sections = PodcastParser.parseDiscovery(data)
-        #expect(sections.isEmpty)
-    }
-
-    @Test("Parse discovery response with carousel section")
-    func parseDiscoveryWithCarouselSection() {
-        let data = self.makeDiscoveryData(withCarousel: true, withShelf: false)
-        let sections = PodcastParser.parseDiscovery(data)
-        #expect(sections.count == 1)
-        #expect(sections.first?.title == "Popular Podcasts")
-    }
-
-    @Test("Parse discovery response with music shelf section")
-    func parseDiscoveryWithMusicShelfSection() {
-        let data = self.makeDiscoveryData(withCarousel: false, withShelf: true)
-        let sections = PodcastParser.parseDiscovery(data)
-        #expect(sections.count == 1)
-        #expect(sections.first?.title == "Episodes for You")
-    }
-
-    @Test("Parse discovery response with multiple sections")
-    func parseDiscoveryWithMultipleSections() {
-        let data = self.makeDiscoveryData(withCarousel: true, withShelf: true)
-        let sections = PodcastParser.parseDiscovery(data)
-        #expect(sections.count == 2)
-    }
-
-    // MARK: - parseContinuation Tests
-
-    @Test("Parse empty continuation returns empty sections")
-    func parseEmptyContinuation() {
-        let data: [String: Any] = [:]
-        let sections = PodcastParser.parseContinuation(data)
-        #expect(sections.isEmpty)
-    }
-
-    @Test("Parse continuation response with sections")
-    func parseContinuationWithSections() {
-        let data = self.makeContinuationData(sectionCount: 2)
-        let sections = PodcastParser.parseContinuation(data)
-        #expect(sections.count == 2)
-    }
-
     // MARK: - parseShowDetail Tests
 
     @Test("Parse empty show detail returns placeholder show")
@@ -160,72 +112,6 @@ struct PodcastParserTests {
     }
 
     // MARK: - Test Data Helpers
-
-    private func makeDiscoveryData(withCarousel: Bool, withShelf: Bool) -> [String: Any] {
-        var sections: [[String: Any]] = []
-
-        if withCarousel {
-            sections.append([
-                "musicCarouselShelfRenderer": [
-                    "header": [
-                        "musicCarouselShelfBasicHeaderRenderer": [
-                            "title": ["runs": [["text": "Popular Podcasts"]]],
-                        ],
-                    ],
-                    "contents": [self.makePodcastShowItem(id: "MPSPP1", title: "Show 1")],
-                ],
-            ])
-        }
-
-        if withShelf {
-            sections.append([
-                "musicShelfRenderer": [
-                    "title": ["runs": [["text": "Episodes for You"]]],
-                    "contents": [self.makeEpisodeItem(id: "ep1", title: "Episode 1")],
-                ],
-            ])
-        }
-
-        return [
-            "contents": [
-                "singleColumnBrowseResultsRenderer": [
-                    "tabs": [[
-                        "tabRenderer": [
-                            "content": [
-                                "sectionListRenderer": [
-                                    "contents": sections,
-                                ],
-                            ],
-                        ],
-                    ]],
-                ],
-            ],
-        ]
-    }
-
-    private func makeContinuationData(sectionCount: Int) -> [String: Any] {
-        var sections: [[String: Any]] = []
-        for i in 0 ..< sectionCount {
-            sections.append([
-                "musicCarouselShelfRenderer": [
-                    "header": [
-                        "musicCarouselShelfBasicHeaderRenderer": [
-                            "title": ["runs": [["text": "Section \(i)"]]],
-                        ],
-                    ],
-                    "contents": [self.makePodcastShowItem(id: "MPSPP\(i)", title: "Show \(i)")],
-                ],
-            ])
-        }
-
-        return [
-            "continuationContents": [
-                "sectionListContinuation": [
-                    "contents": sections,
-                ],
-            ],
-        ]
-    }
 
     private func makeShowDetailData(
         title: String,
@@ -377,17 +263,6 @@ struct PodcastParserTests {
         return [
             "continuationContents": [
                 "musicShelfContinuation": shelfContinuation,
-            ],
-        ]
-    }
-
-    private func makePodcastShowItem(id: String, title: String) -> [String: Any] {
-        [
-            "musicTwoRowItemRenderer": [
-                "title": ["runs": [["text": title]]],
-                "navigationEndpoint": [
-                    "browseEndpoint": ["browseId": id],
-                ],
             ],
         ]
     }

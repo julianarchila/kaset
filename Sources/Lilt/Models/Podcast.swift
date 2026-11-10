@@ -67,44 +67,6 @@ struct PodcastEpisode: Identifiable, Hashable {
     }
 }
 
-// MARK: - PodcastSection
-
-/// Represents a section of podcast content on the discovery page.
-struct PodcastSection: Identifiable {
-    let id: String
-    let title: String
-    let items: [PodcastSectionItem]
-}
-
-// MARK: - PodcastSectionItem
-
-/// An item within a podcast section - either a show or an episode.
-enum PodcastSectionItem: Identifiable {
-    case show(PodcastShow)
-    case episode(PodcastEpisode)
-
-    var id: String {
-        switch self {
-        case let .show(show):
-            show.id
-        case let .episode(episode):
-            episode.id
-        }
-    }
-}
-
-// MARK: Hashable
-
-extension PodcastSectionItem: Hashable {
-    static func == (lhs: PodcastSectionItem, rhs: PodcastSectionItem) -> Bool {
-        lhs.id == rhs.id
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(self.id)
-    }
-}
-
 // MARK: - PodcastShowDetail
 
 /// Detailed information about a podcast show including its episodes.
