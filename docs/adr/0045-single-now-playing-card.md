@@ -9,7 +9,7 @@ Accepted
 On macOS 26, Control Center's Now Playing menu showed two KasetFork entries
 while paused: WebKit's rich card and the app's minimal "native claim"
 (title + artist) added upstream in PR #387 so the Play key would resume
-Kaset instead of Apple Music after a pause.
+Lilt instead of Apple Music after a pause.
 
 Measured with a MediaRemote probe (MediaRemote's private API, read-only):
 

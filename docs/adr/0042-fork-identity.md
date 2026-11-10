@@ -37,8 +37,13 @@ Several upstream settings tied a fork build to the upstream app:
   dot, on a light gray squircle that turns graphite in dark mode. It replaces
   upstream's cassette, and its Icon Composer package keeps the line and the dot
   as separate Liquid Glass layers.
-- The SwiftPM product, module, and executable keep the name `Kaset`. Renaming
-  them would change hundreds of files without any user-visible benefit.
+- Internal names follow the app name too: upstream's `Kaset` SwiftPM product,
+  module, executable, and test targets are `Lilt`, `LiltTests`, and
+  `LiltUITests`; sources live in `Sources/Lilt`; environment variables and the
+  file-cookie compilation condition use the `LILT_` prefix; and local state
+  (UserDefaults keys, page-script globals, `Application Support/Lilt`) uses
+  `lilt` names. Upstream references (repository URLs, the LICENSE notice, and
+  historical bundle IDs in older ADRs) keep the `Kaset` name.
 - Sparkle, the appcast, release signing scripts, the release, dev-build, Pages,
   and automerge workflows, the Homebrew Cask, and the marketing website are
   removed. The fork is built from source, so it has no update channel. This
@@ -64,7 +69,7 @@ Several upstream settings tied a fork build to the upstream app:
   `WKWebExtensionController`. Mix tracklists keep segmenting the seek bar
   through `MixTracklistParser` and `NowPlayingTracklistProvider`. This
   supersedes ADR-0011 and ADR-0014.
-- The app follows the user's macOS accent color instead of Kaset's pink
+- The app follows the user's macOS accent color instead of upstream Kaset's pink
   brand accent: the `AccentColor` asset and `NSAccentColorName` are gone, and
   `PackageResourceLookup.accent` is `NSColor.controlAccentColor`.
 
@@ -74,8 +79,6 @@ Several upstream settings tied a fork build to the upstream app:
 - Changing the bundle ID costs one sign-in and resets local preferences,
   because macOS keys the sandbox container on the bundle ID. The move from
   `com.julianarchila.KasetFork` to `com.julianarchila.Lilt` did this once.
-- Some localized strings still say "Kaset". Their keys are the English text,
-  so renaming them touches the views that use them; that is a separate change.
 - Sparkle is no longer a dependency; the app has no third-party dependencies.
 - Restoring auto-updates later requires a new EdDSA key, an appcast hosted by
   the fork, and Developer ID signing.

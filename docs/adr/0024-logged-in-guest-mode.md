@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Kaset originally treated authentication as a single binary state: logged out
+Lilt originally treated authentication as a single binary state: logged out
 or logged in. That was enough for signed-in account features, but it did not
 support the YouTube-style experience where a user can browse public content
 without using personalization while still keeping their signed-in session

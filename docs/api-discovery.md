@@ -1,10 +1,10 @@
 # YouTube Music and YouTube API Reference
 
-> **Working reference for YouTube Music and regular YouTube InnerTube endpoints used by Kaset.**
+> **Working reference for YouTube Music and regular YouTube InnerTube endpoints used by Lilt.**
 >
 > This document catalogs known YouTube Music API endpoints, their authentication requirements, implementation status, and usage patterns. The same `api-explorer` tool also supports regular YouTube via `--youtube`; see [YouTube Mode](youtube.md) for the video-source architecture.
 
-The [implementation status](#implementation-status) records what Kaset supports, what is missing, and the evidence from the latest probes. Results are dated because endpoint behavior can change.
+The [implementation status](#implementation-status) records what Lilt supports, what is missing, and the evidence from the latest probes. Results are dated because endpoint behavior can change.
 
 ## Table of Contents
 
@@ -59,7 +59,7 @@ Use `swift run api-explorer --youtube ...` to target regular YouTube. Use the de
 
 ### Guest Mode / Unauthenticated Playback (verified 2026-07-01)
 
-Kaset can drive a signed-out public experience without user cookies. Public
+Lilt can drive a signed-out public experience without user cookies. Public
 endpoint requests should be sent without signed-in browser credentials when
 `AuthService` is logged out, while still using the normal WebView playback URLs
 for media:
@@ -128,7 +128,7 @@ Brand accounts (YouTube channels) can be accessed by setting `context.user.onBeh
 
 #### Discovering Brand Accounts
 
-Use the `account/accounts_list` endpoint to get all accounts (primary + brand) with their IDs. An unauthenticated call can still return HTTP 200, but only with a sign-in/select response; account identities require SAPISIDHASH authentication. During an explicit account switch from Guest Mode, Kaset authorizes only this account-list refresh with the preserved signed-in session while keeping guest content published until the switch commits:
+Use the `account/accounts_list` endpoint to get all accounts (primary + brand) with their IDs. An unauthenticated call can still return HTTP 200, but only with a sign-in/select response; account identities require SAPISIDHASH authentication. During an explicit account switch from Guest Mode, Lilt authorizes only this account-list refresh with the preserved signed-in session while keeping guest content published until the switch commits:
 
 ```bash
 swift run api-explorer brandaccounts
@@ -282,7 +282,7 @@ let body = ["browseId": "FEmusic_liked_albums"]
 // Requires authentication; params are optional for the default order
 ```
 
-**Returns**: A paginated grid of saved albums with album browse IDs, artwork, artist metadata, and release year. Kaset follows grid continuation tokens until the saved-album collection is exhausted.
+**Returns**: A paginated grid of saved albums with album browse IDs, artwork, artist metadata, and release year. Lilt follows grid continuation tokens until the saved-album collection is exhausted.
 
 **Parser**: Uses `PlaylistParser.parseLibraryAlbumsPage()` for the initial response and `PlaylistParser.parseLibraryAlbumsContinuation()` for subsequent grid pages, then merges any landing-page preview albums as a fallback.
 
@@ -313,7 +313,7 @@ let body = ["browseId": "VLLM"]
 
 ### Not implemented browse endpoints
 
-These browse paths have no dedicated integration in Kaset. The notes distinguish usable responses from sign-in prompts and failed probes.
+These browse paths have no dedicated integration in Lilt. The notes distinguish usable responses from sign-in prompts and failed probes.
 
 | Browse ID | Name | Auth | Notes |
 |-----------|------|------|-------|
@@ -446,7 +446,7 @@ This chart selection is separate from the client's `context.client.gl` value.
 Do not generalize chart form handling to other browse IDs: tastebuilder forms
 can change recommendation preferences.
 
-**Kaset status**: Chart sections and pagination are implemented. Country choices,
+**Lilt status**: Chart sections and pagination are implemented. Country choices,
 selection requests, and a country picker are not implemented. See the
 [country discovery details](#chart-countries) for the observed menu and response.
 
@@ -601,11 +601,11 @@ Browse rows commonly use `musicResponsiveListItemRenderer.navigationEndpoint.bro
 | Community Playlists | `EgeKAQQoAEABagwQDhAKEAMQBBAJEAU=` | User-created playlists |
 | Podcasts | `EgWKAQJQAWoQEBAQCRAEEAMQBRAKEBUQEQ%3D%3D` | Filter to podcast shows only |
 
-> **Static params vs. live chips**: The table above records Kaset's existing no-spelling-correction params. Live `chipCloudChipRenderer.navigationEndpoint.searchEndpoint.params` values are contextual: the same filter label had different complete suffixes for different queries on 2026-07-19. Do not assume one server-issued full params value is universal.
+> **Static params vs. live chips**: The table above records Lilt's existing no-spelling-correction params. Live `chipCloudChipRenderer.navigationEndpoint.searchEndpoint.params` values are contextual: the same filter label had different complete suffixes for different queries on 2026-07-19. Do not assume one server-issued full params value is universal.
 
 Observed filter type codes in live chips:
 
-| Live Filter | Encoded Type Code | Current Kaset Filter |
+| Live Filter | Encoded Type Code | Current Lilt Filter |
 |-------------|-------------------|----------------------|
 | Songs | `II` | ✅ |
 | Videos | `IQ` | ✅ |
@@ -668,7 +668,7 @@ swift run api-explorer --guest search-audit "ambient electronic mix"
 
 This probes the unfiltered response, every live filter chip, and one `/search` continuation page per filter when offered. It reports renderer wrappers, destination paths, content/page types, token carrier locations, and current mixed-parser coverage without printing continuation values.
 
-To compare a response against Kaset's currently configured WEB_REMIX version instead of the live web version resolved by API Explorer:
+To compare a response against Lilt's currently configured WEB_REMIX version instead of the live web version resolved by API Explorer:
 
 ```bash
 swift run api-explorer --guest --client-version 1.20231204.01.00 \
@@ -677,11 +677,11 @@ swift run api-explorer --guest --client-version 1.20231204.01.00 \
 
 `search-audit` labels the client-version source as `live`, `override`, or `fallback`. When it reports `fallback`, use `--client-version` before drawing a version-comparison conclusion. API Explorer also resolves the live version independently when the API key comes from its environment override.
 
-For this query, the live version `1.20260715.04.00` and Kaset's configured `1.20231204.01.00` showed no structural difference in section wrappers, result-type counts, filter chips, or continuation carriers. This does not prove that every result identity was identical or fully rule out version-specific behavior; it does show that the observed parser gaps reproduce with Kaset's configured version.
+For this query, the live version `1.20260715.04.00` and Lilt's configured `1.20231204.01.00` showed no structural difference in section wrappers, result-type counts, filter chips, or continuation carriers. This does not prove that every result identity was identical or fully rule out version-specific behavior; it does show that the observed parser gaps reproduce with Lilt's configured version.
 
-A July 19, 2026 guest audit matrix covering the reported query, `Taylor Swift`, `The Daily podcast`, and `lofi hip hop` found no unhandled result rows after the parser update. It also exposed `MUSIC_PAGE_TYPE_AUDIOBOOK` inside mixed and Albums-filter results; Kaset now keeps those results semantically distinct as audiobooks while reusing the existing album payload and playlist-style detail navigation.
+A July 19, 2026 guest audit matrix covering the reported query, `Taylor Swift`, `The Daily podcast`, and `lofi hip hop` found no unhandled result rows after the parser update. It also exposed `MUSIC_PAGE_TYPE_AUDIOBOOK` inside mixed and Albums-filter results; Lilt now keeps those results semantically distinct as audiobooks while reusing the existing album payload and playlist-style detail navigation.
 
-`search-audit` labels the version source as `live`, `override`, or `fallback`. The audit performs a bounded live-version lookup even when `KASET_YTMUSIC_API_KEY` supplies the API key; unrelated API Explorer commands keep the environment override's immediate behavior. If web configuration discovery fails, the report explicitly identifies the configured fallback instead of presenting it as live.
+`search-audit` labels the version source as `live`, `override`, or `fallback`. The audit performs a bounded live-version lookup even when `LILT_YTMUSIC_API_KEY` supplies the API key; unrelated API Explorer commands keep the environment override's immediate behavior. If web configuration discovery fails, the report explicitly identifies the configured fallback instead of presenting it as live.
 
 ---
 
@@ -1085,7 +1085,7 @@ These endpoints were discovered through API exploration (2024-12-22) but are not
 | Endpoint | Type | Auth | Parameters | Description |
 |----------|------|------|------------|-------------|
 | `FEmusic_radio_builder` | Browse | 🌐 | - | Form dialog and chips verified on 2026-09-04; station creation/saving not tested or implemented |
-| `FEmusic_liked_videos` | Browse | 🔐 | - | Limited liked-song list; Kaset uses `VLLM` for pagination |
+| `FEmusic_liked_videos` | Browse | 🔐 | - | Limited liked-song list; Lilt uses `VLLM` for pagination |
 
 ### Infrastructure/Internal Endpoints
 
@@ -1204,7 +1204,7 @@ if let watchEndpoint = navEndpoint["watchEndpoint"] as? [String: Any],
 
 ## Parsers Reference
 
-All parsers are located in `Sources/Kaset/Services/API/Parsers/`. Each parser is responsible for extracting structured data from raw API JSON responses.
+All parsers are located in `Sources/Lilt/Services/API/Parsers/`. Each parser is responsible for extracting structured data from raw API JSON responses.
 
 | Parser | File | Input | Output | Used By |
 |--------|------|-------|--------|--------|
@@ -1250,7 +1250,7 @@ contents
 
 ## Error Handling
 
-Kaset uses a unified `YTMusicError` enum for all API-related errors. This enables consistent error handling, user-friendly messages, and retry logic.
+Lilt uses a unified `YTMusicError` enum for all API-related errors. This enables consistent error handling, user-friendly messages, and retry logic.
 
 ### Error Types
 
@@ -1318,11 +1318,11 @@ let result = try await RetryPolicy.execute(
 
 ## Implementation status
 
-Checked against the app source on 2026-09-04. Status refers to Kaset integration,
+Checked against the app source on 2026-09-04. Status refers to Lilt integration,
 not API Explorer support. Partial means the existing behavior and missing parts
 are listed separately in the same row.
 
-| Capability | Kaset status | Implemented and missing behavior |
+| Capability | Lilt status | Implemented and missing behavior |
 |------------|--------------|----------------------------------|
 | Home, Explore, Moods & Genres, New Releases | Implemented | Browse pages and section parsing exist; Home activity chips are listed separately below |
 | Listening history | Implemented | Recently played tracks grouped by time |
@@ -1360,7 +1360,7 @@ mutations or playback behavior were tested.
 
 ### Authenticated Library and account discovery
 
-Verified on 2026-09-04 with saved Kaset cookies and the `WEB_REMIX` client.
+Verified on 2026-09-04 with saved Lilt cookies and the `WEB_REMIX` client.
 Home, Library, and the successful account-specific requests explicitly reported
 a signed-in server session. Credentials and personalized response values stayed
 out of reports. These probes used the web session; they do not establish mobile
@@ -1402,9 +1402,9 @@ The taste builder's `acceptButton` is inspected as schema only. Its browse-like
 shape does not make acceptance an ordinary discovery route. Selection values
 remain private, and discovery does not expose an acceptance navigation entry.
 
-Kaset's [Library view](../Sources/Kaset/Views/LibraryView.swift) filters already
+Lilt's [Library view](../Sources/Lilt/Views/LibraryView.swift) filters already
 loaded collections locally. Its
-[Library loader](../Sources/Kaset/Services/API/YTMusicClient.swift) reads podcast
+[Library loader](../Sources/Lilt/Services/API/YTMusicClient.swift) reads podcast
 shows from the landing preview and has no dedicated podcast Channels or Profiles
 load. Library sorting, full collection pagination, and those dedicated reads
 are concrete additions supported by these responses. Uploaded album/artist
@@ -1437,9 +1437,9 @@ populated `dismissableDialogContentSectionRenderer` sections. Each had a title
 and nonempty subtitle runs. The roles were Performed by, Written by, Produced
 by, and Music metadata provided by.
 
-Kaset's [Song model](../Sources/Kaset/Models/Song.swift),
-[SongMetadataParser](../Sources/Kaset/Services/API/Parsers/SongMetadataParser.swift),
-and [song context menus](../Sources/Kaset/Views/SharedViews/SongContextMenus.swift)
+Lilt's [Song model](../Sources/Lilt/Models/Song.swift),
+[SongMetadataParser](../Sources/Lilt/Services/API/Parsers/SongMetadataParser.swift),
+and [song context menus](../Sources/Lilt/Views/SharedViews/SongContextMenus.swift)
 do not expose credits. The browse ID comes from navigation and cannot be
 constructed from the video ID. Credit titles can be localized or unfamiliar;
 the observed four roles are not an exhaustive schema. Credits require a
@@ -1453,9 +1453,9 @@ Commute, Sleep, Romance, Party, Focus, and Sad. Following Focus with its issued
 and three shelves instead of two. These chips are distinct from the existing
 Moods & Genres destination pages.
 
-[HomeResponse](../Sources/Kaset/Models/HomeResponse.swift) stores sections but
-no chips, and [HomeResponseParser](../Sources/Kaset/Services/API/Parsers/HomeResponseParser.swift)
-does not parse the filter bar. [YTMusicClient](../Sources/Kaset/Services/API/YTMusicClient.swift)
+[HomeResponse](../Sources/Lilt/Models/HomeResponse.swift) stores sections but
+no chips, and [HomeResponseParser](../Sources/Lilt/Services/API/Parsers/HomeResponseParser.swift)
+does not parse the filter bar. [YTMusicClient](../Sources/Lilt/Services/API/YTMusicClient.swift)
 owns continuation state by page type; it has no separate Home filter cache or
 continuation identity. Selecting a chip changes the request params and the
 content to which subsequent continuations belong.
@@ -1492,15 +1492,15 @@ headers; Android uses a matching Android 13 / API level 33 profile.
 | `IOS_MUSIC` with cookies but no Authorization header | HTTP 200, explicitly guest in service metadata; no Speed dial model. Adding the web API key did not authenticate it |
 | `ANDROID_MUSIC` with SAPISIDHASH | Versions `5.34.51` and `7.21.50` returned HTTP 400 `INVALID_ARGUMENT` |
 | Guest `ANDROID_MUSIC` Home | Both tested versions returned HTTP 200 with a `messageRenderer`, not a populated Home feed |
-| Mobile OAuth Home | Not tested; Kaset has no mobile OAuth session or token export |
+| Mobile OAuth Home | Not tested; Lilt has no mobile OAuth session or token export |
 
-The Home request and guest iOS response format are verified. The current Kaset
+The Home request and guest iOS response format are verified. The current Lilt
 login authenticates the web client, but did not authenticate any tested mobile
 profile. A response body or HTTP 200 alone is insufficient: the cookie-only
 mobile response explicitly reported a guest session. The linked client's
 [authentication configuration](https://github.com/itsnebulalol/resonance-addons/blob/a9a6ac6d1adfd7c36da83d086bfad6840296eff9/packages/youtubemusic-addon/src/index.ts)
 requires a Google OAuth refresh token, which its request implementation exchanges
-for a mobile access token. Kaset currently has no such exchange or login flow.
+for a mobile access token. Lilt currently has no such exchange or login flow.
 
 The Speed dial item shape below comes from that client implementation, not a
 locally captured signed-in response:
@@ -1523,8 +1523,8 @@ not used as a substitute for the requested mobile Speed dial section. The next
 step is to establish mobile OAuth authentication and capture a populated
 `musicSpeedDialShelfModel` before implementing its parser and interface.
 
-Kaset currently requests `WEB_REMIX`, and
-[HomeResponseParser](../Sources/Kaset/Services/API/Parsers/HomeResponseParser.swift)
+Lilt currently requests `WEB_REMIX`, and
+[HomeResponseParser](../Sources/Lilt/Services/API/Parsers/HomeResponseParser.swift)
 does not parse `elementRenderer` mobile models. Speed dial has no dedicated app
 model or interface. API Explorer reports mobile model names, Speed dial item
 and shortcut counts, redacted read navigation, fixed API error categories, and
@@ -1605,8 +1605,8 @@ returned HTTP 200, five carousels, 28 track rows, and an artist description.
 Recognized sections included You might also like, Recommended playlists,
 Similar artists, and About the artist. The page type is
 `MUSIC_PAGE_TYPE_TRACK_RELATED`. The page uses the shelf structure
-already handled by [HomeResponseParser](../Sources/Kaset/Services/API/Parsers/HomeResponseParser.swift),
-but Kaset does not load or display this tab. Preserve the issued browse ID.
+already handled by [HomeResponseParser](../Sources/Lilt/Services/API/Parsers/HomeResponseParser.swift),
+but Lilt does not load or display this tab. Preserve the issued browse ID.
 
 A recommendation is not evidence of an audio/video counterpart. None of the
 sampled queues exposed explicit counterpart fields. A recording switch remains
@@ -1620,7 +1620,7 @@ chips. Recognized labels included All, Popular, Discover, Deep cuts, and Party.
 Following the issued Popular command returned HTTP 200 and 24 queue entries.
 That response did not repeat the full filter bar.
 
-[RadioQueueResult](../Sources/Kaset/Services/API/Parsers/RadioQueueParser.swift)
+[RadioQueueResult](../Sources/Lilt/Services/API/Parsers/RadioQueueParser.swift)
 stores songs and a continuation, but no filter commands. The commands carry
 server-issued playlist IDs and params. API Explorer retains the seed's audio
 and persistent-panel flags when following them.
@@ -2006,7 +2006,7 @@ nonempty section target. Other positions or missing placement metadata fail
 closed.
 
 Text-bearing `youChatItemViewModel` objects expose `text.content` plus optional
-style/action metadata. Chip-bearing objects expose `chipsData`. Kaset parses only
+style/action metadata. Chip-bearing objects expose `chipsData`. Lilt parses only
 those two visible surfaces under the confirmed insertion path; result/link
 objects such as `videoResultsData` and `webData`, plus sibling `frameworkUpdates`,
 remain ignored. The older
@@ -2018,12 +2018,12 @@ shape remains supported for previously validated responses.
 - The authenticated watch response exposed validated direct chips whose
   `chipData` entries could include a top-level `onClick` callback containing one
   local interaction command.
-- The root `chipData.continuation` remained the only replayed capability. Kaset
+- The root `chipData.continuation` remained the only replayed capability. Lilt
   ignores the callback only when it matches the observed `listMutationCommand`
   structure, inserts the same visible label plus the allowlisted loading-animation
   placeholder, and contains no extra keys or request capability.
 - The same response exposed multiple distinct panel-bootstrap continuations.
-  When direct chips are already present, Kaset discards the ambiguous panel
+  When direct chips are already present, Lilt discards the ambiguous panel
   command instead of guessing; ambiguity still rejects bootstraps that have no
   direct chips.
 - A read-only production-client probe then parsed the watch bootstrap
@@ -2044,7 +2044,7 @@ additional multi-turn fields are invented.
 **Live production validation on August 3, 2026:**
 
 - Two free-text prompts succeeded in the same watch-scoped chat.
-- The first response contained no replacement `sendUserQueryCommand`; Kaset
+- The first response contained no replacement `sendUserQueryCommand`; Lilt
   retained the original validated composer command after advancing the bound
   conversation revision.
 - The second request reused the validated `get_panel` shape with a fresh
@@ -2073,7 +2073,7 @@ or session values, opaque params, continuations, or server-issued commands.
 
 ### Authenticated Endpoints
 
-For authenticated endpoints (🔐), sign in to the Kaset app first:
+For authenticated endpoints (🔐), sign in to the Lilt app first:
 
 ```bash
 # Check if cookies are available
@@ -2085,7 +2085,7 @@ swift run api-explorer browse FEmusic_history
 swift run api-explorer browse FEmusic_liked_albums
 ```
 
-Debug builds export auth cookies for the API explorer to `~/Library/Application Support/Kaset/cookies.dat`.
+Debug builds export auth cookies for the API explorer to `~/Library/Application Support/Lilt/cookies.dat`.
 
 ### Brand Account Support
 
@@ -2149,7 +2149,7 @@ The `--brand` flag sets `context.user.onBehalfOfUser` in the request body. See [
 |------|---------|
 | 🌐 | No authentication required |
 | 🔐 | Authentication required |
-| ✅ | Implemented in Kaset |
+| ✅ | Implemented in Lilt |
 | ⏳ | Not yet implemented |
 
 ---
@@ -2192,7 +2192,7 @@ This section documents API functionality for the floating video window feature. 
 
 The `musicVideoType` field distinguishes between actual music videos and audio-only tracks. This is available in both `player` and `next` endpoint responses.
 
-| Video Type | Constant | Description | Kaset video toggle |
+| Video Type | Constant | Description | Lilt video toggle |
 |------------|----------|-------------|-------------------|
 | Official Music Video | `MUSIC_VIDEO_TYPE_OMV` | Full video from artist/label | ✅ Yes |
 | Audio Track Video | `MUSIC_VIDEO_TYPE_ATV` | Static image or visualizer | ❌ No |
@@ -2205,9 +2205,9 @@ only for `.omv`; `isSearchVideo` also includes `.ugc` and `.officialSourceMusic`
 
 **Implementation**: The `MusicVideoType` enum and parsing are implemented in:
 
-- [Sources/Kaset/Models/MusicVideoType.swift](../Sources/Kaset/Models/MusicVideoType.swift) - Enum definition
-- [Sources/Kaset/Models/Song.swift](../Sources/Kaset/Models/Song.swift) - `musicVideoType` property
-- [Sources/Kaset/Services/API/Parsers/SongMetadataParser.swift](../Sources/Kaset/Services/API/Parsers/SongMetadataParser.swift) - Parsing logic
+- [Sources/Lilt/Models/MusicVideoType.swift](../Sources/Lilt/Models/MusicVideoType.swift) - Enum definition
+- [Sources/Lilt/Models/Song.swift](../Sources/Lilt/Models/Song.swift) - `musicVideoType` property
+- [Sources/Lilt/Services/API/Parsers/SongMetadataParser.swift](../Sources/Lilt/Services/API/Parsers/SongMetadataParser.swift) - Parsing logic
 
 **Location in `next` response**:
 ```
@@ -2233,14 +2233,14 @@ if song.musicVideoType?.hasVideoContent == true {
 ### Video quality selection
 
 Regular YouTube quality selection is implemented in
-[YouTubePlayerBar](../Sources/Kaset/Views/YouTube/YouTubePlayerBar.swift) and
-[YouTubeWatchWebView](../Sources/Kaset/Views/YouTube/YouTubeWatchWebView+Scripts.swift).
+[YouTubePlayerBar](../Sources/Lilt/Views/YouTube/YouTubePlayerBar.swift) and
+[YouTubeWatchWebView](../Sources/Lilt/Views/YouTube/YouTubeWatchWebView+Scripts.swift).
 The picker reads the WebView player's available quality levels and requests
 the chosen level through `setPlaybackQualityRange`, with a
 `setPlaybackQuality` fallback. A Music video resolution picker is not implemented.
 
 Historical `player` responses exposed formats in `streamingData.adaptiveFormats`.
-Kaset uses WebView playback rather than those URLs. Guest responses may omit
+Lilt uses WebView playback rather than those URLs. Guest responses may omit
 streaming data, and the formats below are sample observations, not guaranteed
 quality choices for every video.
 
@@ -2332,7 +2332,7 @@ for the 2026-09-04 discoveries and their verification limits.
 | `FEmusic_library_artists` | HTTP 400 | Rejected as invalid argument in current authenticated sessions |
 | `FEmusic_library_corpus_artists` | HTTP 200* | Returns followed artists with full auth and public `UC...` browseIds |
 | `FEmusic_library_songs` | HTTP 400 | No working request established; required context remains unverified |
-| `FEmusic_recently_played` | HTTP 400 | No working request established; Kaset uses `FEmusic_history` |
+| `FEmusic_recently_played` | HTTP 400 | No working request established; Lilt uses `FEmusic_history` |
 | `playlist/get_add_to_playlist` | HTTP 401 | Needs full auth; app caches with `APICache.TTL.library` |
 | `playlist/create` | HTTP 401 | Needs full auth; response playlist ID may be top-level or nested |
 | `browse/edit_playlist` | HTTP 401 | Needs full auth; app uses `ACTION_ADD_VIDEO` and `ACTION_REMOVE_VIDEO` for track edits |

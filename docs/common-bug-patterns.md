@@ -215,7 +215,7 @@ Use a throwaway file tracer in the app's **container** tmp
 // TEMPORARY DIAGNOSTIC — remove before commit.
 enum LoadTrace {
     nonisolated(unsafe) private static let path =
-        NSTemporaryDirectory() + "kaset_trace.log"        // container tmp, NOT /tmp
+        NSTemporaryDirectory() + "lilt_trace.log"        // container tmp, NOT /tmp
     nonisolated(unsafe) private static let handle: FileHandle? = {
         FileManager.default.createFile(atPath: path, contents: nil)
         return FileHandle(forWritingAtPath: path)

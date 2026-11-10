@@ -82,7 +82,7 @@ custom_rules:
     message: "Use Swift concurrency (async/await, MainActor) instead of DispatchQueue"
     severity: error
     excluded:
-      - "Sources/Kaset/Services/NetworkMonitor.swift"  # NWPathMonitor requires DispatchQueue
+      - "Sources/Lilt/Services/NetworkMonitor.swift"  # NWPathMonitor requires DispatchQueue
 
   no_print:
     name: "No print statements"

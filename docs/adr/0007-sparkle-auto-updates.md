@@ -6,7 +6,7 @@ Superseded by [ADR-0042](0042-fork-identity.md)
 
 ## Context
 
-Kaset is distributed outside the Mac App Store via GitHub Releases and Homebrew Cask. Users need a reliable way to receive updates without manually downloading new versions. The lack of automatic updates creates friction for users and delays security fixes and feature rollouts.
+Lilt is distributed outside the Mac App Store via GitHub Releases and Homebrew Cask. Users need a reliable way to receive updates without manually downloading new versions. The lack of automatic updates creates friction for users and delays security fixes and feature rollouts.
 
 Requirements:
 - **Non-App Store distribution**: App Store's built-in update mechanism is not available
@@ -43,8 +43,8 @@ We integrate [Sparkle 2.x](https://sparkle-project.org/) for automatic update ch
    - Settings UI showing last check date
 
 5. **Sandboxed installer support**
-   - Kaset is sandboxed, so Sparkle's installer launcher XPC service must be enabled
-   - Kaset entitlements must allow Sparkle's installer/status mach lookup services
+   - Lilt is sandboxed, so Sparkle's installer launcher XPC service must be enabled
+   - Lilt entitlements must allow Sparkle's installer/status mach lookup services
    - CI verifies packaged apps so future releases cannot regress this configuration
 
 6. **Signing tiers**
@@ -56,7 +56,7 @@ We integrate [Sparkle 2.x](https://sparkle-project.org/) for automatic update ch
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        KasetApp                              │
+│                        LiltApp                              │
 │  ┌─────────────────┐    ┌────────────────────────────────┐  │
 │  │  UpdaterService │───▶│ SPUStandardUpdaterController   │  │
 │  │  (@Observable)  │    │        (Sparkle)               │  │
@@ -91,7 +91,7 @@ We integrate [Sparkle 2.x](https://sparkle-project.org/) for automatic update ch
    - Extracts and replaces app bundle
    - Relaunches the app
 
-3. **Manual check** (Kaset → Check for Updates...):
+3. **Manual check** (Lilt → Check for Updates...):
    - Same flow but user-initiated
    - Shows "You're up to date" if no update available
 
@@ -163,7 +163,7 @@ We integrate [Sparkle 2.x](https://sparkle-project.org/) for automatic update ch
 </array>
 ```
 
-These exceptions are required because Kaset is sandboxed and Sparkle installs updates through its installer launcher/status services outside the app sandbox.
+These exceptions are required because Lilt is sandboxed and Sparkle installs updates through its installer launcher/status services outside the app sandbox.
 
 ### Key Generation
 
@@ -192,11 +192,11 @@ For the preferred Developer ID path, `MACOS_CERTIFICATE` should instead contain 
 
 ```bash
 # No-paid-account path verifies Sparkle packaging and signing integrity, but not Developer ID.
-Scripts/verify-release-app.sh .build/app/Kaset.app
+Scripts/verify-release-app.sh .build/app/Lilt.app
 Scripts/sign-update.sh ./build/Kaset-v1.2.3.dmg
 
 # Preferred paid-account path adds Developer ID and notarization checks.
-Scripts/verify-release-app.sh --require-developer-id .build/app/Kaset.app
+Scripts/verify-release-app.sh --require-developer-id .build/app/Lilt.app
 codesign --force --timestamp --sign "Developer ID Application: ..." kaset-v1.2.3.dmg
 xcrun notarytool submit kaset-v1.2.3.dmg --wait ...
 xcrun stapler staple kaset-v1.2.3.dmg

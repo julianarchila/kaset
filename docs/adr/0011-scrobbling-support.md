@@ -6,7 +6,7 @@ Superseded by [ADR-0042](0042-fork-identity.md)
 
 ## Context
 
-Kaset currently has no way to report listening activity to external services. Users who use Last.fm for tracking their music history cannot get scrobbles from Kaset. Adding scrobbling support requires:
+Lilt currently has no way to report listening activity to external services. Users who use Last.fm for tracking their music history cannot get scrobbles from Lilt. Adding scrobbling support requires:
 
 1. **API key security** — Last.fm API requires a shared secret for signing requests. Embedding secrets in the app binary is a security risk.
 2. **Offline resilience** — Scrobbles should survive app crashes and network outages.
@@ -23,7 +23,7 @@ Implement scrobbling with three layers:
 
 2. **`ScrobblingCoordinator`** — An `@MainActor @Observable` service that polls `PlayerService` (matching the `NotificationService` polling pattern at 500ms intervals), tracks accumulated play time, detects track changes, and triggers scrobbles when thresholds are met.
 
-3. **`ScrobbleQueue`** — A persistent JSON queue (`~/Library/Application Support/Kaset/scrobble-queue.json`) that ensures every scrobble is written to disk before network submission.
+3. **`ScrobbleQueue`** — A persistent JSON queue (`~/Library/Application Support/Lilt/scrobble-queue.json`) that ensures every scrobble is written to disk before network submission.
 
 ### Cloudflare Worker Proxy
 

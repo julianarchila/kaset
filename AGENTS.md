@@ -2,7 +2,7 @@
 
 Guidance for AI coding agents working in this repository.
 
-Kaset is a native macOS client for YouTube Music and YouTube, written in Swift 6 and SwiftUI. The deployment target is macOS 15.4, with macOS 26 features such as Liquid Glass layered on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
+Lilt is a native macOS client for YouTube Music and YouTube, written in Swift 6 and SwiftUI. The deployment target is macOS 15.4, with macOS 26 features such as Liquid Glass layered on top. Write idiomatic SwiftUI and Swift Concurrency code that follows Apple's Human Interface Guidelines.
 
 ## Rules
 
@@ -17,7 +17,7 @@ Kaset is a native macOS client for YouTube Music and YouTube, written in Swift 6
 ## Working Style
 
 - Deliver what was asked, at the scope intended. Make routine judgment calls yourself, and check in only when different readings of the request would lead to materially different work.
-- Match existing implementations: a new detail view follows the existing detail views, a new parser follows `Sources/Kaset/Services/API/Parsers/`.
+- Match existing implementations: a new detail view follows the existing detail views, a new parser follows `Sources/Lilt/Services/API/Parsers/`.
 - Adapt new code to existing public signatures, protocols, and model types instead of changing them, unless the task calls for it.
 - If an approach goes wrong, revert and re-scope rather than layering patches on it.
 
@@ -25,7 +25,7 @@ Kaset is a native macOS client for YouTube Music and YouTube, written in Swift 6
 
 ```bash
 swift build                              # Build
-swift test --skip KasetUITests           # Unit tests (UI tests live in a separate Xcode project)
+swift test --skip LiltUITests           # Unit tests (UI tests live in a separate Xcode project)
 swiftlint --strict && swiftformat .      # Lint & format
 ```
 
@@ -53,11 +53,11 @@ Project rules that differ from standard Swift/SwiftUI conventions and aren't mec
 
 ## Localization
 
-`Sources/Kaset/Resources/Localizable.xcstrings` is the source of truth. Packaged builds compile the catalog, but SwiftPM/Xcode runtime builds read the checked-in `Sources/Kaset/Resources/*.lproj/Localizable.strings` mirrors, so the two must change together or the build types diverge.
+`Sources/Lilt/Resources/Localizable.xcstrings` is the source of truth. Packaged builds compile the catalog, but SwiftPM/Xcode runtime builds read the checked-in `Sources/Lilt/Resources/*.lproj/Localizable.strings` mirrors, so the two must change together or the build types diverge.
 
 - When adding keys or changing translations, update the catalog first, then the matching `.lproj/Localizable.strings` files in the same change.
-- Run `swift test --skip KasetUITests --filter LocalizationCatalogParityTests` after localization changes.
-- Siri phrases for App Shortcuts live in `Sources/Kaset/Resources/AppShortcuts.xcstrings` (no `.lproj` mirror). `Scripts/build-app.sh` fails if it drifts from `KasetShortcuts`, so update it whenever a phrase changes.
+- Run `swift test --skip LiltUITests --filter LocalizationCatalogParityTests` after localization changes.
+- Siri phrases for App Shortcuts live in `Sources/Lilt/Resources/AppShortcuts.xcstrings` (no `.lproj` mirror). `Scripts/build-app.sh` fails if it drifts from `LiltShortcuts`, so update it whenever a phrase changes.
 - When adding a locale, also register its `.lproj` in `Package.swift`, add the `SettingsManager.ContentLanguage` case, and extend the localization tests.
 
 ## API Discovery
@@ -80,16 +80,16 @@ Write throwaway traces to `NSTemporaryDirectory()`, `synchronize()` after each l
 
 Sandboxed builds without a valid Developer ID or provisioning profile (local debug and ad-hoc builds) hang inside `SecItemCopyMatching` when they query the Keychain.
 
-- `#if DEBUG` builds, and release builds compiled with `KASET_FILE_COOKIE_STORAGE`, therefore store cookies in Application Support at `Kaset/cookies.dat` and skip the Keychain. `Scripts/build-app.sh` sets that flag for every build it does not sign with Developer ID (`KASET_SIGNING=developer-id`), so `Scripts/build-app.sh release` produces an installable optimized build without a paid developer account. Launch with `KASET_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
+- `#if DEBUG` builds, and release builds compiled with `LILT_FILE_COOKIE_STORAGE`, therefore store cookies in Application Support at `Lilt/cookies.dat` and skip the Keychain. `Scripts/build-app.sh` sets that flag for every build it does not sign with Developer ID (`LILT_SIGNING=developer-id`), so `Scripts/build-app.sh release` produces an installable optimized build without a paid developer account. Launch with `LILT_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
 - Packaged debug builds use the bundle ID `com.julianarchila.Lilt.debug`, which gives them their own container, UserDefaults, and WebKit cookie jar. Don't package a debug build with the release bundle ID: each build's startup would overwrite the other's session.
-- The Keychain is shared, so `KASET_DEBUG_COOKIE_STORAGE=keychain` reads and writes the release archive.
+- The Keychain is shared, so `LILT_DEBUG_COOKIE_STORAGE=keychain` reads and writes the release archive.
 - The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state must not write the release key.
 
 ## Code Review
 
 Run the `autoreview` skill by default after committing non-trivial code changes and before pushing them. Skip it for docs-only or trivial changes, or when the human opts out. Finish the focused tests first, and don't run the review at the same time as tests: the CPU contention makes timing-sensitive tests flaky.
 
-Use these Kaset settings with the skill, from the repository root:
+Use these Lilt settings with the skill, from the repository root:
 
 ```bash
 python3 .agents/skills/autoreview/scripts/autoreview --mode branch --base origin/<base> --max-priority P3 \

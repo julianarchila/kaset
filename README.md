@@ -2,10 +2,6 @@
 
 <p align="center">A native macOS client for YouTube Music, built with Swift and SwiftUI. Lilt is a personal fork of <a href="https://github.com/sozercan/kaset">Kaset</a>.</p>
 
-<p align="center">
-  <a href="https://trendshift.io/repositories/16570?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-16570"><img src="https://trendshift.io/api/badge/repositories/16570" alt="sozercan/kaset | Trendshift" width="200" height="44"/></a>
-</p>
-
 <p align="center"><img src="docs/screenshot-ytm.png" alt="Lilt YouTube Music screenshot"></p>
 
 ## Features
@@ -56,8 +52,8 @@
 Lilt has no published releases. Build it from source with Xcode 26 or later:
 
 ```bash
-git clone https://github.com/julianarchila/kaset.git
-cd kaset
+git clone https://github.com/julianarchila/lilt.git
+cd lilt
 Scripts/build-app.sh release
 cp -R .build/app/Lilt.app /Applications/
 ```

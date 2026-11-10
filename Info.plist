@@ -21,7 +21,7 @@
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>OSAScriptingDefinition</key>
-	<string>Kaset.sdef</string>
+	<string>Lilt.sdef</string>
 
 	<!-- Core Audio Process Tap (Equalizer) -->
 	<!-- Process tap on macOS 14.2+ is gated by Screen Recording / System Audio Recording TCC, -->

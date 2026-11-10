@@ -6,14 +6,14 @@ Accepted
 
 ## Context
 
-Kaset plays YouTube Music through a singleton hidden `WKWebView` because DRM-protected
+Lilt plays YouTube Music through a singleton hidden `WKWebView` because DRM-protected
 YouTube Music audio cannot be played through `AVPlayer`. Before this change, queue
 advancement usually meant navigating the WebView to a new `watch` URL for every
 track. That approach had two user-visible problems:
 
 - a full page navigation could leave several seconds of silence between tracks;
 - YouTube Music autoplay could briefly win the race and start an unrelated track
-  before Kaset corrected back to its local queue.
+  before Lilt corrected back to its local queue.
 
 Users reported this as both a gapless-playback feature request and a playback bug:
 queued next tracks did not reliably start when the current track ended or when the
@@ -21,12 +21,12 @@ user pressed Next.
 
 A native audio engine is not available for YouTube Music, so the realistic goal is
 not sample-perfect gapless playback. The goal is to avoid unnecessary WebView page
-reloads and let YouTube Music's own player perform the transition whenever Kaset
-can safely keep YouTube Music's native queue aligned with Kaset's queue.
+reloads and let YouTube Music's own player perform the transition whenever Lilt
+can safely keep YouTube Music's native queue aligned with Lilt's queue.
 
 ## Decision
 
-Kaset keeps its local queue as the source of truth, but mirrors the next expected
+Lilt keeps its local queue as the source of truth, but mirrors the next expected
 track into YouTube Music's native **Up Next** queue ahead of time.
 
 - `SingletonPlayerWebView` eagerly preloads the YouTube Music app shell after login,
@@ -45,7 +45,7 @@ track into YouTube Music's native **Up Next** queue ahead of time.
   endpoint immediately afterward. The script waits briefly for the player-bar action
   menu to mount after SPA navigation instead of treating the first missing DOM node
   as a permanent injection failure.
-- Before dispatch, the menu endpoint's source video ID must still match Kaset's
+- Before dispatch, the menu endpoint's source video ID must still match Lilt's
   current queue song. The page preserves rendered queue-row occurrences, accepts an already aligned queue without clicking again, otherwise requires a
   post-click queue change, and reports success only when the expected target becomes
   the row immediately after the rendered selected source row. If that current row is
@@ -64,7 +64,7 @@ track into YouTube Music's native **Up Next** queue ahead of time.
   so a healthy ad can finish even when it exceeds 18 seconds. A frozen ad clock or
   stale ad flag still expires; invalid queue relationships bypass the grace.
 - Document-scoped playback events carry an observer epoch and media generation.
-  Kaset consumes each ended media occurrence once, rejects duplicate/older events,
+  Lilt consumes each ended media occurrence once, rejects duplicate/older events,
   and advances the occurrence generation for a same-element replay without
   prematurely rebinding media identity.
 - Playback progress and duration come from the media element associated with the
@@ -78,7 +78,7 @@ track into YouTube Music's native **Up Next** queue ahead of time.
 - Radio-queue enrichment preserves the active queue-entry UUID so replacing API
   metadata does not look like a new playback occurrence to the media-generation guard.
 - A queue edit during a pending native handoff revalidates source/target UUID
-  adjacency. If adjacency changes, Kaset deterministically loads the newly expected
+  adjacency. If adjacency changes, Lilt deterministically loads the newly expected
   next entry rather than the stale target.
 - Main-document completion/failure callbacks are matched to the latest `WKNavigation`
   and current `WKWebView` before they clear the injection gate.
@@ -95,14 +95,14 @@ track into YouTube Music's native **Up Next** queue ahead of time.
 
 - Queue transitions can be handled by YouTube Music's own player without reloading
   the whole WebView page for every track.
-- Manual Next/Previous stay aligned with Kaset's queue through deterministic
+- Manual Next/Previous stay aligned with Lilt's queue through deterministic
   navigation, while natural track-end handling uses native web-player transitions
   only after both queue readback and actual media identity are confirmed.
 - Duplicate tracks, stale `ended` events, failed injection attempts, queue edits,
   repeat modes, and mix/smart-shuffle continuation boundaries have explicit guard
   paths and regression tests.
 - If native injection fails or becomes stale, playback correctness wins over
-  gaplessness: Kaset performs a deterministic load instead of trusting the web
+  gaplessness: Lilt performs a deterministic load instead of trusting the web
   queue blindly.
 
 ### Negative / Risks

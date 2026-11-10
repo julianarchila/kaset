@@ -13,7 +13,7 @@ server commands that must be replayed exactly. Those commands can carry
 session- or conversation-specific state and must not become application data,
 logs, fixtures, restoration state, or telemetry.
 
-Kaset normally retrieves product data through `YouTubeClient` and reserves
+Lilt normally retrieves product data through `YouTubeClient` and reserves
 WebViews for authentication and DRM playback. Implementing Ask through watch-page
 DOM automation would expand the WebView's responsibility, couple the feature to
 frontend markup, and make account and lifecycle boundaries harder to enforce.
@@ -35,7 +35,7 @@ Wire-level observations and the API Explorer workflow remain documented in the
    materialization, and suggestion submission belong to `YouTubeClient` and a
    Foundation-only `YouTubeAskCore` parser/decoder layer. The existing watch
    `next` response is shared with normal watch-page parsing. WebViews remain
-   limited to authentication and DRM playback; Kaset does not scrape or drive
+   limited to authentication and DRM playback; Lilt does not scrape or drive
    the Ask Gemini DOM.
 2. **Ship server-commanded revision-bound free text plus chips.** An eligible watch
    page exposes a sparkles action in the top toolbar. Activating it presents a
@@ -45,7 +45,7 @@ Wire-level observations and the API Explorer workflow remain documented in the
    materialization supplies the exact validated `sendUserQueryCommand`. In the
    current watch response this command is owned by the eligible panel footer's
    `chatInputViewModel`; confirmed materialized `youChatItemViewModel` content is
-   also supported. Kaset uses the `next` command when present and materializes only the exact
+   also supported. Lilt uses the `next` command when present and materializes only the exact
    server-issued panel continuation when that capability is missing. Free-text
    submission uses `get_panel` with the captured `clientMessageId`, string
    `playerOffsetMs`, `userInputText`, server continuation, and click-tracking
@@ -65,11 +65,11 @@ Wire-level observations and the API Explorer workflow remain documented in the
 4. **Treat server commands as opaque capabilities.** Continuations and related
    command objects have no printable, codable, raw-value, or persistence-facing
    interface. This includes free-text continuation and click-tracking material.
-   Kaset preserves server order, replays only the exact command
+   Lilt preserves server order, replays only the exact command
    selected by the user, and never substitutes the visible chip label or an
    invented conversation field. Only sanitized visible messages and local IDs
    cross into UI models. Server-provided suggestion labels and answers are
-   displayed verbatim and are not localized by Kaset.
+   displayed verbatim and are not localized by Lilt.
 5. **Fail closed on unsupported or ambiguous data.** Strict parsing recognizes
    only confirmed YouChat structures, bounded wire formats, and supported
    message/chip containers, including the confirmed singular
@@ -84,7 +84,7 @@ Wire-level observations and the API Explorer workflow remain documented in the
    insertion and scroll shape. Any other callback rejects the chip set. Multiple
    panel-bootstrap commands reject the
    bootstrap unless validated direct chips make panel materialization unnecessary,
-   in which case Kaset discards every ambiguous panel command. Other ambiguity,
+   in which case Lilt discards every ambiguous panel command. Other ambiguity,
    malformed or oversized responses, unsupported decorators, identity changes,
    or uncertain submission outcomes disable the current session. There is no
    automatic retry for panel materialization or suggestion submission; the
@@ -103,7 +103,7 @@ Wire-level observations and the API Explorer workflow remain documented in the
 
 ## Consequences
 
-- Ask follows Kaset's API-over-WebView boundary and shares one strict parser and
+- Ask follows Lilt's API-over-WebView boundary and shares one strict parser and
   safety implementation between the app and API Explorer.
 - V1 accepts repeated server-commanded free-form questions with one action per
   bound conversation revision. The capability may originate in `next` or the

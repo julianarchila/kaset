@@ -13,7 +13,7 @@ func discoveryHelp() -> String {
     lines += [
         "Navigation indices are local to each response. Repeat --follow for up to five hops.",
         "Responses can reorder between runs. Inspect the selected route at each step.",
-        "Authentication is reused for every hop when Kaset cookies exist; --guest suppresses it.",
+        "Authentication is reused for every hop when Lilt cookies exist; --guest suppresses it.",
         "-v adds field/type paths, never raw values. -o saves only the redacted report.",
         "--ios-music or --android-music uses that mobile profile on every hop, with no web API key.",
         "--mobile-web-key adds the resolved web API key to mobile discovery for auth comparison.",

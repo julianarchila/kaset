@@ -21,12 +21,12 @@ Typical symptoms: playback starts, stops, or advances unexpectedly; API calls re
 
 - `docs/testing.md`
 - `docs/playback.md`
-- `Sources/Kaset/Views/MiniPlayerWebView.swift`
-- `Sources/Kaset/Views/SingletonPlayerWebView+ObserverScript.swift`
-- `Sources/Kaset/Views/SingletonPlayerWebView+NavigationState.swift`
-- `Sources/Kaset/Views/SingletonPlayerWebView+QueueInjection.swift`
-- `Sources/Kaset/Services/Player/PlayerService.swift`
-- `Sources/Kaset/Services/Player/PlayerService+WebPlaybackIdentity.swift`
-- `Sources/Kaset/Services/Player/PlayerService+WebQueueSync.swift`
-- `Sources/Kaset/Services/Player/PlayerService+QueueNavigationRecovery.swift`
-- `Sources/Kaset/Services/WebKit/WebKitManager.swift`
+- `Sources/Lilt/Views/MiniPlayerWebView.swift`
+- `Sources/Lilt/Views/SingletonPlayerWebView+ObserverScript.swift`
+- `Sources/Lilt/Views/SingletonPlayerWebView+NavigationState.swift`
+- `Sources/Lilt/Views/SingletonPlayerWebView+QueueInjection.swift`
+- `Sources/Lilt/Services/Player/PlayerService.swift`
+- `Sources/Lilt/Services/Player/PlayerService+WebPlaybackIdentity.swift`
+- `Sources/Lilt/Services/Player/PlayerService+WebQueueSync.swift`
+- `Sources/Lilt/Services/Player/PlayerService+QueueNavigationRecovery.swift`
+- `Sources/Lilt/Services/WebKit/WebKitManager.swift`

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Kaset Favorites are local pins, not a YouTube Music API resource. The original
+Lilt Favorites are local pins, not a YouTube Music API resource. The original
 implementation stored every user's pins in one `favorites.json` file, so
 favorites could appear under a different Google user, primary account, brand
 account, or signed-out session.

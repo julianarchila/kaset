@@ -54,7 +54,7 @@ Swift Testing runs tests in parallel by default. Mocks with `static var` state w
 - Verify test target settings support both frameworks
 
 **Files to create:**
-- `Tests/KasetTests/SwiftTestingHelpers/Tags.swift` — Define custom test tags
+- `Tests/LiltTests/SwiftTestingHelpers/Tags.swift` — Define custom test tags
 
 **Note**: Custom `Traits.swift` deferred until we need behaviors like "requires network" or "flaky test handling".
 
@@ -86,13 +86,13 @@ Swift Testing runs tests in parallel by default. Mocks with `static var` state w
 **Priority:** Start with tests that have no setup/teardown requirements.
 
 **Pre-migration cleanup:**
-1. **Split `KasetTests.swift`** before migration:
+1. **Split `LiltTests.swift`** before migration:
    - Move `testSongDurationParsing`, `testSongDurationDisplayWithNoDuration` → `ModelTests.swift`
    - Move `testYTMusicErrorDescriptions` → `YTMusicErrorTests.swift`
    - Move `testTimeIntervalFormattedDuration` → `ExtensionsTests.swift`
    - Move `testSearchResponseEmpty`, `testHomeResponseEmpty` → `SearchResponseTests.swift`
    - Delete `testAppConfiguration` (tests `Bundle.main` which is unreliable in test targets)
-   - Delete `KasetTests.swift` once empty
+   - Delete `LiltTests.swift` once empty
 
 **Assertion mapping:**
 | XCTest | Swift Testing |
@@ -120,7 +120,7 @@ Swift Testing runs tests in parallel by default. Mocks with `static var` state w
 ```swift
 // BEFORE (XCTest)
 import XCTest
-@testable import Kaset
+@testable import Lilt
 
 final class LikeStatusTests: XCTestCase {
     func testRawValues() {
@@ -132,7 +132,7 @@ final class LikeStatusTests: XCTestCase {
 
 // AFTER (Swift Testing)
 import Testing
-@testable import Kaset
+@testable import Lilt
 
 @Suite("LikeStatus")
 struct LikeStatusTests {
@@ -354,7 +354,7 @@ struct HomeViewModelTests {
 ```swift
 // Keep as XCTest — performance measurement not yet in Swift Testing
 import XCTest
-@testable import Kaset
+@testable import Lilt
 
 final class ParserPerformanceTests: XCTestCase {
     func testHomeParsingPerformance() {
@@ -374,8 +374,8 @@ final class ParserPerformanceTests: XCTestCase {
 
 ### Phase 8: Migrate UI Tests (Future)
 
-**Files in `KasetUITests/`:**
-- `KasetUITestCase.swift` (base class)
+**Files in `LiltUITests/`:**
+- `LiltUITestCase.swift` (base class)
 - `AppLaunchUITests.swift`
 - `HomeViewUITests.swift`
 - `SearchViewUITests.swift`
@@ -410,11 +410,11 @@ final class HomeViewUITests: XCTestCase {
 
 | Task | Status |
 |------|--------|
-| Split `KasetTests.swift` into proper test files | ✅ Done |
-| Delete `KasetTests.swift` after split | ✅ Done |
+| Split `LiltTests.swift` into proper test files | ✅ Done |
+| Delete `LiltTests.swift` after split | ✅ Done |
 | Verify no mocks use `static var` | ✅ Done |
 
-### Unit Tests (`KasetTests/`)
+### Unit Tests (`LiltTests/`)
 
 | File | Phase | Complexity | Status |
 |------|-------|------------|--------|
@@ -444,7 +444,7 @@ final class HomeViewUITests: XCTestCase {
 | `FoundationModelsTests.swift` | 6 | Medium | ✅ Done |
 | `PerformanceTests/ParserPerformanceTests.swift` | 7 | **Keep XCTest** | ✅ Verified |
 
-### UI Tests (`KasetUITests/`)
+### UI Tests (`LiltUITests/`)
 
 | File | Status |
 |------|--------|
@@ -516,7 +516,7 @@ func testWithAsyncCleanup() async throws {
 Define custom tags for categorization:
 
 ```swift
-// Tests/KasetTests/SwiftTestingHelpers/Tags.swift
+// Tests/LiltTests/SwiftTestingHelpers/Tags.swift
 import Testing
 
 extension Tag {
@@ -555,10 +555,10 @@ swift test --skip .slow
 
 ```bash
 # Run all tests (both XCTest and Swift Testing)
-xcodebuild -scheme Kaset -destination 'platform=macOS' test
+xcodebuild -scheme Lilt -destination 'platform=macOS' test
 
 # Run only unit tests (excludes UI tests)
-xcodebuild -scheme Kaset -destination 'platform=macOS' test -only-testing:KasetTests
+xcodebuild -scheme Lilt -destination 'platform=macOS' test -only-testing:LiltTests
 
 # Run specific Swift Testing suite
 swift test --filter HomeViewModelTests
@@ -599,10 +599,10 @@ swift test --filter .api
 
 ## Immediate Next Steps
 
-1. **Create `Tags.swift`** in `Tests/KasetTests/SwiftTestingHelpers/`
-2. **Split `KasetTests.swift`** into proper test files
+1. **Create `Tags.swift`** in `Tests/LiltTests/SwiftTestingHelpers/`
+2. **Split `LiltTests.swift`** into proper test files
 3. **Migrate `LikeStatusTests.swift`** as the pilot (simplest file)
-4. **Verify both frameworks run together**: `xcodebuild test -only-testing:KasetTests`
+4. **Verify both frameworks run together**: `xcodebuild test -only-testing:LiltTests`
 
 ---
 

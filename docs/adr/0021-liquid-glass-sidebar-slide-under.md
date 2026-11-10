@@ -12,7 +12,7 @@ Apple Music uses this so browse content (album/playlist shelves) is faintly
 visible, blurred, *through* the sidebar as it scrolls — the content slides
 under the glass rather than stopping at the column boundary.
 
-Kaset did not get this effect for free, for two independent reasons:
+Lilt did not get this effect for free, for two independent reasons:
 
 1. **The sidebar read as opaque.** The sidebar's `List(.sidebar)` painted the
    stock opaque `.sidebar` vibrancy material on top of the system Liquid Glass,

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Kaset needs to play YouTube Music content, including Premium tracks with DRM protection. There are several approaches to consider:
+Lilt needs to play YouTube Music content, including Premium tracks with DRM protection. There are several approaches to consider:
 
 1. **Direct audio streaming** - Download and play audio files directly
 2. **AVPlayer with HLS** - Use Apple's native player with streaming URLs
@@ -30,7 +30,7 @@ Key implementation details:
 ### Positive
 - **DRM support** - Premium content plays correctly with user's subscription
 - **No reverse engineering** - Uses official web interface
-- **Feature parity** - Any content playable on web works in Kaset
+- **Feature parity** - Any content playable on web works in Lilt
 - **Authentication reuse** - Same cookies as browser login
 
 ### Negative

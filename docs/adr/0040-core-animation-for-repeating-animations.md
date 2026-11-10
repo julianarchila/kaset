@@ -19,7 +19,7 @@ regions and cursor rects on every tick, which hit-tests the SwiftUI responder
 and focus trees. Measured on a debug build, Guest Mode, window 1312×821, track
 muted (see #536):
 
-| State | Kaset CPU |
+| State | Lilt CPU |
 |---|---|
 | Playlist page, equalizer on screen | ~39% (pointer outside), ~82% (key window, pointer over the list) |
 | Home page, long title scrolling | ~26% |

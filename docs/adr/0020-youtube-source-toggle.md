@@ -6,7 +6,7 @@ Superseded by [ADR-0042](0042-fork-identity.md): the fork removed the YouTube vi
 
 ## Context
 
-Kaset is a native YouTube Music client. On managed-browser setups,
+Lilt is a native YouTube Music client. On managed-browser setups,
 youtube.com is blocked at the browser-policy layer (not network/DNS), so a
 native app can reach it while browsers cannot. We wanted the same
 native-client treatment for regular YouTube: browse, search, subscriptions,
@@ -56,7 +56,7 @@ Two architectural questions dominated:
   `InnerTubeSupport` once the YouTube side has soaked.
 - Parsers must track YouTube's renderer migration (legacy renderers vs
   `lockupViewModel`); the recursive collector and captured fixtures
-  (`Tests/KasetTests/Fixtures/YouTube/`) make breakage visible and
+  (`Tests/LiltTests/Fixtures/YouTube/`) make breakage visible and
   fixable. `api-explorer --youtube` is the discovery tool.
 - YouTube ads play (no blocking); Premium accounts see none.
 

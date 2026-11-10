@@ -5,7 +5,7 @@
 
 ## Context
 
-Kaset did not have a way to install or manage WebKit web extensions. The app already relied on WebKit for authentication and DRM playback, but users could not:
+Lilt did not have a way to install or manage WebKit web extensions. The app already relied on WebKit for authentication and DRM playback, but users could not:
 - Add their own WebKit-compatible extensions.
 - Toggle extensions on or off without editing app code.
 - Open extension-provided options or popup pages from the native settings UI.
@@ -16,8 +16,8 @@ Add user-managed **Extensions**, backed by `ExtensionsManager`:
 
 1. **Empty by default** — no extensions are pre-installed; the manager starts with an empty list.
 2. **User-added only** — users select an extension directory via a macOS open panel.
-3. **Copied into app storage** — Kaset clones the selected extension into `~/Library/Application Support/Kaset/ManagedExtensions/` so it can load a stable local copy.
-4. **Persisted metadata** — the extension list is stored as JSON in `~/Library/Application Support/Kaset/extensions.json`, including the copied folder path plus any options or popup page metadata derived from `manifest.json`.
+3. **Copied into app storage** — Lilt clones the selected extension into `~/Library/Application Support/Lilt/ManagedExtensions/` so it can load a stable local copy.
+4. **Persisted metadata** — the extension list is stored as JSON in `~/Library/Application Support/Lilt/extensions.json`, including the copied folder path plus any options or popup page metadata derived from `manifest.json`.
 5. **Toggle, configure, and remove** — each extension can be enabled/disabled, removed, or opened in an options sheet from the Extensions settings tab when the extension exposes a supported page.
 6. **Loaded at launch** — `WebKitManager.loadExtensions()` reads `ExtensionsManager.resolvedURLs()` and calls `WKWebExtension(resourceBaseURL:)` for each enabled entry.
 
@@ -35,7 +35,7 @@ ExtensionsManager (singleton, @MainActor @Observable)
 
 WebKitManager
   ├── loadExtensions()  iterates ExtensionsManager.resolvedURLs(), loads via WKWebExtensionController
-  └── KasetWebExtensionHost exposes playback WebViews as WKWebExtension tabs/windows
+  └── LiltWebExtensionHost exposes playback WebViews as WKWebExtension tabs/windows
 
 ExtensionsSettingsView
   └── renders manager.extensions, calls add/remove/toggle
@@ -55,7 +55,7 @@ ExtensionsSettingsView
 
 ### Playback WebView hosting
 
-WebKit extension injection is not driven by `WKWebViewConfiguration.webExtensionController` alone. WebKit also asks the containing app for browser-like tabs and windows, and `WKWebExtensionTab.webView(for:)` is the seam that lets extension content injection and tab-scoped APIs resolve the target `WKWebView`. Kaset does not expose browser tabs in its product UI, so `KasetWebExtensionHost` provides a small internal tab/window model for the two long-lived playback surfaces:
+WebKit extension injection is not driven by `WKWebViewConfiguration.webExtensionController` alone. WebKit also asks the containing app for browser-like tabs and windows, and `WKWebExtensionTab.webView(for:)` is the seam that lets extension content injection and tab-scoped APIs resolve the target `WKWebView`. Lilt does not expose browser tabs in its product UI, so `LiltWebExtensionHost` provides a small internal tab/window model for the two long-lived playback surfaces:
 
 - `SingletonPlayerWebView` (`music.youtube.com`) registers as the music playback tab.
 - `YouTubeWatchWebView` (`www.youtube.com/watch`) registers as the YouTube video playback tab.

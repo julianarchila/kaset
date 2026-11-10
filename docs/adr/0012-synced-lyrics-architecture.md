@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Kaset previously exposed lyrics primarily through `YTMusicClient.getLyrics(videoId:)`, which returns plain text from the YouTube Music lyrics browse endpoint. To deliver Apple Music-style line-by-line lyrics, the app needed a timed lyrics source and a UI that could stay synchronized with hidden WebView playback.
+Lilt previously exposed lyrics primarily through `YTMusicClient.getLyrics(videoId:)`, which returns plain text from the YouTube Music lyrics browse endpoint. To deliver Apple Music-style line-by-line lyrics, the app needed a timed lyrics source and a UI that could stay synchronized with hidden WebView playback.
 
 Adding synced lyrics introduced a few constraints:
 

@@ -1,4 +1,4 @@
-# Contributing to Kaset
+# Contributing to Lilt
 
 Thank you for your interest in contributing! This document provides guidelines and information for developers.
 
@@ -14,21 +14,21 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ```bash
 # Clone the repository
-git clone https://github.com/sozercan/kaset.git
+git clone https://github.com/julianarchila/kaset.git
 cd kaset
 
 # Build from command line
 swift build
 
 # Run unit tests (do not combine with UI tests)
-swift test --skip KasetUITests
+swift test --skip LiltUITests
 
 # Package and run the app
 Scripts/compile_and_run.sh
 
 # If you don't have Apple Development certificates configured,
 # use ad-hoc signing instead
-KASET_SIGNING=adhoc ./Scripts/compile_and_run.sh
+LILT_SIGNING=adhoc ./Scripts/compile_and_run.sh
 
 # Lint & Format
 swiftlint --strict && swiftformat .
@@ -41,7 +41,7 @@ Or open `Package.swift` in Xcode to work in the IDE.
 ```
 Package.swift           → SPM manifest (build configuration)
 Sources/
-  └── Kaset/            → Main app target
+  └── Lilt/            → Main app target
       ├── Models/       → Data models (Song, Playlist, Album, Artist, etc.)
       ├── Services/
       │   ├── API/      → YTMusicClient (InnerTube API calls)
@@ -52,7 +52,7 @@ Sources/
       ├── Utilities/    → DiagnosticsLogger, extensions
       └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, etc.)
   └── APIExplorer/      → API explorer CLI tool
-Tests/                  → Unit tests (KasetTests/)
+Tests/                  → Unit tests (LiltTests/)
 Scripts/                → Build scripts
 docs/                   → Detailed documentation
 ```
@@ -61,14 +61,14 @@ docs/                   → Detailed documentation
 
 | File                                                | Purpose                                    |
 | --------------------------------------------------- | ------------------------------------------ |
-| `Sources/Kaset/AppDelegate.swift`                   | Window lifecycle, background audio support |
-| `Sources/Kaset/Services/WebKit/WebKitManager.swift` | Cookie store & persistence                 |
-| `Sources/Kaset/Services/Auth/AuthService.swift`     | Login state machine                        |
-| `Sources/Kaset/Services/API/YTMusicClient.swift`    | YouTube Music API client                   |
-| `Sources/Kaset/Services/Player/PlayerService.swift` | Playback state & control                   |
-| `Sources/Kaset/Views/MiniPlayerWebView.swift`       | Singleton WebView, playback UI             |
-| `Sources/Kaset/Views/MainWindow.swift`              | Main app window                            |
-| `Sources/Kaset/Utilities/DiagnosticsLogger.swift`   | Logging                                    |
+| `Sources/Lilt/AppDelegate.swift`                   | Window lifecycle, background audio support |
+| `Sources/Lilt/Services/WebKit/WebKitManager.swift` | Cookie store & persistence                 |
+| `Sources/Lilt/Services/Auth/AuthService.swift`     | Login state machine                        |
+| `Sources/Lilt/Services/API/YTMusicClient.swift`    | YouTube Music API client                   |
+| `Sources/Lilt/Services/Player/PlayerService.swift` | Playback state & control                   |
+| `Sources/Lilt/Views/MiniPlayerWebView.swift`       | Singleton WebView, playback UI             |
+| `Sources/Lilt/Views/MainWindow.swift`              | Main app window                            |
+| `Sources/Lilt/Utilities/DiagnosticsLogger.swift`   | Logging                                    |
 
 ## Architecture
 
@@ -202,7 +202,7 @@ final class MyServiceTests: XCTestCase {
 
 1. **No Third-Party Frameworks** — Do not introduce third-party dependencies without discussion first
 2. **Build Must Pass** — Run `swift build`
-3. **Tests Must Pass** — Run `swift test --skip KasetUITests` for unit tests
+3. **Tests Must Pass** — Run `swift test --skip LiltUITests` for unit tests
 4. **Linting** — Run `swiftlint --strict && swiftformat .` before submitting
 5. **Small PRs** — Keep changes focused and reviewable
 6. **Share AI Prompts** — If you used AI assistance, include the prompt in your PR (see below)
@@ -253,17 +253,17 @@ Requirements:
 - Follow existing haptic patterns used in volume controls
 - Add unit test in PlayerServiceTests.swift
 
-Reference: Sources/Kaset/Services/HapticService.swift for existing patterns
+Reference: Sources/Lilt/Services/HapticService.swift for existing patterns
 ```
 
 ## Testing
 
 ```bash
 # Run unit tests
-swift test --skip KasetUITests
+swift test --skip LiltUITests
 
 # Run specific unit test (use --filter)
-swift test --skip KasetUITests --filter PlayerServiceTests
+swift test --skip LiltUITests --filter PlayerServiceTests
 ```
 
 See [docs/testing.md](docs/testing.md) for detailed testing patterns and debugging tips.

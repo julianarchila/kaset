@@ -6,7 +6,7 @@
 
 ## Context
 
-Kaset needed AI-powered features for natural language music control, lyrics analysis, and queue management. Apple's Foundation Models framework (macOS 26+) provides on-device AI capabilities that align with our privacy-first approach and integrate seamlessly with the Apple ecosystem.
+Lilt needed AI-powered features for natural language music control, lyrics analysis, and queue management. Apple's Foundation Models framework (macOS 26+) provides on-device AI capabilities that align with our privacy-first approach and integrate seamlessly with the Apple ecosystem.
 
 ## Decision
 
@@ -35,12 +35,12 @@ Use Apple's `@Generable` macro for type-safe AI responses:
 
 | Model | Purpose | File |
 |-------|---------|------|
-| `MusicIntent` | Parse natural language commands (play, queue, shuffle) | `Sources/Kaset/Models/AI/MusicIntent.swift` |
-| `MusicQuery` | Structured search queries with filters | `Sources/Kaset/Models/AI/MusicQuery.swift` |
-| `QueueIntent` | Queue-specific commands (add, remove, reorder) | `Sources/Kaset/Models/AI/QueueIntent.swift` |
-| `QueueChanges` | AI-suggested queue modifications | `Sources/Kaset/Models/AI/QueueChanges.swift` |
-| `LyricsSummary` | Lyrics analysis (themes, mood, explanation) | `Sources/Kaset/Models/AI/LyricsSummary.swift` |
-| `PlaylistChanges` | Playlist refinement suggestions | `Sources/Kaset/Models/AI/PlaylistChanges.swift` |
+| `MusicIntent` | Parse natural language commands (play, queue, shuffle) | `Sources/Lilt/Models/AI/MusicIntent.swift` |
+| `MusicQuery` | Structured search queries with filters | `Sources/Lilt/Models/AI/MusicQuery.swift` |
+| `QueueIntent` | Queue-specific commands (add, remove, reorder) | `Sources/Lilt/Models/AI/QueueIntent.swift` |
+| `QueueChanges` | AI-suggested queue modifications | `Sources/Lilt/Models/AI/QueueChanges.swift` |
+| `LyricsSummary` | Lyrics analysis (themes, mood, explanation) | `Sources/Lilt/Models/AI/LyricsSummary.swift` |
+| `PlaylistChanges` | Playlist refinement suggestions | `Sources/Lilt/Models/AI/PlaylistChanges.swift` |
 
 **Rationale**: `@Generable` provides compile-time safety and automatic JSON schema generation. Models are `Sendable` for safe concurrent use.
 
@@ -50,11 +50,11 @@ Implement `Tool` protocol for AI to access real data:
 
 | Tool | Purpose | File |
 |------|---------|------|
-| `MusicSearchTool` | Search YouTube Music catalog | `Sources/Kaset/Services/AI/Tools/MusicSearchTool.swift` |
-| `QueueTool` | Get current queue state | `Sources/Kaset/Services/AI/Tools/QueueTool.swift` |
-| `NowPlayingTool` | Get currently playing track | `Sources/Kaset/Services/AI/Tools/NowPlayingTool.swift` |
-| `PlaylistTool` | Get playlist contents | `Sources/Kaset/Services/AI/Tools/PlaylistTool.swift` |
-| `LibraryTool` | Access user's library | `Sources/Kaset/Services/AI/Tools/LibraryTool.swift` |
+| `MusicSearchTool` | Search YouTube Music catalog | `Sources/Lilt/Services/AI/Tools/MusicSearchTool.swift` |
+| `QueueTool` | Get current queue state | `Sources/Lilt/Services/AI/Tools/QueueTool.swift` |
+| `NowPlayingTool` | Get currently playing track | `Sources/Lilt/Services/AI/Tools/NowPlayingTool.swift` |
+| `PlaylistTool` | Get playlist contents | `Sources/Lilt/Services/AI/Tools/PlaylistTool.swift` |
+| `LibraryTool` | Access user's library | `Sources/Lilt/Services/AI/Tools/LibraryTool.swift` |
 
 **Rationale**: Tools ground AI responses in real catalog data, preventing hallucination of song IDs or incorrect metadata.
 
@@ -116,7 +116,7 @@ Sessions are short-lived and task-specific:
 
 ### Warmup Strategy
 
-Call `prewarm()` API on app launch via `.task` modifier in `KasetApp.swift`. This loads the model into memory before user interaction.
+Call `prewarm()` API on app launch via `.task` modifier in `LiltApp.swift`. This loads the model into memory before user interaction.
 
 ## Consequences
 

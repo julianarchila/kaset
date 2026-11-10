@@ -6,10 +6,10 @@ Accepted
 
 ## Context
 
-Kaset's YouTube Music and regular YouTube players both keep one persistent
+Lilt's YouTube Music and regular YouTube players both keep one persistent
 `WKWebView` and translate JavaScript bridge messages into native playback
 state. Full-page navigation is asynchronous: the outgoing document remains
-alive while Kaset pauses it and prepares the next watch page.
+alive while Lilt pauses it and prepares the next watch page.
 
 The outgoing page can therefore publish late state, progress, ended, media-key,
 AirPlay, lyrics, or metadata events after native state has already selected the
@@ -48,7 +48,7 @@ Every full-page playback navigation receives a monotonically increasing
   invalidates every prior generation, clears WebView identity, and leaves the
   selected item as a deferred retry rather than re-authorizing an outgoing page
   that may represent different content.
-- Main-frame document navigations not initiated by Kaset are cancelled; the
+- Main-frame document navigations not initiated by Lilt are cancelled; the
   playback document itself remains a hidden media surface rather than a general
   browser tab. Fragment-only same-document navigation is left alone. While a
   navigation is reserved, other document-changing page actions are cancelled;
@@ -80,7 +80,7 @@ Every full-page playback navigation receives a monotonically increasing
 - Teardown or WebView replacement invalidates every earlier generation.
 - The reserved generation is encoded in a watch URL query item. A stable
   document-start bootstrap reads that navigation-bound token into
-  `window.__kasetDocumentGeneration`; this avoids assigning a later token to an
+  `window.__liltDocumentGeneration`; this avoids assigning a later token to an
   earlier provisional document through the WebView-wide user-script list.
 - Every playback bridge payload includes the document generation.
 - Coordinators accept a payload only when both conditions hold:

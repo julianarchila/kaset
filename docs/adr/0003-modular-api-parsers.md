@@ -19,7 +19,7 @@ Problems with the monolithic approach:
 Extract parsing logic into a dedicated `Parsers/` module with specialized parsers for each response type:
 
 ```
-Sources/Kaset/Services/API/
+Sources/Lilt/Services/API/
 ├── YTMusicClient.swift          # Networking only (~370 lines)
 ├── Parsers/
 │   ├── ParsingHelpers.swift     # Shared extraction utilities

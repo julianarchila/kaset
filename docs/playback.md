@@ -1,6 +1,6 @@
 # YouTube Music Playback System
 
-This document details Kaset's YouTube Music WebView-based playback system, its architecture, and implementation notes.
+This document details Lilt's YouTube Music WebView-based playback system, its architecture, and implementation notes.
 
 ## Overview
 
@@ -10,7 +10,7 @@ YouTube Music uses DRM (Widevine) to protect Premium content. Native playback vi
 2. **DRM**: Premium content requires Widevine CDM, only available in WebKit
 3. **User Interaction**: YouTube requires a user gesture to start playback
 
-Our solution: A **singleton WebView** that keeps the YouTube Music app shell alive and plays audio through WebKit's native DRM support. When possible, Kaset uses YouTube Music's in-page router and native **Up Next** queue so track changes avoid full page reloads.
+Our solution: A **singleton WebView** that keeps the YouTube Music app shell alive and plays audio through WebKit's native DRM support. When possible, Lilt uses YouTube Music's in-page router and native **Up Next** queue so track changes avoid full page reloads.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Our solution: A **singleton WebView** that keeps the YouTube Music app shell ali
 | `PersistentPlayerView` | `MiniPlayerWebView.swift` | SwiftUI wrapper for the WebView |
 | `PlayerService` | `PlayerService.swift` | Playback state and control |
 | `PlayerService+WebPlaybackIdentity` | `PlayerService+WebPlaybackIdentity.swift` | Media-bound identity, native handoff confirmation, and maintenance generations |
-| `PlayerService+WebQueueSync` | `PlayerService+WebQueueSync.swift` | Mirrors Kaset's expected next track into YouTube Music's native queue and reconciles WebView events |
+| `PlayerService+WebQueueSync` | `PlayerService+WebQueueSync.swift` | Mirrors Lilt's expected next track into YouTube Music's native queue and reconciles WebView events |
 | `PlayerService+QueueNavigationRecovery` | `PlayerService+QueueNavigationRecovery.swift` | Coalesces bounded recovery loads when stale WebView metadata fights a deterministic queue target |
 | `SingletonPlayerWebView+NavigationState` | `SingletonPlayerWebView+NavigationState.swift` | Tracks the active document navigation and gates document-scoped bridge messages |
 | `AppDelegate` | `AppDelegate.swift` | Window lifecycle for background audio |
@@ -105,7 +105,7 @@ WebView.
 app.resolveCommand({ watchEndpoint: { videoId } })
 ```
 
-If the router is unavailable, stale, or rejects the command, Kaset falls back to
+If the router is unavailable, stale, or rejects the command, Lilt falls back to
 loading `https://music.youtube.com/watch?v=<videoId>`. An existing playback
 document uses `window.location.replace` to keep navigation history bounded;
 initial loads use `WKWebView.load`. The router callback is bound to the current
@@ -127,7 +127,7 @@ Progress and duration come from the `<video>` element so they remain bound to th
 reported media identity; the player-bar progress DOM is only a fallback. Swift
 filters each document-scoped `STATE_UPDATE` by document, epoch, media generation,
 and expected queue identity before applying it to `PlayerService`. It then uses
-`PlayerService+WebQueueSync` to decide whether the track matches Kaset's queue or
+`PlayerService+WebQueueSync` to decide whether the track matches Lilt's queue or
 whether YouTube autoplay needs to be corrected.
 
 Both playback WebViews share `PlaybackAdDetectionScript`. It checks
@@ -178,10 +178,10 @@ Duplicate or older events therefore cannot double-advance repeated queue entries
 If an ended `<video>` element is replayed, the observer advances only the occurrence
 generation without prematurely rebinding its media identity.
 
-If Kaset previously confirmed that the expected next song was injected into
+If Lilt previously confirmed that the expected next song was injected into
 YouTube Music's native **Up Next** queue, `handleTrackEnded(observedVideoId:)`
-lets YouTube Music auto-advance natively and only updates Kaset's queue pointer.
-If injection is missing, stale, or failed, Kaset falls back to deterministic
+lets YouTube Music auto-advance natively and only updates Lilt's queue pointer.
+If injection is missing, stale, or failed, Lilt falls back to deterministic
 `next()` / `play(song:)` navigation instead of trusting the web queue.
 
 Track-end processing waits for native queue maintenance only when no successor has
@@ -201,20 +201,20 @@ When the user plays a different track:
    refreshes autoplay/volume bootstrap state, and tries YouTube Music's SPA
    router.
 4. If router navigation fails and this is still the latest load generation,
-   Kaset falls back to a full watch URL load. The fallback uses
+   Lilt falls back to a full watch URL load. The fallback uses
    `window.location.replace` when a playback document already exists, or
    `WKWebView.load` for the initial document.
 
-Manual `next()` and `previous()` always update Kaset's local queue state first
-and use deterministic Kaset navigation:
+Manual `next()` and `previous()` always update Lilt's local queue state first
+and use deterministic Lilt navigation:
 
-- `next()` advances to the next Kaset queue entry and uses `play(song:)` /
+- `next()` advances to the next Lilt queue entry and uses `play(song:)` /
   `loadVideo(videoId:)` instead of relying on YouTube Music's ambient Next
   button. This prevents stale web queue state from repeating the current song or
   jumping backward.
 - `previous()` uses the queue stack / restart-threshold behavior and does not
   blindly inherit YouTube Music's ambient previous item.
-- Standalone artist episodes remain outside Kaset's local queue and ignore
+- Standalone artist episodes remain outside Lilt's local queue and ignore
   queue-navigation fallthrough.
 
 Native **Up Next** injection is used for natural track-end auto-advance, not for
@@ -225,13 +225,13 @@ WebKit's back-forward/page cache. See
 [ADR-0034](adr/0034-replace-playback-navigation.md) for the measurement and
 tradeoff record.
 
-When the WebView reports a new `videoId`, Kaset treats that as authoritative
+When the WebView reports a new `videoId`, Lilt treats that as authoritative
 even if the DOM title/artist are still stale. This avoids a race where YouTube
 switches tracks before the player bar text catches up.
 
 ## Playback Preferences and Audio Quality
 
-Kaset injects a small set of playback preference scripts into the singleton
+Lilt injects a small set of playback preference scripts into the singleton
 player WebView from `SingletonPlayerWebView+PlaybackPreferences.swift` and
 `SingletonPlayerWebView+PlaybackAudioQuality.swift`.
 
@@ -240,9 +240,9 @@ player WebView from `SingletonPlayerWebView+PlaybackPreferences.swift` and
 | Script | Injection timing | Purpose |
 |--------|------------------|---------|
 | Media control bootstrap | document start | Wraps `navigator.mediaSession.setActionHandler` so seek-forward/back commands stay owned by Swift remote-command handlers while next/previous behavior can still be mirrored into the WebView when needed. |
-| Playback audio-quality bootstrap | document start | Stores the preferred `SettingsManager.PlaybackAudioQuality` value on `window.__kasetPlaybackAudioQuality` before YouTube's player finishes booting. |
+| Playback audio-quality bootstrap | document start | Stores the preferred `SettingsManager.PlaybackAudioQuality` value on `window.__liltPlaybackAudioQuality` before YouTube's player finishes booting. |
 | Playback audio-quality override | document end | Finds candidate YouTube player APIs, asks them to use the preferred audio quality, and reports sanitized diagnostics back to Swift. |
-| Playback audio-quality sync | runtime preference changes | Updates `window.__kasetPlaybackAudioQuality` and immediately reapplies the preference if the override script is already installed. |
+| Playback audio-quality sync | runtime preference changes | Updates `window.__liltPlaybackAudioQuality` and immediately reapplies the preference if the override script is already installed. |
 
 When either the media-control mode or playback audio-quality setting changes,
 `refreshInstalledUserScripts()` rebuilds the WebView user scripts and also sends
@@ -274,7 +274,7 @@ playerApi.setOption('playback', 'audio_quality', desiredQuality)
 
 The YouTube-facing values are:
 
-| Kaset setting | YouTube value |
+| Lilt setting | YouTube value |
 |---------------|---------------|
 | `.low` | `small` |
 | `.medium` | `medium` |
@@ -311,14 +311,14 @@ Swift handles this in `MiniPlayerWebView.swift` and logs it through
 To inspect the latest quality diagnostics while a song is playing, run:
 
 ```bash
-/usr/bin/log show --process Kaset --last 10m --style compact --info --debug \
+/usr/bin/log show --process Lilt --last 10m --style compact --info --debug \
   | grep 'Audio quality stats'
 ```
 
-For a narrower query against Kaset's unified logging subsystem:
+For a narrower query against Lilt's unified logging subsystem:
 
 ```bash
-/usr/bin/log show --process Kaset --last 10m --style compact --info --debug \
+/usr/bin/log show --process Lilt --last 10m --style compact --info --debug \
   --predicate 'subsystem == "com.julianarchila.Lilt"' \
   | grep 'Audio quality stats'
 ```
@@ -333,8 +333,8 @@ The most useful fields are:
 
 | Field | Meaning |
 |-------|---------|
-| `preferred` | Kaset's selected playback audio-quality setting. |
-| `desired` | The string Kaset sent to YouTube player APIs. |
+| `preferred` | Lilt's selected playback audio-quality setting. |
+| `desired` | The string Lilt sent to YouTube player APIs. |
 | `applied` | Whether at least one known setter call appeared to succeed. This does not prove YouTube selected that stream. |
 | `observed` | Best available observed quality from player APIs or Stats for Nerds inference. |
 | `source` | Where `observed` came from, for example `movie_player.getAudioQuality` or `statsForNerds.codecs.itag`. |
@@ -513,7 +513,7 @@ func userContentController(_:, didReceive message: WKScriptMessage) {
 
 ### Queue Authority
 
-Kaset treats its own queue as the source of truth whenever one exists:
+Lilt treats its own queue as the source of truth whenever one exists:
 - `handleTrackEnded(observedVideoId:)` keeps the outgoing queue entry visible until
   the expected native next media identity is confirmed
 - `updateTrackMetadata(...)` accepts `videoId`-only transitions even if the DOM
@@ -521,16 +521,16 @@ Kaset treats its own queue as the source of truth whenever one exists:
 - Playback progress/duration is accepted only when the observer's media-bound
   video ID and generation match the active queue entry; logical metadata changes
   cannot assign the outgoing media element's near-end state to the next song
-- If YouTube advances to an unexpected track near the end of a song, Kaset
+- If YouTube advances to an unexpected track near the end of a song, Lilt
   replays the expected queue track instead of inheriting YouTube autoplay
-- At the end of a non-repeating queue, Kaset marks playback ended rather than
+- At the end of a non-repeating queue, Lilt marks playback ended rather than
   allowing autoplay to continue into unrelated tracks
 - In smart shuffle mode the queue may also contain ephemeral `.suggested`
   entries, which are stripped before persistence (see [Smart Shuffle](#smart-shuffle))
 
 ### Native Web Queue Injection
 
-For gapless-style transitions, Kaset mirrors the current expected next song into
+For gapless-style transitions, Lilt mirrors the current expected next song into
 YouTube Music's native **Up Next** queue:
 
 1. `syncWebQueue()` runs only when playback is stable (`.playing` or `.paused`)
@@ -539,13 +539,13 @@ YouTube Music's native **Up Next** queue:
    waits for the action menu to mount, positively identifies **Play next**, temporarily
    replaces that item's `queueAddEndpoint` target, invokes its native click path, and
    immediately restores the endpoint. The source video in the menu endpoint must still
-   match Kaset's current queue song.
+   match Lilt's current queue song.
 3. The script preserves rendered queue-row occurrences, accepts an already aligned queue without another click, otherwise requires the
    queue to change after the click, and reports success only when the target is the actual
    next row. This avoids false confirmation from later duplicate video IDs.
 4. Swift promotes `pendingWebQueueInjectionVideoId` to `injectedWebQueueVideoId`
    only if that readback result still matches the currently expected next entry.
-5. At natural end, Kaset waits for the media-bound observer to report the same target
+5. At natural end, Lilt waits for the media-bound observer to report the same target
    before moving its visible queue pointer. Unexpected media, a bounded timeout, or
    changed source/target queue adjacency triggers deterministic navigation to the
    current expected next entry.
@@ -561,9 +561,9 @@ Important invariants:
   advances only after media-bound target confirmation.
 - Duplicate video IDs are handled by clearing the consumed marker so the next
   queue entry can be injected again.
-- If injection fails, times out, or becomes stale, Kaset prioritizes correctness
+- If injection fails, times out, or becomes stale, Lilt prioritizes correctness
   and falls back to deterministic navigation. This may not be gapless, but it
-  prevents Kaset's UI/persistence from diverging from actual playback.
+  prevents Lilt's UI/persistence from diverging from actual playback.
 
 ## Mini Player UI
 

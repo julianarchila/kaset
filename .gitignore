@@ -14,7 +14,7 @@ __pycache__/
 
 # Xcode (auto-generated from Package.swift)
 *.xcodeproj/
-!KasetUITests.xcodeproj/
+!LiltUITests.xcodeproj/
 *.xcworkspace/
 *.xcuserdata/
 xcuserdata/

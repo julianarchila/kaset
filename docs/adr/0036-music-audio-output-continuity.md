@@ -8,7 +8,7 @@ Accepted
 
 YouTube Music can advance the media clock from zero while the beginning of a
 track is absent from the app's audio output. Digital captures of Weval's
-"Silence on the Wall" into "Look Around" reproduced this both in Kaset and in
+"Silence on the Wall" into "Look Around" reproduced this both in Lilt and in
 a plain playback WebView. Keeping a silent Web Audio output active across the
 transition recovered the opening transient without seeking or restarting media.
 

@@ -45,7 +45,7 @@ now-playing video."
   durations, enforce parse timeouts, and finalize tracks after playback exits.
 - A single `MixTracklistParser` (with cache and waiter-aware in-flight fetch
   coalescing) is shared between the provider and the coordinator, wired once in
-  `KasetApp`. They share parsed data and network work, not classification state.
+  `LiltApp`. They share parsed data and network work, not classification state.
 - Only duration observed with the current physical video identity may trip the
   provider's irreversible mix gate; `Song.duration` remains fallback metadata
   for reversible uses such as persistence.
@@ -68,7 +68,7 @@ Easier:
 More difficult / to watch:
 
 - Adds a shared observable service to the Player layer whose lifecycle and
-  ownership must be managed (a single instance in `KasetApp`, injected into the
+  ownership must be managed (a single instance in `LiltApp`, injected into the
   player and view hierarchy).
 - Provider and scrobbler can resolve classification at different times or under
   different duration-evidence rules; their responsibilities must remain clearly

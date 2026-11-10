@@ -8,7 +8,7 @@ struct SearchFilterProbe: Hashable {
     let params: String
 }
 
-let kasetSearchFilterLabels: Set<String> = [
+let liltSearchFilterLabels: Set<String> = [
     "Albums", "Artists", "Community playlists", "Episodes", "Featured playlists", "Playlists",
     "Podcasts", "Profiles", "Songs", "Videos",
 ]
@@ -1000,12 +1000,12 @@ private func formatSearchAuditOverview(
 private func formatCurrentMixedParserCoverage(_ data: [String: Any]) -> String {
     guard let coverage = currentSearchParserCoverage(data) else { return "" }
     if !coverage.rootStructureSupported {
-        return "  • Current Kaset parser reachability: unsupported response root\n"
+        return "  • Current Lilt parser reachability: unsupported response root\n"
     }
     let parsedCount = coverage.parsedTypes.values.reduce(0, +)
-    var output = "  • Current Kaset parser reachability: supported=\(parsedCount) (\(formattedCounts(coverage.parsedTypes))), unhandled cards=\(coverage.droppedCards), unhandled result rows=\(coverage.droppedRows)\n"
+    var output = "  • Current Lilt parser reachability: supported=\(parsedCount) (\(formattedCounts(coverage.parsedTypes))), unhandled cards=\(coverage.droppedCards), unhandled result rows=\(coverage.droppedRows)\n"
     if !coverage.ignoredSections.isEmpty {
-        output += "  • Current Kaset ignored sections: \(formattedCounts(coverage.ignoredSections))\n"
+        output += "  • Current Lilt ignored sections: \(formattedCounts(coverage.ignoredSections))\n"
     }
     return output
 }

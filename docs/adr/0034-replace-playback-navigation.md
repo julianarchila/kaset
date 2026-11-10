@@ -6,14 +6,14 @@ Accepted
 
 ## Context
 
-Kaset plays DRM-protected music and video in persistent `WKWebView` instances.
+Lilt plays DRM-protected music and video in persistent `WKWebView` instances.
 Each track change previously called `WKWebView.load`, which added another full
 YouTube watch document to WebKit's navigation history. WebKit retained a large
 amount of page and media state across those navigations even when the current
-document had only one video element and one set of Kaset observers.
+document had only one video element and one set of Lilt observers.
 
 A packaged no-extension run reproduced the problem. Repeated music track
-changes grew the WebContent process rapidly while Kaset's own process and live
+changes grew the WebContent process rapidly while Lilt's own process and live
 DOM stayed nearly flat. Recreating the WebView was worse: WebKit cached one old
 high-water WebContent process while starting a new one, increasing total memory.
 
@@ -37,11 +37,11 @@ high-water WebContent process while starting a new one, increasing total memory.
   requested document committed, and the live YouTube player matched the native
   track after each change.
 - A separate 10-minute no-extension playback run included one natural track
-  transition. Kaset remained near 190–214 MB RSS. WebContent finished at a
+  transition. Lilt remained near 190–214 MB RSS. WebContent finished at a
   351 MB physical footprint with a 521 MB peak, and the GPU process finished at
   30 MB with a 40 MB peak. Raw WebContent RSS reached about 623 MB because
   WebKit retained reclaimable allocator pages.
-- Kaset has no user-facing WebView back navigation, so replacing the current
+- Lilt has no user-facing WebView back navigation, so replacing the current
   history entry removes no product behavior.
 - Replacing the visible URL with `history.replaceState` and then calling
   `WKWebView.reload` was rejected. Runtime instrumentation showed that WebKit
@@ -57,5 +57,5 @@ high-water WebContent process while starting a new one, increasing total memory.
   footprint peaked at 42 MB in the legacy build and 41 MB in the patched build.
   A separate 15-minute patched run with uBlock peaked at 40 MB GPU and 433 MB
   WebContent while completing three track replacements. This validates the
-  Kaset-side WebContent fix, but not the reporter's GPU-specific symptom on
+  Lilt-side WebContent fix, but not the reporter's GPU-specific symptom on
   macOS 26; the local run used a newer WebKit build.

@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "Kaset",
+    name: "Lilt",
     defaultLocalization: "en",
     platforms: [
         .macOS("15.4"),
     ],
     products: [
         .executable(
-            name: "Kaset",
-            targets: ["Kaset"]
+            name: "Lilt",
+            targets: ["Lilt"]
         ),
         .executable(
             name: "api-explorer",
@@ -22,10 +22,10 @@ let package = Package(
     targets: [
         // Main app executable
         .executableTarget(
-            name: "Kaset",
+            name: "Lilt",
             exclude: [
                 "Resources/AppIcon.icon",
-                "Resources/kaset.icns",
+                "Resources/lilt.icns",
                 // The checked-in .lproj files are the SwiftPM/Xcode 26 runtime
                 // resources. build-app.sh compiles the source catalog for the
                 // packaged app to avoid duplicate .strings outputs in SwiftPM.
@@ -54,7 +54,7 @@ let package = Package(
                 .process("Resources/uk.lproj"),
                 .process("Resources/zh-Hans.lproj"),
                 .process("Resources/zh-Hant.lproj"),
-                .process("Resources/Kaset.sdef"),
+                .process("Resources/Lilt.sdef"),
             ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
@@ -75,8 +75,8 @@ let package = Package(
         ),
         // Unit tests
         .testTarget(
-            name: "KasetTests",
-            dependencies: ["Kaset"],
+            name: "LiltTests",
+            dependencies: ["Lilt"],
             resources: [
                 .process("Fixtures"),
             ],

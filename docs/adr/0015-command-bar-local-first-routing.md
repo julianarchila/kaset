@@ -8,13 +8,13 @@ Superseded by [ADR-0042](0042-fork-identity.md)
 
 ## Context
 
-Kaset's command bar previously concentrated request lifecycle management, Apple Intelligence orchestration, fallback logic, and playback execution inside `CommandBarView`. That made the feature harder to test and left it exposed to overlapping requests, long-running model calls, and AI-dependent latency for commands that were deterministic enough to execute locally.
+Lilt's command bar previously concentrated request lifecycle management, Apple Intelligence orchestration, fallback logic, and playback execution inside `CommandBarView`. That made the feature harder to test and left it exposed to overlapping requests, long-running model calls, and AI-dependent latency for commands that were deterministic enough to execute locally.
 
 The command bar also routed search fallback through the debounced `SearchViewModel.search()` path, which added avoidable delay when the user explicitly asked to search or when AI parsing failed.
 
 ## Decision
 
-Kaset now uses a local-first command bar architecture:
+Lilt now uses a local-first command bar architecture:
 
 - `CommandBarViewModel` owns single-flight request orchestration, cancellation, timeout handling, fallback reason tracking, and Apple Intelligence gating.
 - `CommandIntentParser` short-circuits deterministic playback and queue commands before any Foundation Models work.

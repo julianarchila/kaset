@@ -1,0 +1,43 @@
+"Ad" = "Ad";
+"Advertisement" = "Advertisement";
+
+"%@ %@" = "%1$@ %2$@";
+"%@, %@, %@" = "%1$@, %2$@, %3$@";
+"Profiles" = "Profiles";
+"View Profile" = "View Profile";
+"Audiobook" = "Audiobook";
+"View Audiobook" = "View Audiobook";
+"Song" = "Song";
+"Podcast" = "Podcast";
+"Episode" = "Episode";
+"Chapter" = "Chapter";
+
+// Sign-out durability
+"Sign Out Incomplete" = "Sign Out Incomplete";
+"Lilt could not remove saved sign-in data. Try signing out again before quitting." = "Lilt could not remove saved sign-in data. Try signing out again before quitting.";
+"Sign-In Cleanup Required" = "Sign-In Cleanup Required";
+"Lilt could not safely clear saved sign-in data. Retry before signing in again." = "Lilt could not safely clear saved sign-in data. Retry before signing in again.";
+"Sign-In Temporarily Unavailable" = "Sign-In Temporarily Unavailable";
+"Lilt could not read saved sign-in data. Retry to restore your session." = "Lilt could not read saved sign-in data. Retry to restore your session.";
+
+// YouTube Ask Gemini
+"Send" = "Send";
+
+// Appearance
+"Appearance" = "Appearance";
+"App Appearance" = "App Appearance";
+"Choose light or dark mode for Lilt, or match the macOS setting" = "Choose light or dark mode for Lilt, or match the macOS setting";
+"Match System" = "Match System";
+"Light Mode" = "Light Mode";
+"Dark Mode" = "Dark Mode";
+
+// App Intents (Shortcuts, Siri, Spotlight)
+"Playing %@ by %@." = "Playing %1$@ by %2$@.";
+"Now playing %@ by %@." = "Now playing %1$@ by %2$@.";
+"All Playlists" = "All Playlists";
+"Pinned" = "Pinned";
+"Saved Podcasts" = "Saved Podcasts";
+"Good morning" = "Good morning";
+"Good afternoon" = "Good afternoon";
+"Good evening" = "Good evening";
+"Show Less" = "Show Less";

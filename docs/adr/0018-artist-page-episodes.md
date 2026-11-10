@@ -17,7 +17,7 @@ For channel-style artists — Lofi Girl, ChilledCow, College Music, Chillhop —
 the most-used content (live radio streams) lives under the **Latest episodes**
 shelf, which is a `musicCarouselShelfRenderer` of `musicMultiRowListItemRenderer`
 items whose `videoId` hides under `onTap.watchEndpoint`, not
-`navigationEndpoint`. Users could browse Lofi Girl's page in Kaset but had no
+`navigationEndpoint`. Users could browse Lofi Girl's page in Lilt but had no
 way to reach the live streams that the channel is known for.
 
 A fixture capture for `UCSJ4gkVC6NrvII8umztf0Ow` showed the artist page
@@ -132,7 +132,7 @@ PlayerBar.centerSection (on hover)
 
 - **Positive**: Channel-style artists (Lofi Girl, ChilledCow, College Music,
   Chillhop, Dreamhop, etc.) are now browsable end-to-end, including their
-  live radio streams — Kaset's signature missing feature for this class of
+  live radio streams — Lilt's signature missing feature for this class of
   artist.
 - **Positive**: Singles & EPs no longer collapse into the Albums carousel,
   matching YouTube Music's own shelf split (meaningful for artists like

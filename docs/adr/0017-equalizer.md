@@ -6,12 +6,12 @@ Implemented
 
 ## Context
 
-Users requested an equalizer comparable to Spotify's mobile EQ — six bands, presets, audible effect. Kaset's audio path makes this non-trivial:
+Users requested an equalizer comparable to Spotify's mobile EQ — six bands, presets, audible effect. Lilt's audio path makes this non-trivial:
 
 1. **DRM-protected playback in WKWebView**: per [ADR-0001](0001-webview-playback.md) the app delegates audio decode/playback to a hidden `WKWebView` so YouTube Music's Widevine DRM is honoured.
 2. **No Web Audio API access**: `AudioContext.createMediaElementSource()` returns a silent stub for DRM-protected `<video>` elements, so JavaScript-side EQ is impossible.
 3. **No `AVAudioEngine` insertion point**: the audio is decoded by WebKit, never exposed to AVFoundation as an `AVPlayerItem`. There is no `audioMix` to attach.
-4. **Multi-process architecture**: WebKit moved media decode into the **`com.apple.WebKit.GPU`** XPC subprocess on macOS Sonoma+. The Kaset main process never touches the audio samples.
+4. **Multi-process architecture**: WebKit moved media decode into the **`com.apple.WebKit.GPU`** XPC subprocess on macOS Sonoma+. The Lilt main process never touches the audio samples.
 
 Earlier sessions (recorded in the project memory) confirmed:
 - A `CATap` on `selfPID` captures silence — the main process emits no audio.
@@ -38,7 +38,7 @@ Single clock domain (aggregate device clock-masters off the system default outpu
 
 ### Process discovery
 
-`ProcessTapHelper` enumerates Core Audio's process-object list via `kAudioHardwarePropertyProcessObjectList`, filters to `com.apple.WebKit.GPU` / `com.apple.WebKit.WebContent`, and prefers entries whose parent PID matches Kaset. Tapping happens with `CATapMuteBehavior.mutedWhenTapped` so WebKit's direct output is silenced and only the EQ-processed render reaches the speakers.
+`ProcessTapHelper` enumerates Core Audio's process-object list via `kAudioHardwarePropertyProcessObjectList`, filters to `com.apple.WebKit.GPU` / `com.apple.WebKit.WebContent`, and prefers entries whose parent PID matches Lilt. Tapping happens with `CATapMuteBehavior.mutedWhenTapped` so WebKit's direct output is silenced and only the EQ-processed render reaches the speakers.
 
 ### DSP
 
@@ -61,15 +61,15 @@ An earlier revision of this feature used a single duplex `AUHAL` (`kAudioUnitSub
 ## Required system surface
 
 - `Info.plist`: `NSAudioCaptureUsageDescription` (TCC prompt for the process tap).
-- `Kaset.entitlements`: `com.apple.security.device.audio-input` (sandbox capability for audio capture in the presence of `app-sandbox`).
+- `Lilt.entitlements`: `com.apple.security.device.audio-input` (sandbox capability for audio capture in the presence of `app-sandbox`).
 - macOS 14.2+ runtime check inside `ProcessTapHelper.start()`.
 
 ## Consequences
 
-- New code lives under `Sources/Kaset/Models/` (`EQSettings`, `EQBand`, `EQPreset`), `Sources/Kaset/Services/Audio/` (`EqualizerService`, `EqualizerAudioEngine`, `ProcessTapHelper`, `BiquadFilter`), and `Sources/Kaset/Views/EqualizerSettingsView.swift`.
+- New code lives under `Sources/Lilt/Models/` (`EQSettings`, `EQBand`, `EQPreset`), `Sources/Lilt/Services/Audio/` (`EqualizerService`, `EqualizerAudioEngine`, `ProcessTapHelper`, `BiquadFilter`), and `Sources/Lilt/Views/EqualizerSettingsView.swift`.
 - **Permission UX is intent-preserving.** `EQSettings.isEnabled` is the user's intent and persists across launches. The actual engine state is shown separately via the status row (Active / Waiting for playback / Permission needed / Engine error). When TCC permission for *Screen & System Audio Recording* is missing the toggle auto-disables and the status row offers a deep-link to the right System Settings pane; otherwise a transient launch-time tap failure (no playback yet) leaves the toggle on so the engine spins up automatically when playback starts.
 - **No additional latency** in the audio path — the HAL I/O proc delivers input and output in the same callback.
-- **Other macOS apps' audio is unaffected** — the tap targets only Kaset's WebKit subprocess.
+- **Other macOS apps' audio is unaffected** — the tap targets only Lilt's WebKit subprocess.
 - **WebKit subprocess restarts** invalidate the tap. The user must toggle the EQ off and on to refresh; we don't currently observe XPC lifecycle to do this automatically.
 
 ## Future work

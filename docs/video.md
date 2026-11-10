@@ -12,10 +12,10 @@ Video Mode allows users to watch music videos in a floating window while using o
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| `VideoWindowController` | `Sources/Kaset/VideoWindowController.swift` | Manages the floating video window lifecycle |
-| `VideoPlayerWindow` | `Sources/Kaset/Views/VideoPlayerWindow.swift` | SwiftUI view for video display |
-| `VideoContainerView` | `Sources/Kaset/Views/VideoPlayerWindow.swift` | NSView container that hosts the WebView |
-| `SingletonPlayerWebView+VideoMode` | `Sources/Kaset/Views/SingletonPlayerWebView+VideoMode.swift` | CSS injection for video extraction |
+| `VideoWindowController` | `Sources/Lilt/VideoWindowController.swift` | Manages the floating video window lifecycle |
+| `VideoPlayerWindow` | `Sources/Lilt/Views/VideoPlayerWindow.swift` | SwiftUI view for video display |
+| `VideoContainerView` | `Sources/Lilt/Views/VideoPlayerWindow.swift` | NSView container that hosts the WebView |
+| `SingletonPlayerWebView+VideoMode` | `Sources/Lilt/Views/SingletonPlayerWebView+VideoMode.swift` | CSS injection for video extraction |
 
 ### Display Modes
 
@@ -56,7 +56,7 @@ When entering video mode, JavaScript extracts the `<video>` element from YouTube
 
 1. **Inject Blackout CSS**: Immediately covers the page with a black overlay to prevent UI flash
 2. **Click Video Tab**: Attempts to click YouTube Music's "Video" toggle (if available)
-3. **Create Container**: Creates `#kaset-video-container` with `position: fixed`
+3. **Create Container**: Creates `#lilt-video-container` with `position: fixed`
 4. **Move Video**: Moves `<video>` element into the container
 5. **Disable Controls**: Sets `video.controls = false` (users control via app's player bar)
 6. **Block Click Events**: Prevents clicks from reaching YouTube's underlying handlers
@@ -136,7 +136,7 @@ The `hasVideo` property is still updated and used to enable/disable the Video bu
 **Root Cause**: YouTube's internal player APIs and the HTML5 video element have separate volume states. Moving the video element or clicking the Video tab could cause YouTube to reset volume.
 
 **Solution**: Volume enforcement via multiple mechanisms:
-1. `window.__kasetTargetVolume` stores the app's target volume
+1. `window.__liltTargetVolume` stores the app's target volume
 2. `volumechange` event listener enforces the target volume (with debouncing)
 3. Volume is applied via three APIs: `video.volume`, `playerApi.setVolume()`, and `movie_player.setVolume()`
 4. Click events on the video container are blocked to prevent YouTube's handlers from changing volume
@@ -146,7 +146,7 @@ The `hasVideo` property is still updated and used to enable/disable the Video bu
 
 **Root Cause**: When entering video mode, YouTube's web UI was briefly visible before video extraction completed.
 
-**Solution**: Inject a blackout overlay (`#kaset-blackout`) immediately when entering video mode. This black `<div>` covers the entire viewport until video extraction is complete.
+**Solution**: Inject a blackout overlay (`#lilt-blackout`) immediately when entering video mode. This black `<div>` covers the entire viewport until video extraction is complete.
 
 ### Issue: Volume Wrong on Song Start (FIXED)
 
@@ -155,7 +155,7 @@ The `hasVideo` property is still updated and used to enable/disable the Video bu
 **Solution**: 
 1. Removed static volume init script from WebView configuration
 2. `didFinish` navigation delegate applies current volume dynamically
-3. Observer script applies `__kasetTargetVolume` when video element is first detected
+3. Observer script applies `__liltTargetVolume` when video element is first detected
 
 ### Issue: Video Availability
 
@@ -189,9 +189,9 @@ The `MusicVideoType` enum classifies content:
 Only Official Music Videos (OMV) have actual video content. ATV tracks show a static album art "video."
 
 **Files**:
-- [Sources/Kaset/Models/MusicVideoType.swift](../Sources/Kaset/Models/MusicVideoType.swift) — Enum definition with `hasVideoContent` property
-- [Sources/Kaset/Services/API/Parsers/SongMetadataParser.swift](../Sources/Kaset/Services/API/Parsers/SongMetadataParser.swift) — `parseMusicVideoType(from:)` method
-- [Sources/Kaset/Services/Player/PlayerService+Library.swift](../Sources/Kaset/Services/Player/PlayerService+Library.swift) — Calls `updateVideoAvailability(hasVideo:)` after parsing
+- [Sources/Lilt/Models/MusicVideoType.swift](../Sources/Lilt/Models/MusicVideoType.swift) — Enum definition with `hasVideoContent` property
+- [Sources/Lilt/Services/API/Parsers/SongMetadataParser.swift](../Sources/Lilt/Services/API/Parsers/SongMetadataParser.swift) — `parseMusicVideoType(from:)` method
+- [Sources/Lilt/Services/Player/PlayerService+Library.swift](../Sources/Lilt/Services/Player/PlayerService+Library.swift) — Calls `updateVideoAvailability(hasVideo:)` after parsing
 
 ### 2. DOM-Based Detection (Fast Fallback)
 
@@ -208,7 +208,7 @@ This is a **fallback** mechanism because:
 - API detection requires a network round-trip to the `next` endpoint
 - DOM detection can be unreliable when video mode CSS is injected
 
-**File**: [Sources/Kaset/Views/SingletonPlayerWebView+ObserverScript.swift](../Sources/Kaset/Views/SingletonPlayerWebView+ObserverScript.swift)
+**File**: [Sources/Lilt/Views/SingletonPlayerWebView+ObserverScript.swift](../Sources/Lilt/Views/SingletonPlayerWebView+ObserverScript.swift)
 
 ### Detection Flow
 

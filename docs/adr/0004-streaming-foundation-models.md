@@ -6,7 +6,7 @@
 
 ## Context
 
-The Kaset app uses Apple's Foundation Models framework for on-device AI features including:
+The Lilt app uses Apple's Foundation Models framework for on-device AI features including:
 - Natural language command parsing (CommandBar)
 - Lyrics explanation and analysis (LyricsView)
 - Playlist refinement suggestions (PlaylistDetailView)

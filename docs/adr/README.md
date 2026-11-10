@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for the Kaset project.
+This directory contains Architecture Decision Records (ADRs) for the Lilt project.
 
 ## What is an ADR?
 

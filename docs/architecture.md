@@ -1,6 +1,6 @@
 # Architecture & Services
 
-This document provides detailed information about Kaset's architecture, services, and design patterns. This fork is a YouTube Music client only; the upstream regular-YouTube video mode was removed (see [ADR-0042](adr/0042-fork-identity.md)).
+This document provides detailed information about Lilt's architecture, services, and design patterns. This fork is a YouTube Music client only; the upstream regular-YouTube video mode was removed (see [ADR-0042](adr/0042-fork-identity.md)).
 
 ## Core Structure
 
@@ -8,8 +8,8 @@ The codebase follows a clean architecture pattern:
 
 ```
 Sources/
-  └── Kaset/            → Main app target
-      ├── KasetApp.swift    → App entry point
+  └── Lilt/            → Main app target
+      ├── LiltApp.swift    → App entry point
       ├── AppDelegate.swift → Window lifecycle
       ├── Models/       → Data types (Song, Playlist, Album, Artist, etc.)
       ├── Services/     → Business logic
@@ -25,7 +25,7 @@ Sources/
       ├── Utilities/    → Helpers (DiagnosticsLogger, extensions)
       └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, etc.)
   ├── APIExplorer/      → API explorer CLI tool
-Tests/                  → Unit tests (`KasetTests/`, `APIExplorerTests/`)
+Tests/                  → Unit tests (`LiltTests/`, `APIExplorerTests/`)
 docs/                   → Documentation
   └── adr/              → Architecture Decision Records
 ```
@@ -35,7 +35,7 @@ docs/                   → Documentation
 All major services have protocol definitions for testability:
 
 ```swift
-// Sources/Kaset/Services/Protocols.swift
+// Sources/Lilt/Services/Protocols.swift
 protocol YTMusicClientProtocol: Sendable { ... }
 protocol AuthServiceProtocol { ... }
 protocol PlayerServiceProtocol { ... }
@@ -68,7 +68,7 @@ final class HomeViewModel {
 
 ### WebKitManager
 
-**File**: `Sources/Kaset/Services/WebKit/WebKitManager.swift`
+**File**: `Sources/Lilt/Services/WebKit/WebKitManager.swift`
 
 Manages WebKit infrastructure for the app:
 
@@ -90,7 +90,7 @@ final class WebKitManager {
 
 ### AuthService
 
-**File**: `Sources/Kaset/Services/Auth/AuthService.swift`
+**File**: `Sources/Lilt/Services/Auth/AuthService.swift`
 
 Manages authentication state:
 
@@ -108,7 +108,7 @@ Manages authentication state:
 
 ### YTMusicClient
 
-**File**: `Sources/Kaset/Services/API/YTMusicClient.swift`
+**File**: `Sources/Lilt/Services/API/YTMusicClient.swift`
 
 Makes authenticated requests to YouTube Music's internal API:
 
@@ -140,13 +140,13 @@ Makes authenticated requests to YouTube Music's internal API:
 
 ### YouTubeWatchNextFetcher
 
-**File**: `Sources/Kaset/Services/API/YouTubeWatchNextFetcher.swift`
+**File**: `Sources/Lilt/Services/API/YouTubeWatchNextFetcher.swift`
 
 The only request the app sends to regular YouTube (`www.youtube.com/youtubei/v1/next`, `WEB` client). The YouTube Music `next` endpoint omits chapters and the video description, so `MixTracklistParser` reads them here to build seek-bar segments for long mixes. It uses the `www.youtube.com` origin for `SAPISIDHASH`, `Origin`, `Referer`, and `X-Origin`, and does not cache responses. `WatchNextParser` extracts the title, chapters, and description.
 
 ### API Parsers
 
-**Directory**: `Sources/Kaset/Services/API/Parsers/`
+**Directory**: `Sources/Lilt/Services/API/Parsers/`
 
 Response parsing is extracted into specialized modules:
 
@@ -173,7 +173,7 @@ Response parsing is extracted into specialized modules:
 
 ### PlayerService
 
-**File**: `Sources/Kaset/Services/Player/PlayerService.swift`
+**File**: `Sources/Lilt/Services/Player/PlayerService.swift`
 
 Controls YouTube Music audio playback via the singleton Music WebView:
 
@@ -204,7 +204,7 @@ recommendation window (pure helpers `nextSuggestionSlot`, `dedupeSuggestions`,
 
 ### SingletonPlayerWebView
 
-**File**: `Sources/Kaset/Views/MiniPlayerWebView.swift`
+**File**: `Sources/Lilt/Views/MiniPlayerWebView.swift`
 
 Manages the singleton WebView for YouTube Music playback:
 
@@ -225,7 +225,7 @@ final class SingletonPlayerWebView {
 
 ### NowPlayingManager
 
-**File**: `Sources/Kaset/Services/Player/NowPlayingManager.swift`
+**File**: `Sources/Lilt/Services/Player/NowPlayingManager.swift`
 
 Remote command center integration for media key support:
 
@@ -238,7 +238,7 @@ Remote command center integration for media key support:
 
 ### HapticService
 
-**File**: `Sources/Kaset/Services/HapticService.swift`
+**File**: `Sources/Lilt/Services/HapticService.swift`
 
 Provides tactile feedback on Macs with Force Touch trackpads:
 
@@ -255,7 +255,7 @@ Provides tactile feedback on Macs with Force Touch trackpads:
 
 ### FavoritesManager
 
-**File**: `Sources/Kaset/Services/FavoritesManager.swift`
+**File**: `Sources/Lilt/Services/FavoritesManager.swift`
 
 Manages user-curated Favorites section on Home view:
 
@@ -276,7 +276,7 @@ Manages user-curated Favorites section on Home view:
 - `enterGuestMode()` / `exitGuestMode()` — Use a separate guest scope and restore the last signed-in scope; account switching keeps guest data visible and grants only the account-list refresh scoped access to the preserved session until commit
 
 **Persistence**:
-- **Location**: `~/Library/Application Support/Kaset/favorites-<opaqueScopeId>.json`
+- **Location**: `~/Library/Application Support/Lilt/favorites-<opaqueScopeId>.json`
 - **Scope**: SHA-256-derived from a local canonical owner UUID plus the selected primary/brand account ID; guest is separate
 - **Owner identity**: A local owner UUID is bound to hashed auth and email fingerprints in `UserDefaults` plus an atomic Application Support backup manifest; raw credentials and email are never persisted, while account IDs remain only for scope derivation and migration bookkeeping
 - **Format**: JSON-encoded `[FavoriteItem]`
@@ -286,13 +286,13 @@ Manages user-curated Favorites section on Home view:
 - **Upgrade**: Old shared `favorites.json` is claimed by the first resolved scope, and every prior `favorites-<accountId>.json` file in the verified account list is atomically claimed by its corresponding opaque scope so interrupted cleanup cannot replay it into another user
 
 **Related Files**:
-- `Sources/Kaset/Models/FavoriteItem.swift` — Data model with `ItemType` enum
-- `Sources/Kaset/Views/SharedViews/FavoritesSection.swift` — Horizontal scrolling UI
-- `Sources/Kaset/Views/SharedViews/FavoritesContextMenu.swift` — Shared context menu items
+- `Sources/Lilt/Models/FavoriteItem.swift` — Data model with `ItemType` enum
+- `Sources/Lilt/Views/SharedViews/FavoritesSection.swift` — Horizontal scrolling UI
+- `Sources/Lilt/Views/SharedViews/FavoritesContextMenu.swift` — Shared context menu items
 
 ### NotificationService
 
-**File**: `Sources/Kaset/Services/Notification/NotificationService.swift`
+**File**: `Sources/Lilt/Services/Notification/NotificationService.swift`
 
 Posts local notifications when the current track changes:
 
@@ -305,7 +305,7 @@ Posts local notifications when the current track changes:
 
 ### NetworkMonitor
 
-**File**: `Sources/Kaset/Services/NetworkMonitor.swift`
+**File**: `Sources/Lilt/Services/NetworkMonitor.swift`
 
 Monitors network connectivity using `NWPathMonitor`:
 
@@ -321,7 +321,7 @@ Monitors network connectivity using `NWPathMonitor`:
 
 ### SettingsManager
 
-**File**: `Sources/Kaset/Services/SettingsManager.swift`
+**File**: `Sources/Lilt/Services/SettingsManager.swift`
 
 Manages user preferences persisted via `UserDefaults`:
 
@@ -337,7 +337,7 @@ Manages user preferences persisted via `UserDefaults`:
 
 ### EqualizerService
 
-**File**: `Sources/Kaset/Services/Audio/EqualizerService.swift`
+**File**: `Sources/Lilt/Services/Audio/EqualizerService.swift`
 
 Owns the equalizer feature's user-facing state and lifecycle. The actual DSP runs in ``EqualizerAudioEngine`` via an `AudioDeviceIOProc` registered on an aggregate device that wraps a Core Audio process tap on WebKit's GPU subprocess. See [ADR-0017](adr/0017-equalizer.md) for the full architecture rationale.
 
@@ -351,11 +351,11 @@ Owns the equalizer feature's user-facing state and lifecycle. The actual DSP run
 
 **Engine seam**: `EqualizerAudioEngineProtocol` lets tests inject a no-op stub so `EqualizerServiceTests` can verify state transitions without touching Core Audio.
 
-> ⚠️ **Naming note**: `Sources/Kaset/Views/SharedViews/EqualizerView.swift` is unrelated — it's a small now-playing animation indicator (three bouncing bars). The settings UI is `EqualizerSettingsView`.
+> ⚠️ **Naming note**: `Sources/Lilt/Views/SharedViews/EqualizerView.swift` is unrelated — it's a small now-playing animation indicator (three bouncing bars). The settings UI is `EqualizerSettingsView`.
 
 ### SyncedLyricsService
 
-**File**: `Sources/Kaset/Services/Lyrics/SyncedLyricsService.swift`
+**File**: `Sources/Lilt/Services/Lyrics/SyncedLyricsService.swift`
 
 Coordinates synced and plain lyrics resolution for the current track:
 
@@ -373,17 +373,17 @@ Coordinates synced and plain lyrics resolution for the current track:
 - Preserves plain lyrics fallback state until a higher-quality synced result is resolved
 
 **Related Files**:
-- `Sources/Kaset/Services/Lyrics/LyricsProvider.swift` — Provider protocol and search model
-- `Sources/Kaset/Services/Lyrics/Providers/LRCLibProvider.swift` — External synced lyrics provider
-- `Sources/Kaset/Services/API/Parsers/LRCParser.swift` — LRC to `SyncedLyrics` parser
+- `Sources/Lilt/Services/Lyrics/LyricsProvider.swift` — Provider protocol and search model
+- `Sources/Lilt/Services/Lyrics/Providers/LRCLibProvider.swift` — External synced lyrics provider
+- `Sources/Lilt/Services/API/Parsers/LRCParser.swift` — LRC to `SyncedLyrics` parser
 
-**Integration**: Created once in `KasetApp` and injected through the SwiftUI environment for lyrics views.
+**Integration**: Created once in `LiltApp` and injected through the SwiftUI environment for lyrics views.
 
 See [ADR-0012: Synced Lyrics Provider Architecture](adr/0012-synced-lyrics-architecture.md) for design details.
 
 ### ShareService
 
-**File**: `Sources/Kaset/Services/ShareService.swift`
+**File**: `Sources/Lilt/Services/ShareService.swift`
 
 Provides share sheet functionality via the `Shareable` protocol:
 
@@ -401,7 +401,7 @@ protocol Shareable {
 
 ### SongLikeStatusManager
 
-**File**: `Sources/Kaset/Services/SongLikeStatusManager.swift`
+**File**: `Sources/Lilt/Services/SongLikeStatusManager.swift`
 
 Caches and syncs like/dislike status for songs:
 
@@ -416,7 +416,7 @@ Caches and syncs like/dislike status for songs:
 
 ### URLHandler
 
-**File**: `Sources/Kaset/Services/URLHandler.swift`
+**File**: `Sources/Lilt/Services/URLHandler.swift`
 
 Parses YouTube Music URLs, regular YouTube watch links (played as songs), and custom `lilt://` URLs:
 
@@ -433,11 +433,11 @@ Parses YouTube Music URLs, regular YouTube watch links (played as songs), and cu
 | `lilt://album?id=xxx` | `.album(id:)` |
 | `lilt://artist?id=xxx` | `.artist(id:)` |
 
-**Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.kasetOpenURLs` for `KasetApp.handleIncomingURL` to parse and route. Song links, including regular YouTube watch links, play through `PlayerService`.
+**Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.liltOpenURLs` for `LiltApp.handleIncomingURL` to parse and route. Song links, including regular YouTube watch links, play through `PlayerService`.
 
 ### ScriptCommands (AppleScript)
 
-**File**: `Sources/Kaset/Services/Scripting/ScriptCommands.swift`
+**File**: `Sources/Lilt/Services/Scripting/ScriptCommands.swift`
 
 Provides AppleScript support for external automation via NSScriptCommand subclasses:
 
@@ -472,12 +472,12 @@ Provides AppleScript support for external automation via NSScriptCommand subclas
 - Logging via `DiagnosticsLogger.scripting`
 
 **Related Files**:
-- `Sources/Kaset/Kaset.sdef` — AppleScript dictionary definition
-- `Sources/Kaset/Info.plist` — `NSAppleScriptEnabled` and `OSAScriptingDefinition` keys
+- `Sources/Lilt/Lilt.sdef` — AppleScript dictionary definition
+- `Sources/Lilt/Info.plist` — `NSAppleScriptEnabled` and `OSAScriptingDefinition` keys
 
 **Usage**:
 ```applescript
-tell application "Kaset"
+tell application "Lilt"
     play
     set volume 50
     get player info  -- Returns JSON string
@@ -486,15 +486,15 @@ end tell
 
 ### App Intents (Shortcuts, Siri, Spotlight)
 
-**Directory**: `Sources/Kaset/Services/AppIntents/` · Decision record: [ADR-0033](adr/0033-app-intents.md) · User docs: [shortcuts.md](shortcuts.md)
+**Directory**: `Sources/Lilt/Services/AppIntents/` · Decision record: [ADR-0033](adr/0033-app-intents.md) · User docs: [shortcuts.md](shortcuts.md)
 
 | File | Role |
 |------|------|
-| `AppIntentsBridge.swift` | `@MainActor` singleton configured in `KasetApp.init`: services, the deep-link readiness gate, the Library snapshot, and the operations intents call |
+| `AppIntentsBridge.swift` | `@MainActor` singleton configured in `LiltApp.init`: services, the deep-link readiness gate, the Library snapshot, and the operations intents call |
 | `PlaybackControlIntents.swift` | Play/pause, pause, resume, next/previous (via `NowPlayingManager.handleAppIntentCommand`), get current song, like/dislike |
 | `PlayContentIntents.swift` | Play music (search), song, playlist, album, Liked Music; playlist and album intents are also the entities' `OpenIntent`s |
 | `MusicEntities.swift` | `SongEntity`, `PlaylistEntity`, `AlbumEntity` (the latter two `IndexedEntity`) and their string queries |
-| `KasetShortcuts.swift` | `AppShortcutsProvider` with Siri phrases, localized from `Resources/AppShortcuts.xcstrings` |
+| `LiltShortcuts.swift` | `AppShortcutsProvider` with Siri phrases, localized from `Resources/AppShortcuts.xcstrings` |
 | `SpotlightLibraryIndexer.swift` | Replaces the Spotlight index with the signed-in Library's playlists and albums |
 
 **Implementation Details**:
@@ -506,7 +506,7 @@ end tell
 
 ### AppDelegate
 
-**File**: `Sources/Kaset/AppDelegate.swift`
+**File**: `Sources/Lilt/AppDelegate.swift`
 
 Application lifecycle management:
 
@@ -651,7 +651,7 @@ User closes window (⌘W or red button)
 
 ### YTMusicError
 
-**File**: `Sources/Kaset/Models/YTMusicError.swift`
+**File**: `Sources/Lilt/Models/YTMusicError.swift`
 
 Unified error type for the app:
 
@@ -688,11 +688,11 @@ DiagnosticsLogger.auth.error("Cookie extraction failed")
 
 ## Utilities
 
-The `Sources/Kaset/Utilities/` folder contains shared helper components.
+The `Sources/Lilt/Utilities/` folder contains shared helper components.
 
 ### ImageCache
 
-**File**: `Sources/Kaset/Utilities/ImageCache.swift`
+**File**: `Sources/Lilt/Utilities/ImageCache.swift`
 
 Thread-safe actor with memory and disk caching:
 
@@ -709,7 +709,7 @@ Thread-safe actor with memory and disk caching:
 
 ### ColorExtractor
 
-**File**: `Sources/Kaset/Utilities/ColorExtractor.swift`
+**File**: `Sources/Lilt/Utilities/ColorExtractor.swift`
 
 Extracts dominant colors from album art for dynamic theming:
 
@@ -719,7 +719,7 @@ Extracts dominant colors from album art for dynamic theming:
 
 ### AnimationConfiguration
 
-**File**: `Sources/Kaset/Utilities/AnimationConfiguration.swift`
+**File**: `Sources/Lilt/Utilities/AnimationConfiguration.swift`
 
 Standardized animation timing for consistent motion design:
 
@@ -731,7 +731,7 @@ Standardized animation timing for consistent motion design:
 
 ### AccessibilityIdentifiers
 
-**File**: `Sources/Kaset/Utilities/AccessibilityIdentifiers.swift`
+**File**: `Sources/Lilt/Utilities/AccessibilityIdentifiers.swift`
 
 Centralized UI test identifiers organized by feature:
 
@@ -747,7 +747,7 @@ enum AccessibilityID {
 
 ### RetryPolicy
 
-**File**: `Sources/Kaset/Utilities/RetryPolicy.swift`
+**File**: `Sources/Lilt/Utilities/RetryPolicy.swift`
 
 Exponential backoff for network retries:
 
@@ -767,7 +767,7 @@ This section documents performance patterns and optimizations used throughout th
 
 ### Network Optimization
 
-**File**: `Sources/Kaset/Services/API/YTMusicClient.swift`
+**File**: `Sources/Lilt/Services/API/YTMusicClient.swift`
 
 The API client uses an optimized `URLSession` configuration:
 
@@ -780,7 +780,7 @@ configuration.timeoutIntervalForRequest = 15      // Fail fast
 
 ### API Caching
 
-**File**: `Sources/Kaset/Services/API/APICache.swift`
+**File**: `Sources/Lilt/Services/API/APICache.swift`
 
 In-memory cache with TTL and LRU eviction:
 
@@ -801,7 +801,7 @@ In-memory cache with TTL and LRU eviction:
 
 ### Image Caching
 
-**File**: `Sources/Kaset/Utilities/ImageCache.swift`
+**File**: `Sources/Lilt/Utilities/ImageCache.swift`
 
 Thread-safe actor with memory and disk caching:
 
@@ -933,7 +933,7 @@ This section documents key SwiftUI views and their integration patterns.
 
 ### QueueView
 
-**File**: `Sources/Kaset/Views/QueueView.swift`
+**File**: `Sources/Lilt/Views/QueueView.swift`
 
 Right sidebar panel displaying the playback queue:
 
@@ -946,7 +946,7 @@ Right sidebar panel displaying the playback queue:
 
 ### LyricsView
 
-**File**: `Sources/Kaset/Views/LyricsView.swift`
+**File**: `Sources/Lilt/Views/LyricsView.swift`
 
 Right sidebar panel displaying song lyrics:
 
@@ -961,7 +961,7 @@ Right sidebar panel displaying song lyrics:
 
 ### ToastView
 
-**File**: `Sources/Kaset/Views/ToastView.swift`
+**File**: `Sources/Lilt/Views/ToastView.swift`
 
 Temporary notification overlay for user feedback:
 
@@ -975,7 +975,7 @@ Temporary notification overlay for user feedback:
 
 ### SharedViews
 
-**Directory**: `Sources/Kaset/Views/SharedViews/`
+**Directory**: `Sources/Lilt/Views/SharedViews/`
 
 Reusable components used across the app:
 
@@ -997,7 +997,7 @@ Reusable components used across the app:
 
 ### PlayerBar
 
-**File**: `Sources/Kaset/Views/PlayerBar.swift`
+**File**: `Sources/Lilt/Views/PlayerBar.swift`
 
 A floating capsule-shaped player bar at the bottom of the content area:
 
@@ -1048,7 +1048,7 @@ The `PlayerBar` must be added to **every navigable view** via `safeAreaInset`:
 
 ### Sidebar
 
-**File**: `Sources/Kaset/Views/Sidebar.swift`
+**File**: `Sources/Lilt/Views/Sidebar.swift`
 
 Clean, minimal sidebar with only functional navigation:
 

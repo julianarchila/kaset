@@ -1,0 +1,96 @@
+import AppKit
+import SwiftUI
+
+enum PackageResourceLookup {
+    private static let resourceBundleName = "Lilt_Lilt.bundle"
+
+    static let bundle = Self.candidateBundles.first
+    static let localizationBundle = Self.bundle
+
+    /// The app accent as an AppKit color, for views built with AppKit (e.g. NSTableView cells).
+    ///
+    /// The fork has no accent color asset, so this is the user's macOS accent
+    /// color (blue with the default "Multicolor" setting). It is a dynamic
+    /// system color and updates when the user changes the accent.
+    static let accentNSColor: NSColor = .controlAccentColor
+
+    /// The app accent for SwiftUI views; see `accentNSColor`.
+    static let accent = Color(nsColor: Self.accentNSColor)
+
+    private static let bundleSearchRoots: [Bundle] = {
+        var bundles: [Bundle] = [Bundle.main]
+        bundles.append(contentsOf: Bundle.allBundles)
+        bundles.append(contentsOf: Bundle.allFrameworks)
+
+        var uniqueBundles: [Bundle] = []
+        var seenPaths = Set<String>()
+
+        for bundle in bundles {
+            guard seenPaths.insert(bundle.bundleURL.path).inserted else { continue }
+            uniqueBundles.append(bundle)
+        }
+
+        return uniqueBundles
+    }()
+
+    private static let candidateBundles: [Bundle] = {
+        var bundles: [Bundle] = []
+        var seenPaths = Set<String>()
+
+        // 1. Try to find the bundle via current module reference (most reliable)
+        // In SwiftPM, targets with resources have a generated Bundle.module.
+        // We use a known class from this target to find the right bundle.
+        let classBundle = Bundle(for: WebKitManager.self)
+        if let moduleBundleURL = classBundle.resourceURL?.appendingPathComponent(Self.resourceBundleName),
+           let moduleBundle = Bundle(url: moduleBundleURL)
+        {
+            bundles.append(moduleBundle)
+            seenPaths.insert(moduleBundleURL.path)
+        }
+
+        // 2. Standard search roots
+        var candidateURLs: [URL] = Self.bundleSearchRoots.flatMap { bundle in
+            Self.candidateURLs(for: bundle)
+        }
+        candidateURLs.append(contentsOf: Self.bundleCandidatesInBuildDirectory())
+
+        for url in candidateURLs {
+            guard seenPaths.insert(url.path).inserted else { continue }
+            guard let bundle = Bundle(url: url) else { continue }
+            bundles.append(bundle)
+        }
+
+        return bundles
+    }()
+
+    private static func candidateURLs(for bundle: Bundle) -> [URL] {
+        [
+            bundle.resourceURL?.appendingPathComponent(self.resourceBundleName),
+            bundle.bundleURL.appendingPathComponent(self.resourceBundleName),
+            bundle.bundleURL.deletingLastPathComponent().appendingPathComponent(self.resourceBundleName),
+            bundle.executableURL?.deletingLastPathComponent().appendingPathComponent(self.resourceBundleName),
+        ]
+        .compactMap(\.self)
+    }
+
+    private static func bundleCandidatesInBuildDirectory() -> [URL] {
+        let fileManager = FileManager.default
+        let buildDirectory = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+            .appendingPathComponent(".build", isDirectory: true)
+        guard let enumerator = fileManager.enumerator(
+            at: buildDirectory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+
+        var bundleURLs: [URL] = []
+
+        for case let url as URL in enumerator where url.lastPathComponent == Self.resourceBundleName {
+            bundleURLs.append(url)
+        }
+
+        return bundleURLs
+    }
+}

@@ -1,21 +1,21 @@
 # Testing Guide
 
-This document covers testing strategies, commands, and best practices for Kaset.
+This document covers testing strategies, commands, and best practices for Lilt.
 
-> 🔁 **Default local loop lives in `AGENTS.md`** — Stay CLI-first for everyday verification: `swift build`, `swift test --skip KasetUITests`, then `swiftlint --strict && swiftformat .`. Use Xcode/`xcodebuild` only for UI/runtime debugging, scheme-specific investigation, or CI parity.
+> 🔁 **Default local loop lives in `AGENTS.md`** — Stay CLI-first for everyday verification: `swift build`, `swift test --skip LiltUITests`, then `swiftlint --strict && swiftformat .`. Use Xcode/`xcodebuild` only for UI/runtime debugging, scheme-specific investigation, or CI parity.
 
 ## Common Tasks
 
 ### Unit Tests
 
 ```bash
-swift test --skip KasetUITests
+swift test --skip LiltUITests
 ```
 
 ### Focused Localization Tests
 
 ```bash
-swift test --skip KasetUITests --filter LocalizationCatalogParityTests
+swift test --skip LiltUITests --filter LocalizationCatalogParityTests
 ```
 
 ### Build Only
@@ -49,7 +49,7 @@ swiftlint --strict && swiftformat .
 
 ```
 Tests/
-├── KasetTests/
+├── LiltTests/
 │   ├── Helpers/
 │   │   ├── MockURLProtocol.swift    # Network mocking
 │   │   ├── MockYTMusicClient.swift  # YouTube Music API client mock
@@ -68,11 +68,11 @@ Tests/
 
 ## Unit Test Requirements
 
-New code in `Sources/Kaset/` (Services, Models, ViewModels, Utilities) must include unit tests.
+New code in `Sources/Lilt/` (Services, Models, ViewModels, Utilities) must include unit tests.
 
 ### Creating a Test File
 
-1. Create test file in `Tests/KasetTests/` matching the source file name
+1. Create test file in `Tests/LiltTests/` matching the source file name
    - Example: `YTMusicClient.swift` → `YTMusicClientTests.swift`
 2. Add the test file to the Xcode project
 3. Run tests to verify
@@ -83,7 +83,7 @@ New code in `Sources/Kaset/` (Services, Models, ViewModels, Utilities) must incl
 
 ```swift
 import Testing
-@testable import Kaset
+@testable import Lilt
 
 @Suite("MyService", .serialized, .tags(.service))
 @MainActor
@@ -160,13 +160,13 @@ Tags are most useful for suite organization and Xcode/CI filtering. For quick lo
 
 ```bash
 # Run tests matching a name or suite pattern
-swift test --skip KasetUITests --filter Parser
+swift test --skip LiltUITests --filter Parser
 ```
 
 If you need Xcode's logs or scheme-specific filtering, escalate to:
 
 ```bash
-xcodebuild test -scheme Kaset -only-testing:KasetTests -skip-testing:KasetUITests
+xcodebuild test -scheme Lilt -only-testing:LiltTests -skip-testing:LiltUITests
 ```
 
 ### Time Limits
@@ -298,7 +298,7 @@ func durationFormatting(seconds: Double, expected: String) {
 The project includes ready-to-use API client mocks for both sources. Use `MockYTMusicClient` for YouTube Music view models and services:
 
 ```swift
-// Tests/KasetTests/Helpers/MockYTMusicClient.swift
+// Tests/LiltTests/Helpers/MockYTMusicClient.swift
 final class MockYTMusicClient: YTMusicClientProtocol, @unchecked Sendable {
     var homeResponse: HomeResponse?
     var searchResponse: SearchResponse?
@@ -330,7 +330,7 @@ func testHomeViewModelLoading() async throws {
 For lower-level network testing:
 
 ```swift
-// Tests/KasetTests/Helpers/MockURLProtocol.swift
+// Tests/LiltTests/Helpers/MockURLProtocol.swift
 MockURLProtocol.requestHandler = { request in
     let data = TestFixtures.loadJSON("home_response")
     let response = HTTPURLResponse(url: request.url!, statusCode: 200, ...)
@@ -343,19 +343,19 @@ MockURLProtocol.requestHandler = { request in
 Load JSON fixtures from the `Fixtures/` directory:
 
 ```swift
-// Tests/KasetTests/Helpers/TestFixtures.swift
+// Tests/LiltTests/Helpers/TestFixtures.swift
 let data = TestFixtures.loadJSON("home_response")  // Loads home_response.json
 let dict = TestFixtures.loadJSONDict("search_response")
 ```
 
 ### Localization Catalog and Mirrors
 
-`Sources/Kaset/Resources/Localizable.xcstrings` is the source of truth and every
+`Sources/Lilt/Resources/Localizable.xcstrings` is the source of truth and every
 shipped `.lproj/Localizable.strings` mirror must be updated in the same change.
 Run:
 
 ```bash
-swift test --skip KasetUITests --filter LocalizationCatalogParityTests
+swift test --skip LiltUITests --filter LocalizationCatalogParityTests
 ```
 
 ## Accessibility Testing
@@ -414,8 +414,8 @@ To test auth recovery:
 Use Xcode's Console when the CLI loop is not enough and you need runtime inspection:
 
 ```
-subsystem:Kaset category:player
-subsystem:Kaset category:auth
+subsystem:Lilt category:player
+subsystem:Lilt category:auth
 ```
 
 ### WebView Debugging (Runtime Escalation)
@@ -453,10 +453,10 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
 
       - name: Build
-        run: xcodebuild -scheme Kaset -destination 'platform=macOS' build
+        run: xcodebuild -scheme Lilt -destination 'platform=macOS' build
 
       - name: Test
-        run: xcodebuild -scheme Kaset -destination 'platform=macOS' test
+        run: xcodebuild -scheme Lilt -destination 'platform=macOS' test
 
       - name: Lint
         run: swiftlint --strict

@@ -767,8 +767,8 @@ extension DiscoveryAuditTests {
     func cookieBackupSelection() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let appSupport = directory.appendingPathComponent("Library/Application Support")
-        let legacy = appSupport.appendingPathComponent("Kaset/cookies.dat")
-        let container = directory.appendingPathComponent("Library/Containers/com.julianarchila.Lilt/Data/Library/Application Support/Kaset/cookies.dat")
+        let legacy = appSupport.appendingPathComponent("Lilt/cookies.dat")
+        let container = directory.appendingPathComponent("Library/Containers/com.julianarchila.Lilt/Data/Library/Application Support/Lilt/cookies.dat")
         try FileManager.default.createDirectory(at: legacy.deletingLastPathComponent(), withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
@@ -782,7 +782,7 @@ extension DiscoveryAuditTests {
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
 
         #expect(FileManager.default.createFile(atPath: container.path, contents: Data("test-cookie".utf8)))
-        let debugContainer = directory.appendingPathComponent("Library/Containers/com.julianarchila.Lilt.debug/Data/Library/Application Support/Kaset/cookies.dat")
+        let debugContainer = directory.appendingPathComponent("Library/Containers/com.julianarchila.Lilt.debug/Data/Library/Application Support/Lilt/cookies.dat")
         try FileManager.default.createDirectory(at: debugContainer.deletingLastPathComponent(), withIntermediateDirectories: true)
         #expect(selectedCookieBackupFile(appSupport: appSupport, homeDirectory: directory) == nil)
         #expect(FileManager.default.createFile(atPath: debugContainer.path, contents: Data("test-cookie".utf8)))

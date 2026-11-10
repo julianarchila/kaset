@@ -13,7 +13,7 @@ returns HTTP 404 (confirmed via
 clean `HTTP 404` with `"status": "NOT_FOUND"`), and the YT Music web client
 itself redirects `music.youtube.com/podcasts` to home in those regions.
 
-Kaset previously rendered the Podcasts row in the sidebar unconditionally.
+Lilt previously rendered the Podcasts row in the sidebar unconditionally.
 Users in unsupported regions saw `Server Error — Something went wrong (Error
 404)` whenever they opened the tab (issue
 [#100](https://github.com/sozercan/kaset/issues/100)). Region is determined

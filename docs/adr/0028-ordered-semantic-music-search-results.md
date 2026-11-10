@@ -12,7 +12,7 @@ playable Top Result, nested card rows, individually wrapped
 `itemSectionRenderer` rows, direct shelves, podcast shows, podcast episodes,
 profiles, audiobooks, songs, and multiple video kinds.
 
-Kaset previously stored search results in separate type arrays and rebuilt the
+Lilt previously stored search results in separate type arrays and rebuilt the
 visible list in a fixed songs → albums → artists → playlists → podcasts order.
 That discarded YouTube Music's relevance ranking. The parser also assumed direct
 shelves, treated every playable row as a song, ignored podcast shows, and kept a

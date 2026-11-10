@@ -29,7 +29,7 @@ grid.
   `musicResponsiveListItemRenderer` rows, unlike card shelves
   (`musicTwoRowItemRenderer`). `HomeResponseParser` marks such all-song
   carousels as `HomeSection.isListShelf`, verified against
-  `Tests/KasetTests/Fixtures/home_response.json`. Home renders them as an
+  `Tests/LiltTests/Fixtures/home_response.json`. Home renders them as an
   adaptive grid of compact rows: four rows of as many 260 pt columns as fit,
   with Show All / Show Less. Durations show only when the response has them
   (Home rows usually don't).

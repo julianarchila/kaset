@@ -10,9 +10,9 @@ Listening/watch history did not record on Brand accounts (GitHub issue
 #277), for both music and video. A live, read-only investigation on a
 real brand account established the mechanism precisely:
 
-- **History is recorded by the playback WebView, not by Kaset.** A repo
+- **History is recorded by the playback WebView, not by Lilt.** A repo
   grep for `watchtime|videostats|/api/stats|playbackTracking` over
-  `Sources/Kaset` returns zero hits. Real-world history is created by the
+  `Sources/Lilt` returns zero hits. Real-world history is created by the
   watch page's own `videostats` pings (`/api/stats/playback`,
   `/api/stats/watchtime`), which attribute to the identity baked into the
   served document's `ytcfg.DATASYNC_ID`
@@ -30,7 +30,7 @@ real brand account established the mechanism precisely:
   `X-Goog-PageId` header still yields no `streamingData`; video `/player`
   returns `UNPLAYABLE`. Music `/player` is `UNPLAYABLE` even as the
   primary for a non-browser client (YouTube bot detection — the reason
-  Kaset plays in a WebView at all). So recording **must** stay in the
+  Lilt plays in a WebView at all). So recording **must** stay in the
   WebView, and identity must be a property of the **session**, not the
   request.
 

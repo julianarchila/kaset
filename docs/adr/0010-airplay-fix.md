@@ -8,7 +8,7 @@ Implemented, with remaining recovery and compatibility limits documented below.
 
 [Issue #42](https://github.com/sozercan/kaset/issues/42) reported that selecting an AirPlay device in the app left audio playing on the Mac. System-wide AirPlay worked.
 
-Kaset plays DRM-protected media through `WKWebView`. The original `AVRoutePickerView` had no connection to that media, so selecting a device did not route WebKit playback. The first fix replaced the main player's control with `video.webkitShowPlaybackTargetPicker()`.
+Lilt plays DRM-protected media through `WKWebView`. The original `AVRoutePickerView` had no connection to that media, so selecting a device did not route WebKit playback. The first fix replaced the main player's control with `video.webkitShowPlaybackTargetPicker()`.
 
 The original version of this ADR also claimed that every track change destroys the video element and that the picker's position follows the video's CSS bounds. Runtime traces and WebKit source inspection disproved both claims.
 
@@ -20,7 +20,7 @@ Use WebKit's picker from both the main player and mini player, anchor it at the 
 
 YouTube Music can change sources within the same document and video element. WebKit also retains a selected playback target and can assign it to eligible media clients. Element replacement alone therefore does not prove that the user must reconnect. See [WebKit's media-session manager](https://github.com/WebKit/WebKit/blob/6270255c36bd2919ef0eea13368231f488df509b/Source/WebCore/Modules/airplay/WebMediaSessionManager.mm#L268) and its [AirPlay autoplay regression test](https://github.com/WebKit/WebKit/blob/6270255c36bd2919ef0eea13368231f488df509b/LayoutTests/media/airplay-autoplay.html).
 
-Kaset already uses YouTube Music's SPA router and native queue handoff. The investigation found three avoidable full-document reloads:
+Lilt already uses YouTube Music's SPA router and native queue handoff. The investigation found three avoidable full-document reloads:
 
 - Queue recovery requested `.forceFullPageWhenSameVideoId`, but `loadVideo` disabled the router even when the requested song differed from the tracked song. The strategy now forces a reload only when the IDs match. A different song uses the router when the current Music document is committed and still accepted.
 - The three-second router fallback fired while the next media was still loading. The confirmation window is now 15 seconds. A missing or failed router still falls back immediately. Existing advertisement-aware deferral remains in effect.
@@ -30,9 +30,9 @@ Explicit full-page resynchronization, an uncommitted or lost document, and an un
 
 ### Stalled AirPlay track changes
 
-An accepted router command can fail before YouTube assigns the next media source. In the reproduced AirPlay transition, YouTube emitted player errors `5` and `150` for the requested track, then automatically played a different song from its own queue. Kaset kept showing the requested song until its 15-second fallback replaced the document and lost the route. The requested song played successfully when connected to AirPlay directly.
+An accepted router command can fail before YouTube assigns the next media source. In the reproduced AirPlay transition, YouTube emitted player errors `5` and `150` for the requested track, then automatically played a different song from its own queue. Lilt kept showing the requested song until its 15-second fallback replaced the document and lost the route. The requested song played successfully when connected to AirPlay directly.
 
-Both the source-error sequence and a competing native autoplay transition can leave the requested player unstarted (`-1`) with no loaded media. For navigation that starts on a wireless media element, Kaset retries the requested router command once if that state persists for one second. If YouTube reports error `150` while the same requested media remains unstarted and unloaded, the retry becomes eligible 250 milliseconds after that error, or at the original one-second deadline if sooner. Error `5` alone retains the normal settling window. The shorter delay lets YouTube's error handlers settle without waiting a full second after a reported failure. Buffering, paused, loaded, and advertisement media do not trigger recovery. The player states and error values are described in [YouTube's player API reference](https://developers.google.com/youtube/iframe_api_reference#Events).
+Both the source-error sequence and a competing native autoplay transition can leave the requested player unstarted (`-1`) with no loaded media. For navigation that starts on a wireless media element, Lilt retries the requested router command once if that state persists for one second. If YouTube reports error `150` while the same requested media remains unstarted and unloaded, the retry becomes eligible 250 milliseconds after that error, or at the original one-second deadline if sooner. Error `5` alone retains the normal settling window. The shorter delay lets YouTube's error handlers settle without waiting a full second after a reported failure. Buffering, paused, loaded, and advertisement media do not trigger recovery. The player states and error values are described in [YouTube's player API reference](https://developers.google.com/youtube/iframe_api_reference#Events).
 
 Track identity and media readiness can update after the player-state event. A timer checks the pending target every 250 milliseconds, or sooner when a retry deadline is nearer, and starts the settling window once all conditions match. Resumed loading resets both recovery windows.
 
@@ -42,7 +42,7 @@ The retry requires the same playback occurrence, requested video ID, and unloade
 
 WebKit uses the document's [last native mouse position](https://github.com/WebKit/WebKit/blob/6270255c36bd2919ef0eea13368231f488df509b/Source/WebCore/dom/Document.cpp#L10297) to anchor the picker. Changing the video's CSS bounds does not set that position.
 
-`AirPlayPickerAnchorView` resolves the invoking button's screen position. Before calling `webkitShowPlaybackTargetPicker()`, Kaset forwards a zero-click `mouseUp` event to the playback `WKWebView`, with no preceding mouse-down. This updates WebKit's anchor through public AppKit and WebKit APIs.
+`AirPlayPickerAnchorView` resolves the invoking button's screen position. Before calling `webkitShowPlaybackTargetPicker()`, Lilt forwards a zero-click `mouseUp` event to the playback `WKWebView`, with no preceding mouse-down. This updates WebKit's anchor through public AppKit and WebKit APIs.
 
 The YouTube player bar passes its button position through `YouTubePlayerService` to the watch WebView and uses the same anchor code. This covers both the inline watch page and the detached video window.
 
@@ -81,7 +81,7 @@ The router script's tests exercise the measured unstarted state, its single retr
 
 ## Known limitations
 
-- Full document, WebContent-process, or account-store recovery can lose the route. Receiver disappearance can also require the user to reopen the picker. Kaset has no supported API to silently choose a receiver.
+- Full document, WebContent-process, or account-store recovery can lose the route. Receiver disappearance can also require the user to reopen the picker. Lilt has no supported API to silently choose a receiver.
 - A router that accepts navigation but never confirms the target media, including after the single AirPlay recovery retry, waits 15 seconds before full-page recovery. Advertisement-aware deferral can extend that wait.
 - Route retention does not guarantee gapless audio. WebKit [recreates its backend player during a source load](https://github.com/WebKit/WebKit/blob/6270255c36bd2919ef0eea13368231f488df509b/Source/WebCore/html/HTMLMediaElement.cpp#L1617) and [clears its wireless flag when doing so](https://github.com/WebKit/WebKit/blob/6270255c36bd2919ef0eea13368231f488df509b/Source/WebCore/html/HTMLMediaElement.cpp#L8571). A temporary local report does not by itself measure an audible interruption. YouTube source failures can add a recovery delay even when the selected route returns automatically.
 - Picker placement depends on WebKit's native event handling and coordinate conversion. Hardware verification covered an Apple TV on macOS 27. Other receivers and macOS versions still need runtime verification.

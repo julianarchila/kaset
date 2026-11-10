@@ -93,7 +93,7 @@ queue.
   by UUID after suspension; they never update the first matching video ID.
 - Web-reported drift may realign to a unique matching queue entry. Ownership,
   visible track metadata, and persistence are updated in that order. If multiple
-  entries share the observed video ID, Kaset retains and reasserts native queue
+  entries share the observed video ID, Lilt retains and reasserts native queue
   ownership rather than selecting the first duplicate.
 - Queue transformations preserve entry IDs for rows they retain. Duplicate
   removal retains the active occurrence (or stopped current cursor) at the first
