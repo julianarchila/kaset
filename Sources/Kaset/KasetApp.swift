@@ -247,7 +247,7 @@ struct KasetApp: App {
                     await self.accountService?.fetchAccounts()
                 }
                 // Claim deep links for this existing window so macOS does not
-                // spawn/tear down a second scene around `kasetfork://`.
+                // spawn/tear down a second scene around `lilt://`.
                 .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
                 .onChange(of: self.playerService.isPlaying) { _, isPlaying in
                     // The Core Audio process tap needs WebKit's GPU

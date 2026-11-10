@@ -14,13 +14,13 @@ import Foundation
 /// - `https://music.youtube.com/browse/MPLAUCxxx` - Open library artist
 /// - `https://www.youtube.com/watch?v=dQw4w9WgXcQ` - Play as a song
 /// - `https://youtu.be/dQw4w9WgXcQ` - Play as a song
-/// - `kasetfork://play?v=dQw4w9WgXcQ` - Custom scheme for song
-/// - `kasetfork://playlist?list=PLxxx` - Custom scheme for playlist
-/// - `kasetfork://album?id=MPRExxx` - Custom scheme for album
-/// - `kasetfork://artist?id=UCxxx` - Custom scheme for artist
+/// - `lilt://play?v=dQw4w9WgXcQ` - Custom scheme for song
+/// - `lilt://playlist?list=PLxxx` - Custom scheme for playlist
+/// - `lilt://album?id=MPRExxx` - Custom scheme for album
+/// - `lilt://artist?id=UCxxx` - Custom scheme for artist
 enum URLHandler {
     /// Custom URL scheme registered by the fork (see `Scripts/build-app.sh`).
-    static let customScheme = "kasetfork"
+    static let customScheme = "lilt"
 
     // MARK: - Types
 
@@ -95,7 +95,7 @@ enum URLHandler {
         return nil
     }
 
-    /// Parses a `kasetfork://` custom scheme URL.
+    /// Parses a `lilt://` custom scheme URL.
     private static func parseKasetURL(_ url: URL) -> ParsedContent? {
         guard url.scheme == self.customScheme else { return nil }
 
@@ -105,25 +105,25 @@ enum URLHandler {
 
         switch host {
         case "play":
-            // kasetfork://play?v=videoId
+            // lilt://play?v=videoId
             if let videoId = Self.queryValue(for: "v", in: queryItems), !videoId.isEmpty {
                 return .song(videoId: videoId)
             }
 
         case "playlist":
-            // kasetfork://playlist?list=playlistId
+            // lilt://playlist?list=playlistId
             if let listId = Self.queryValue(for: "list", in: queryItems), !listId.isEmpty {
                 return .playlist(id: listId)
             }
 
         case "album":
-            // kasetfork://album?id=albumId
+            // lilt://album?id=albumId
             if let albumId = Self.queryValue(for: "id", in: queryItems), !albumId.isEmpty {
                 return .album(id: albumId)
             }
 
         case "artist":
-            // kasetfork://artist?id=artistId
+            // lilt://artist?id=artistId
             if let artistId = Self.queryValue(for: "id", in: queryItems), !artistId.isEmpty {
                 return .artist(id: artistId)
             }

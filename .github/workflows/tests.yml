@@ -151,9 +151,9 @@ jobs:
 
       - name: Install app for UI tests
         run: |
-          sudo cp -R .build/app/KasetFork.app /Applications/KasetFork.app
+          sudo cp -R .build/app/Lilt.app /Applications/Lilt.app
           # Register with Launch Services so XCUIApplication can find it
-          /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f /Applications/KasetFork.app
+          /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f /Applications/Lilt.app
 
       - name: Run UI tests
         run: |

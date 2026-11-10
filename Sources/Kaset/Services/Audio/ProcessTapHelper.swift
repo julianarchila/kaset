@@ -41,14 +41,14 @@ final class ProcessTapHelper {
 
     /// User-visible name of the private tap object (shown in diagnostic
     /// audio tools like Audio MIDI Setup).
-    private static let tapName = "com.julianarchila.KasetFork.EQ.Tap"
+    private static let tapName = "com.julianarchila.Lilt.EQ.Tap"
 
     /// User-visible name of the aggregate device that wraps the tap.
     private static let aggregateName = "Kaset EQ Aggregate"
 
     /// Prefix for the aggregate device's unique ID. A UUID suffix is appended
     /// per instance so repeated start/stop cycles don't collide.
-    private static let aggregateUIDPrefix = "com.julianarchila.KasetFork.EQ.Aggregate."
+    private static let aggregateUIDPrefix = "com.julianarchila.Lilt.EQ.Aggregate."
 
     /// Negotiated audio stream format of the tap output.
     private(set) var tapStreamDescription: AudioStreamBasicDescription?

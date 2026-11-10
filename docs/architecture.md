@@ -418,7 +418,7 @@ Caches and syncs like/dislike status for songs:
 
 **File**: `Sources/Kaset/Services/URLHandler.swift`
 
-Parses YouTube Music URLs, regular YouTube watch links (played as songs), and custom `kasetfork://` URLs:
+Parses YouTube Music URLs, regular YouTube watch links (played as songs), and custom `lilt://` URLs:
 
 | URL Pattern | ParsedContent |
 |-------------|---------------|
@@ -428,10 +428,10 @@ Parses YouTube Music URLs, regular YouTube watch links (played as songs), and cu
 | `music.youtube.com/channel/UCxxx` | `.artist(id:)` |
 | `youtube.com/watch?v=xxx` | `.song(videoId:)` |
 | `youtu.be/xxx` | `.song(videoId:)` |
-| `kasetfork://play?v=xxx` | `.song(videoId:)` |
-| `kasetfork://playlist?list=xxx` | `.playlist(id:)` |
-| `kasetfork://album?id=xxx` | `.album(id:)` |
-| `kasetfork://artist?id=xxx` | `.artist(id:)` |
+| `lilt://play?v=xxx` | `.song(videoId:)` |
+| `lilt://playlist?list=xxx` | `.playlist(id:)` |
+| `lilt://album?id=xxx` | `.album(id:)` |
+| `lilt://artist?id=xxx` | `.artist(id:)` |
 
 **Usage**: Custom-scheme URLs enter through `AppDelegate.application(_:open:)`. The app delegate buffers cold-launch deliveries until the SwiftUI scene subscribes, then posts `.kasetOpenURLs` for `KasetApp.handleIncomingURL` to parse and route. Song links, including regular YouTube watch links, play through `PlayerService`.
 
@@ -500,7 +500,7 @@ end tell
 **Implementation Details**:
 
 - `MainWindow` publishes the Library to the bridge once it has loaded (empty when signed out); the bridge reindexes Spotlight and refreshes App Shortcut parameters.
-- Playback intents set `openAppWhenRun`, wait for `AppIntentsBridge.isReady` (the same gate as `kasetfork://` deep links), and show the main window before playing.
+- Playback intents set `openAppWhenRun`, wait for `AppIntentsBridge.isReady` (the same gate as `lilt://` deep links), and show the main window before playing.
 - `Scripts/build-app.sh` generates `Metadata.appintents` with `appintentsmetadataprocessor`, since SwiftPM has no App Intents build phase, and fails if `AppShortcuts.xcstrings` is out of sync with the phrases in code.
 - Intents only run in team-signed builds and from `/Applications` or `~/Applications`.
 

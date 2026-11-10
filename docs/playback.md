@@ -319,7 +319,7 @@ For a narrower query against Kaset's unified logging subsystem:
 
 ```bash
 /usr/bin/log show --process Kaset --last 10m --style compact --info --debug \
-  --predicate 'subsystem == "com.julianarchila.KasetFork"' \
+  --predicate 'subsystem == "com.julianarchila.Lilt"' \
   | grep 'Audio quality stats'
 ```
 

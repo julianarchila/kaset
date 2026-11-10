@@ -105,9 +105,9 @@ struct URLHandlerTests {
 
     // MARK: - Custom Scheme Tests
 
-    @Test("Parse kasetfork://play URL extracts video ID")
+    @Test("Parse lilt://play URL extracts video ID")
     func parseKasetPlayURL() throws {
-        let url = try #require(URL(string: "kasetfork://play?v=abc123"))
+        let url = try #require(URL(string: "lilt://play?v=abc123"))
         let result = URLHandler.parse(url)
 
         guard case let .song(videoId) = result else {
@@ -117,9 +117,9 @@ struct URLHandlerTests {
         #expect(videoId == "abc123")
     }
 
-    @Test("Parse kasetfork://playlist URL extracts playlist ID")
+    @Test("Parse lilt://playlist URL extracts playlist ID")
     func parseKasetPlaylistURL() throws {
-        let url = try #require(URL(string: "kasetfork://playlist?list=PLmylist"))
+        let url = try #require(URL(string: "lilt://playlist?list=PLmylist"))
         let result = URLHandler.parse(url)
 
         guard case let .playlist(id) = result else {
@@ -129,9 +129,9 @@ struct URLHandlerTests {
         #expect(id == "PLmylist")
     }
 
-    @Test("Parse kasetfork://album URL extracts album ID")
+    @Test("Parse lilt://album URL extracts album ID")
     func parseKasetAlbumURL() throws {
-        let url = try #require(URL(string: "kasetfork://album?id=MPREb_album"))
+        let url = try #require(URL(string: "lilt://album?id=MPREb_album"))
         let result = URLHandler.parse(url)
 
         guard case let .album(id) = result else {
@@ -141,9 +141,9 @@ struct URLHandlerTests {
         #expect(id == "MPREb_album")
     }
 
-    @Test("Parse kasetfork://artist URL extracts artist ID")
+    @Test("Parse lilt://artist URL extracts artist ID")
     func parseKasetArtistURL() throws {
-        let url = try #require(URL(string: "kasetfork://artist?id=UCchannel"))
+        let url = try #require(URL(string: "lilt://artist?id=UCchannel"))
         let result = URLHandler.parse(url)
 
         guard case let .artist(id) = result else {

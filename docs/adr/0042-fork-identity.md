@@ -27,11 +27,16 @@ Several upstream settings tied a fork build to the upstream app:
 ## Decision
 
 - The fork has its own identity, set in `Scripts/build-app.sh`:
-  - Display name and bundle file: `KasetFork` (temporary until a final name
-    is chosen).
-  - Bundle ID: `com.julianarchila.KasetFork`, and
-    `com.julianarchila.KasetFork.debug` for packaged debug builds.
-  - URL scheme: `kasetfork://`.
+  - Display name and bundle file: `Lilt` (`Lilt.app`). The fork first
+    shipped under the temporary name `KasetFork` with the bundle ID
+    `com.julianarchila.KasetFork` and the `kasetfork://` scheme.
+  - Bundle ID: `com.julianarchila.Lilt`, and
+    `com.julianarchila.Lilt.debug` for packaged debug builds.
+  - URL scheme: `lilt://`.
+- The app icon is an original mark: a single swinging line ending in a coral
+  dot, on a light gray squircle that turns graphite in dark mode. It replaces
+  upstream's cassette, and its Icon Composer package keeps the line and the dot
+  as separate Liquid Glass layers.
 - The SwiftPM product, module, and executable keep the name `Kaset`. Renaming
   them would change hundreds of files without any user-visible benefit.
 - Sparkle, the appcast, release signing scripts, the release, dev-build, Pages,
@@ -66,8 +71,11 @@ Several upstream settings tied a fork build to the upstream app:
 ## Consequences
 
 - Fork and upstream builds are fully isolated and can run side by side.
-- Changing the bundle ID again later costs one sign-in and resets local
-  preferences, because macOS keys the sandbox container on the bundle ID.
+- Changing the bundle ID costs one sign-in and resets local preferences,
+  because macOS keys the sandbox container on the bundle ID. The move from
+  `com.julianarchila.KasetFork` to `com.julianarchila.Lilt` did this once.
+- Some localized strings still say "Kaset". Their keys are the English text,
+  so renaming them touches the views that use them; that is a separate change.
 - Sparkle is no longer a dependency; the app has no third-party dependencies.
 - Restoring auto-updates later requires a new EdDSA key, an appcast hosted by
   the fork, and Developer ID signing.

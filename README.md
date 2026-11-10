@@ -1,12 +1,12 @@
-<h1 align="center">Kaset</h1>
+<h1 align="center">Lilt</h1>
 
-<p align="center">A personal fork of <a href="https://github.com/sozercan/kaset">Kaset</a>: a native macOS client for YouTube Music, built with Swift and SwiftUI.</p>
+<p align="center">A native macOS client for YouTube Music, built with Swift and SwiftUI. Lilt is a personal fork of <a href="https://github.com/sozercan/kaset">Kaset</a>.</p>
 
 <p align="center">
   <a href="https://trendshift.io/repositories/16570?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-16570"><img src="https://trendshift.io/api/badge/repositories/16570" alt="sozercan/kaset | Trendshift" width="200" height="44"/></a>
 </p>
 
-<p align="center"><img src="docs/screenshot-ytm.png" alt="Kaset YouTube Music screenshot"></p>
+<p align="center"><img src="docs/screenshot-ytm.png" alt="Lilt YouTube Music screenshot"></p>
 
 ## Features
 
@@ -42,7 +42,7 @@
 
 ### Automation & Extensibility
 
-- 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `kasetfork://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play through YouTube Music
+- 🔗 **[URL Scheme](docs/url-scheme.md)** — Open songs directly with `lilt://play?v=VIDEO_ID`; app-targeted YouTube watch and `youtu.be` links play through YouTube Music
 - ⚡️ **[Shortcuts, Siri & Spotlight](docs/shortcuts.md)** — Native actions to play music, playlists, and albums, control playback, and rate songs; Siri phrases; Library playlists and albums in Spotlight
 - 🤖 **[AppleScript Support](docs/applescript.md)** — Automate playback with scripts, Raycast, Alfred, and Shortcuts
 
@@ -53,45 +53,31 @@
 
 ## Installation
 
-### Download
-
-1. Go to the [latest release](https://github.com/sozercan/kaset/releases/latest) page.
-2. Under **Assets**, click the file whose name ends in `.dmg` to download it.
-3. Open the downloaded `.dmg` file from your **Downloads** folder.
-4. In the window that appears, drag the **Kaset** icon onto the **Applications** folder.
-5. Open **Kaset** from your **Applications** folder.
-
-### Opening Kaset for the First Time
-
-Kaset isn't signed or notarized by Apple, so the first time you open it, macOS shows a warning that the app can't be verified. This is expected. Use **one** of the options below to allow it. You only need to do this once.
-
-**Option 1: System Settings (no Terminal needed)**
-
-1. Try to open Kaset once, then close the warning by clicking **Done**.
-2. Open **System Settings** and go to **Privacy & Security**.
-3. Scroll down to the **Security** section and click **Open Anyway** next to Kaset.
-4. Click **Open Anyway** again in the pop-up, then enter your password or use Touch ID.
-
-**Option 2: Terminal**
-
-1. Open **Terminal**: press `⌘ Space`, type `Terminal`, and press Return.
-2. Copy the command below, paste it into the Terminal window, and press Return:
-
-   ```bash
-   xattr -dr com.apple.quarantine /Applications/Kaset.app
-   ```
-
-3. Open Kaset from your **Applications** folder as usual.
-
-### Homebrew
-
-If you already use [Homebrew](https://brew.sh), you can install Kaset with:
+Lilt has no published releases. Build it from source with Xcode 26 or later:
 
 ```bash
-brew install sozercan/repo/kaset
+git clone https://github.com/julianarchila/kaset.git
+cd kaset
+Scripts/build-app.sh release
+cp -R .build/app/Lilt.app /Applications/
 ```
 
-Homebrew handles the security warning for you, so you can skip the steps above.
+The build is signed ad hoc rather than with a Developer ID, so it stores sign-in cookies in a file inside its sandbox container instead of the Keychain.
+
+### Opening Lilt for the First Time
+
+If macOS warns that the app can't be verified the first time you open it, allow it once:
+
+1. Try to open Lilt, then close the warning by clicking **Done**.
+2. Open **System Settings** and go to **Privacy & Security**.
+3. Scroll down to the **Security** section and click **Open Anyway** next to Lilt.
+4. Click **Open Anyway** again in the pop-up, then enter your password or use Touch ID.
+
+Or remove the quarantine flag from Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Lilt.app
+```
 
 ## Contributing
 
@@ -101,4 +87,4 @@ We welcome AI-assisted contributions! You can submit traditional PRs or **prompt
 
 ## Disclaimer
 
-Kaset is an unofficial application and not affiliated with YouTube or Google Inc. in any way. "YouTube", "YouTube Music" and the "YouTube Logo" are registered trademarks of Google Inc.
+Lilt is an unofficial application and not affiliated with YouTube or Google Inc. in any way. "YouTube", "YouTube Music" and the "YouTube Logo" are registered trademarks of Google Inc.

@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Fork bundle name. Matching on the full bundle path keeps this script from
 # killing an upstream Kaset.app installed in /Applications.
-APP_BUNDLE="${ROOT_DIR}/.build/app/KasetFork.app"
+APP_BUNDLE="${ROOT_DIR}/.build/app/Lilt.app"
 APP_PROCESS_PATTERN="${APP_BUNDLE}/Contents/MacOS/Kaset"
 DEBUG_PROCESS_PATTERN="${ROOT_DIR}/.build/debug/Kaset"
 RELEASE_PROCESS_PATTERN="${ROOT_DIR}/.build/release/Kaset"

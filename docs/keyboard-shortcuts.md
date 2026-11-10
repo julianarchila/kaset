@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-Kaset provides keyboard control for playback and navigation while preserving standard macOS window shortcuts.
+Lilt provides keyboard control for playback and navigation while preserving standard macOS window shortcuts.
 
 ## Playback
 
@@ -16,7 +16,7 @@ Kaset provides keyboard control for playback and navigation while preserving sta
 | `⇧⌘M`    | Switch to Mini Player               |
 | `Esc`    | Close the full screen Now Playing view |
 
-Mute is still available from the Playback menu and AppleScript, but Kaset intentionally does not assign a default mute shortcut so the native macOS minimize shortcut (`⌘M`) continues to work.
+Mute is still available from the Playback menu and AppleScript, but Lilt intentionally does not assign a default mute shortcut so the native macOS minimize shortcut (`⌘M`) continues to work.
 
 ## Navigation
 

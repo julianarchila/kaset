@@ -21,7 +21,7 @@ Scripts/compile_and_run.sh --wait
 
 ## What The Scripts Do
 
-- `Scripts/build-app.sh` builds the app and assembles `.build/app/KasetFork.app`. Set `ARCHES` to build for custom architectures.
+- `Scripts/build-app.sh` builds the app and assembles `.build/app/Lilt.app`. Set `ARCHES` to build for custom architectures.
 - `Scripts/compile_and_run.sh` kills running Kaset processes, optionally runs tests and linting, packages a debug app by default, relaunches it, and checks that it stays running. Pass `--release` for a release build.
 - `Scripts/compile_and_run.sh --test` runs the SwiftPM test target before packaging; it does not run the separate Xcode UI-test project.
 
@@ -29,4 +29,4 @@ Scripts/compile_and_run.sh --wait
 
 - `Scripts/build-app.sh`
 - `Scripts/compile_and_run.sh`
-- `.build/app/KasetFork.app`
+- `.build/app/Lilt.app`

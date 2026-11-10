@@ -42,8 +42,8 @@ struct AppDelegateOpenURLTests {
         let observer = self.observeDeliveries(recorder)
         defer { NotificationCenter.default.removeObserver(observer) }
 
-        let first = try self.makeURL("kasetfork://play?v=first")
-        let second = try self.makeURL("kasetfork://play?v=second")
+        let first = try self.makeURL("lilt://play?v=first")
+        let second = try self.makeURL("lilt://play?v=second")
 
         delegate.application(NSApplication.shared, open: [first])
         delegate.application(NSApplication.shared, open: [second])
@@ -63,8 +63,8 @@ struct AppDelegateOpenURLTests {
         let observer = self.observeDeliveries(recorder)
         defer { NotificationCenter.default.removeObserver(observer) }
 
-        let first = try self.makeURL("kasetfork://play?v=first")
-        let second = try self.makeURL("kasetfork://play?v=second")
+        let first = try self.makeURL("lilt://play?v=first")
+        let second = try self.makeURL("lilt://play?v=second")
 
         delegate.beginOpenURLDelivery()
         delegate.application(NSApplication.shared, open: [first])

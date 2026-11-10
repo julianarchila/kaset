@@ -140,7 +140,7 @@ final class AppIntentsBridge {
         self.isStartupComplete = true
     }
 
-    /// Whether playback can start: the same gate `kasetfork://` deep links wait for.
+    /// Whether playback can start: the same gate `lilt://` deep links wait for.
     var isReady: Bool {
         self.playerService != nil && self.isStartupComplete && !self.isAuthInitializing()
     }
@@ -220,7 +220,7 @@ final class AppIntentsBridge {
         return (playerService, client)
     }
 
-    /// Plays a song and continues with its radio, like `kasetfork://play` and AppleScript `play video`.
+    /// Plays a song and continues with its radio, like `lilt://play` and AppleScript `play video`.
     func play(song: Song) async throws {
         // A known-unavailable song would replace the queue without anything to play.
         guard song.isPlayable else { throw AppIntentsError.playbackFailed(title: song.title) }

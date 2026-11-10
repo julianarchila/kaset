@@ -208,8 +208,8 @@ fixes; a timestamped trace settles it in one launch.
 
 Use a throwaway file tracer in the app's **container** tmp
 (`NSTemporaryDirectory()`), `synchronize()` after each line, and read it from
-`~/Library/Containers/com.julianarchila.KasetFork/Data/tmp/` (packaged debug builds use
-`com.julianarchila.KasetFork.debug`):
+`~/Library/Containers/com.julianarchila.Lilt/Data/tmp/` (packaged debug builds use
+`com.julianarchila.Lilt.debug`):
 
 ```swift
 // TEMPORARY DIAGNOSTIC — remove before commit.

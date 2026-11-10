@@ -4,7 +4,7 @@ import os
 /// Centralized logging for the Kaset app.
 enum DiagnosticsLogger {
     /// Unified-logging subsystem for every category below.
-    private static let subsystem = "com.julianarchila.KasetFork"
+    private static let subsystem = "com.julianarchila.Lilt"
 
     /// Logger for authentication-related events.
     static let auth = Logger(subsystem: Self.subsystem, category: "Auth")

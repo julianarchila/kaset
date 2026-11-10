@@ -18,9 +18,9 @@ APP_NAME="Kaset"
 # Fork identity: the user-visible name and bundle ID. Kept distinct from the
 # upstream Kaset app so both can be installed side by side without sharing a
 # sandbox container, cookies, preferences, or URL scheme.
-APP_DISPLAY_NAME="KasetFork"
-APP_URL_SCHEME="kasetfork"
-RELEASE_BUNDLE_ID="com.julianarchila.KasetFork"
+APP_DISPLAY_NAME="Lilt"
+APP_URL_SCHEME="lilt"
+RELEASE_BUNDLE_ID="com.julianarchila.Lilt"
 # Debug bundles get their own sandbox container, so they never share the release
 # app's WebKit cookie jar, saved sign-in data, or preferences.
 if [[ "$(printf '%s' "$CONF" | tr '[:upper:]' '[:lower:]')" == "debug" ]]; then
@@ -632,9 +632,9 @@ ${APP_LOCALIZATIONS_PLIST}
 
     <!-- Core Audio process tap (Equalizer) - macOS 14.2+ TCC requires these -->
     <key>NSAudioCaptureUsageDescription</key>
-    <string>Kaset processes its own music output through a built-in equalizer. This permission only covers Kaset's own playback — no other app's audio is captured.</string>
+    <string>${APP_DISPLAY_NAME} processes its own music output through a built-in equalizer. This permission only covers ${APP_DISPLAY_NAME}'s own playback — no other app's audio is captured.</string>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>Kaset taps its own audio output (not the screen) so the built-in equalizer can apply effects to your music. No screen content is recorded.</string>
+    <string>${APP_DISPLAY_NAME} taps its own audio output (not the screen) so the built-in equalizer can apply effects to your music. No screen content is recorded.</string>
 
     <!-- Build Metadata -->
     <key>KasetBuildTimestamp</key>
