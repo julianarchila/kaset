@@ -59,7 +59,6 @@
 "Community playlists" = "قوائم تشغيل المجتمع";
 "Connect" = "اتصال";
 "Content Language" = "لغة المحتوى";
-"Content may not be available in your region." = "قد لا يكون المحتوى متاحًا في منطقتك.";
 "Continue" = "متابعة";
 "Copy Link" = "نسخ الرابط";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "تعذر التقاط صوت Kaset (الحالة %d). تحقق من إذن تسجيل الشاشة وصوت النظام في إعدادات النظام.";
@@ -166,16 +165,12 @@
 "Loading account" = "جارٍ تحميل الحساب";
 "Loading account…" = "جارٍ تحميل الحساب…";
 "Loading artist..." = "جارٍ تحميل الفنان...";
-"Loading charts..." = "جارٍ تحميل الأكثر رواجًا...";
 "Loading discography..." = "جارٍ تحميل الأعمال الكاملة...";
 "Loading explore content..." = "جارٍ تحميل محتوى الاستكشاف...";
 "Loading lyrics..." = "جارٍ تحميل الكلمات...";
-"Loading moods & genres..." = "جارٍ تحميل الحالات والأنواع...";
 "Loading more..." = "جارٍ تحميل المزيد...";
-"Loading new releases..." = "جارٍ تحميل الإصدارات الجديدة...";
 "Loading playlist..." = "جارٍ تحميل قائمة التشغيل...";
 "Loading Playlists…" = "جارٍ تحميل قوائم التشغيل…";
-"Loading podcasts..." = "جارٍ تحميل البودكاست...";
 "Loading songs..." = "جارٍ تحميل الأغاني...";
 "Loading your library..." = "جارٍ تحميل مكتبتك...";
 "Loading..." = "جارٍ التحميل...";
@@ -185,7 +180,6 @@
 "Minimize" = "تصغير";
 "Mix" = "مزيج";
 "Mix tracks" = "مقاطع المزيج";
-"Moods & Genres" = "حالات وأنواع";
 "More" = "المزيد";
 "Move Down" = "نقل لأسفل";
 "Move to End" = "نقل إلى الأسفل";
@@ -202,7 +196,6 @@
 "No Content Available" = "لا يتوفر محتوى";
 "No history" = "لا يوجد سجل";
 "No Lyrics Available" = "لا تتوفر كلمات";
-"No Moods & Genres Available" = "لا تتوفر حالات أو أنواع";
 "No Playlists" = "لا توجد قوائم تشغيل";
 "No playlists" = "لا توجد قوائم تشغيل";
 "No playlists yet" = "لا توجد قوائم تشغيل بعد";

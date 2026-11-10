@@ -5,13 +5,8 @@ import SwiftUI
 // MARK: - MainWindow
 
 /// Main application window with sidebar navigation and player bar.
-struct MainWindow: View { // swiftlint:disable:this type_body_length
+struct MainWindow: View {
     private static let accountResolutionGateTimeout: Duration = .seconds(2)
-
-    private struct PodcastsProbeTaskID: Hashable {
-        let authGeneration: UInt64
-        let accountID: String
-    }
 
     nonisolated static func shouldMountPersistentPlayer(
         isLoggedIn: Bool,
@@ -28,7 +23,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @Environment(AccountService.self) private var accountService
     @Environment(SongLikeStatusManager.self) private var likeStatusManager
     @Environment(SidebarPinnedItemsManager.self) private var sidebarPinnedItemsManager
-    @Environment(PodcastsAvailabilityService.self) private var podcastsAvailability
     @Environment(\.searchFocusTrigger) private var searchFocusTrigger
     @Environment(\.sidebarNavigationReselectGenerations) private var sidebarNavigationReselectGenerations
     @Environment(\.usesLegacyMacOS15UI) private var usesLegacyMacOS15UI
@@ -61,10 +55,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     @State private var homeViewModel: HomeViewModel?
     @State private var exploreViewModel: ExploreViewModel?
     @State private var searchViewModel: SearchViewModel?
-    @State private var chartsViewModel: ChartsViewModel?
-    @State private var moodsAndGenresViewModel: MoodsAndGenresViewModel?
-    @State private var newReleasesViewModel: NewReleasesViewModel?
-    @State private var podcastsViewModel: PodcastsViewModel?
     @State private var likedMusicViewModel: PlaylistDetailViewModel?
     @State private var libraryViewModel: LibraryViewModel?
     @State private var historyViewModel: HistoryViewModel?
@@ -93,10 +83,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         _homeViewModel = State(initialValue: HomeViewModel(client: client))
         _exploreViewModel = State(initialValue: ExploreViewModel(client: client))
         _searchViewModel = State(initialValue: SearchViewModel(client: client))
-        _chartsViewModel = State(initialValue: ChartsViewModel(client: client))
-        _moodsAndGenresViewModel = State(initialValue: MoodsAndGenresViewModel(client: client))
-        _newReleasesViewModel = State(initialValue: NewReleasesViewModel(client: client))
-        _podcastsViewModel = State(initialValue: PodcastsViewModel(client: client))
         _likedMusicViewModel = State(
             initialValue: PlaylistDetailViewModel(
                 playlist: LikedMusicPlaylist.playlist,
@@ -116,32 +102,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         self.accountLifecycleContent
             .task {
                 NowPlayingManager.shared.configure(playerService: self.playerService)
-            }
-            .task(id: self.accountService.currentAccount?.id) {
-                // Keep PodcastsViewModel in sync with the active account so
-                // 404 / empty results are recorded against the right account.
-                let accountId = self.accountService.currentAccount?.id
-                if let accountId {
-                    self.podcastsAvailability.activateAccount(accountId)
-                }
-                self.podcastsViewModel?.configure(
-                    availabilityService: self.podcastsAvailability,
-                    accountId: accountId
-                )
-            }
-            .task(id: self.podcastsProbeTaskID) {
-                // Probe podcasts availability in the background when the
-                // initial account resolves for an authenticated session.
-                guard self.podcastsProbeTaskID != nil else { return }
-                // Brief delay so post-login cookies have a chance to settle
-                // into the data store the API client reads from. This does not
-                // block content rendering.
-                try? await Task.sleep(for: .milliseconds(200))
-                guard !Task.isCancelled else { return }
-                await self.podcastsAvailability.probe(
-                    for: self.accountService.currentAccount?.id,
-                    using: self.client
-                )
             }
             .task(id: self.accountResolutionGateTaskID) {
                 self.accountResolutionFailOpenGeneration = nil
@@ -263,16 +223,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         .frame(minWidth: MainWindowLayout.minimumWidth, minHeight: MainWindowLayout.minimumHeight)
     }
 
-    private var podcastsProbeTaskID: PodcastsProbeTaskID? {
-        guard self.authService.hasPersonalAccount,
-              self.accountService.didCompleteAccountResolution
-        else { return nil }
-        return PodcastsProbeTaskID(
-            authGeneration: self.authService.accountIdentityGeneration,
-            accountID: self.accountService.currentAccount?.id ?? "primary"
-        )
-    }
-
     private var accountResolutionGateTaskID: UInt64? {
         guard self.authService.hasPersonalAccount,
               !self.accountService.didCompleteAccountResolution
@@ -348,24 +298,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 let isReverification = self.accountService.currentAccount?.id == verifiedAccountId
                 self.playerService.reloadCurrentTrackForIdentitySwitch(invalidatesLikeSession: !isReverification)
             }
-            .onChange(of: self.podcastsAvailability.availability) { oldValue, newValue in
-                // If the user is sitting on the Podcasts tab when it flips
-                // unavailable, redirect to Home so they don't end up on a
-                // sidebar row that no longer exists.
-                if newValue == .unavailable, self.navigationSelection == .podcasts {
-                    self.navigationSelection = .home
-                }
-
-                // Switching back from an unavailable account keeps the
-                // Podcasts VM reset/idle until the probe confirms the new
-                // account is available. Eagerly refresh then so the tab does
-                // not remain on the prior account's loaded-empty state.
-                if oldValue == .unavailable, newValue == .available {
-                    Task { @MainActor in
-                        await self.podcastsViewModel?.refresh()
-                    }
-                }
-            }
     }
 
     // MARK: - Main Content
@@ -394,13 +326,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         )
         self.playerService.resetTrackStatus()
         self.searchViewModel?.clear()
-        self.podcastsViewModel?.configure(
-            availabilityService: self.podcastsAvailability,
-            accountId: newAccountId
-        )
-        if let newAccountId {
-            self.podcastsAvailability.activateAccount(newAccountId)
-        }
         Task { @MainActor in
             if isInitialScopeResolution {
                 guard self.authService.hasPersonalAccount,
@@ -634,22 +559,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 if let vm = searchViewModel {
                     SearchView(viewModel: vm)
                 }
-            case .charts:
-                if let vm = chartsViewModel {
-                    ChartsView(viewModel: vm)
-                }
-            case .moodsAndGenres:
-                if let vm = moodsAndGenresViewModel {
-                    MoodsAndGenresView(viewModel: vm)
-                }
-            case .newReleases:
-                if let vm = newReleasesViewModel {
-                    NewReleasesView(viewModel: vm)
-                }
-            case .podcasts:
-                if let vm = podcastsViewModel {
-                    PodcastsView(viewModel: vm)
-                }
             case .likedMusic:
                 if self.requiresSignIn(item) {
                     self.signInRequiredView(for: item)
@@ -775,9 +684,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             if shouldRefreshGuestContent {
                 self.client.resetSessionStateForAccountSwitch()
                 self.rebuildMusicViewModels()
-                // Reset podcasts availability so the next sign-in re-probes
-                // the endpoint.
-                self.podcastsAvailability.reset()
             }
             if !isReauthTransition {
                 self.normalizeGuestSelections()
@@ -796,7 +702,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
                 // Replace any mounted guest/expired models so in-flight responses
                 // cannot populate the authenticated shell after login or reauth.
                 self.client.resetSessionStateForAccountSwitch()
-                self.rebuildMusicViewModels(accountId: self.accountService.currentAccount?.id)
+                self.rebuildMusicViewModels()
                 self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: false)
             }
             self.showLoginSheet = false
@@ -842,7 +748,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         guard self.authService.state.isLoggedIn else { return }
         self.guestRefreshTask?.cancel()
         self.guestRefreshTask = nil
-        self.podcastsAvailability.reset()
 
         if isGuestModeEnabled {
             self.client.resetSessionStateForAccountSwitch()
@@ -852,7 +757,7 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
             self.scheduleGuestContentRefresh()
         } else {
             self.client.resetSessionStateForAccountSwitch()
-            self.rebuildMusicViewModels(accountId: self.accountService.currentAccount?.id)
+            self.rebuildMusicViewModels()
             self.playerService.reloadCurrentTrackForAuthDataStoreChange(usesCookieFreeDataStore: false)
             Task { @MainActor in
                 await self.accountService.fetchAccounts()
@@ -861,17 +766,11 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         }
     }
 
-    private func rebuildMusicViewModels(accountId: String? = nil) {
+    private func rebuildMusicViewModels() {
         LibraryMutationActions.cancelAllPendingLibraryMutations()
         self.homeViewModel = HomeViewModel(client: self.client)
         self.exploreViewModel = ExploreViewModel(client: self.client)
         self.searchViewModel = SearchViewModel(client: self.client)
-        self.chartsViewModel = ChartsViewModel(client: self.client)
-        self.moodsAndGenresViewModel = MoodsAndGenresViewModel(client: self.client)
-        self.newReleasesViewModel = NewReleasesViewModel(client: self.client)
-        let podcastsViewModel = PodcastsViewModel(client: self.client)
-        podcastsViewModel.configure(availabilityService: self.podcastsAvailability, accountId: accountId)
-        self.podcastsViewModel = podcastsViewModel
         self.likedMusicViewModel = PlaylistDetailViewModel(
             playlist: LikedMusicPlaylist.playlist,
             client: self.client
@@ -924,13 +823,6 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
         // tasks that capture `self` and mutate UI state off actor.
         await self.homeViewModel?.refresh()
         await self.exploreViewModel?.refresh()
-        await self.chartsViewModel?.refresh()
-        await self.moodsAndGenresViewModel?.refresh()
-        await self.newReleasesViewModel?.refresh()
-        self.podcastsAvailability.activateAccount(nil)
-        if self.podcastsAvailability.availability != .unavailable {
-            await self.podcastsViewModel?.refresh()
-        }
     }
 
     /// Refreshes all content when switching accounts.
@@ -939,20 +831,9 @@ struct MainWindow: View { // swiftlint:disable:this type_body_length
     /// and brand accounts, ensuring all views display content for the new account.
     private func refreshAllContent() async {
         // Parallel refresh of all content views.
-        // The podcasts refresh is gated on the latest availability
-        // signal so a brand-account switch into a region without
-        // podcasts doesn't fire the spurious 404 the bug is about. The
-        // account-keyed task re-evaluates availability separately.
-        let podcastsAvailable = self.podcastsAvailability.availability != .unavailable
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.homeViewModel?.refresh() }
             group.addTask { await self.exploreViewModel?.refresh() }
-            group.addTask { await self.chartsViewModel?.refresh() }
-            group.addTask { await self.moodsAndGenresViewModel?.refresh() }
-            group.addTask { await self.newReleasesViewModel?.refresh() }
-            if podcastsAvailable {
-                group.addTask { await self.podcastsViewModel?.refresh() }
-            }
             group.addTask { await self.likedMusicViewModel?.refresh() }
             group.addTask { await self.historyViewModel?.load() }
             group.addTask { await self.libraryViewModel?.refresh() }
@@ -993,10 +874,6 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
     case home = "Home"
     case explore = "Explore"
     case search = "Search"
-    case charts = "Charts"
-    case moodsAndGenres = "Moods & Genres"
-    case newReleases = "New Releases"
-    case podcasts = "Podcasts"
     case likedMusic = "Liked Music"
     case libraryArtists = "Artists"
     case libraryAlbums = "Albums"
@@ -1016,14 +893,6 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             String(localized: "Explore")
         case .search:
             String(localized: "Search")
-        case .charts:
-            String(localized: "Charts")
-        case .moodsAndGenres:
-            String(localized: "Moods & Genres")
-        case .newReleases:
-            String(localized: "New Releases")
-        case .podcasts:
-            String(localized: "Podcasts")
         case .likedMusic:
             String(localized: "Liked Music")
         case .libraryArtists:
@@ -1047,14 +916,6 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
             "globe"
         case .search:
             "magnifyingglass"
-        case .charts:
-            "chart.line.uptrend.xyaxis"
-        case .moodsAndGenres:
-            "theatermask.and.paintbrush"
-        case .newReleases:
-            "sparkles"
-        case .podcasts:
-            "mic.fill"
         case .likedMusic:
             "heart.fill"
         case .libraryArtists:
@@ -1072,7 +933,7 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
 
     var requiresSignIn: Bool {
         switch self {
-        case .home, .explore, .search, .charts, .moodsAndGenres, .newReleases, .podcasts:
+        case .home, .explore, .search:
             false
         case .likedMusic, .libraryArtists, .libraryAlbums, .libraryPodcasts, .libraryPlaylists, .history:
             true

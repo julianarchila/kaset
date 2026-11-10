@@ -59,7 +59,6 @@
 "Community playlists" = "Community-afspeellijsten";
 "Connect" = "Verbind";
 "Content Language" = "Inhoudstaal";
-"Content may not be available in your region." = "Inhoud is mogelijk niet beschikbaar in jouw regio.";
 "Continue" = "Ga door";
 "Copy Link" = "Link kopiëren";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Kon het audio van Kaset niet vastleggen (status %d). Controleer de toestemming voor Scherm- en systeemaudio-opname in Systeeminstellingen.";
@@ -166,16 +165,12 @@
 "Loading account" = "Account laden";
 "Loading account…" = "Account laden…";
 "Loading artist..." = "Artiest wordt geladen…";
-"Loading charts..." = "Hitlijsten worden geladen…";
 "Loading discography..." = "Discografie laden...";
 "Loading explore content..." = "Verkenningsinhoud wordt geladen…";
 "Loading lyrics..." = "Songteksten worden geladen…";
-"Loading moods & genres..." = "Sferen en genres worden geladen…";
 "Loading more..." = "Meer laden…";
-"Loading new releases..." = "Nieuwe releases worden geladen…";
 "Loading playlist..." = "Afspeellijst wordt geladen…";
 "Loading Playlists…" = "Afspeellijsten laden…";
-"Loading podcasts..." = "Podcasts worden geladen…";
 "Loading songs..." = "Nummers worden geladen…";
 "Loading your library..." = "Je bibliotheek wordt geladen…";
 "Loading..." = "Laden…";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimaliseer";
 "Mix" = "Mix";
 "Mix tracks" = "Mixtracks";
-"Moods & Genres" = "Sferen en genres";
 "More" = "Meer";
 "Move Down" = "Omlaag";
 "Move to End" = "Verplaats naar einde";
@@ -202,7 +196,6 @@
 "No Content Available" = "Geen inhoud beschikbaar";
 "No history" = "Geen geschiedenis";
 "No Lyrics Available" = "Geen songteksten beschikbaar";
-"No Moods & Genres Available" = "Geen sferen en genres beschikbaar";
 "No Playlists" = "Geen afspeellijsten";
 "No playlists" = "Geen afspeellijsten";
 "No playlists yet" = "Nog geen afspeellijsten";

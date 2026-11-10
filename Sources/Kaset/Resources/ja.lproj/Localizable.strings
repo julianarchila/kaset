@@ -56,7 +56,6 @@
 "Community playlists" = "コミュニティプレイリスト";
 "Connect" = "接続";
 "Content Language" = "コンテンツの言語";
-"Content may not be available in your region." = "お住まいの地域ではコンテンツを利用できない場合があります。";
 "Continue" = "続ける";
 "Copy Link" = "リンクをコピー";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Kaset のオーディオをキャプチャできませんでした（ステータス %d）。システム設定の「画面とシステムオーディオの録音」権限を確認してください。";
@@ -162,15 +161,11 @@
 "Loading account" = "アカウントを読み込み中";
 "Loading account…" = "アカウントを読み込み中…";
 "Loading artist..." = "アーティストを読み込み中…";
-"Loading charts..." = "チャートを読み込み中…";
 "Loading discography..." = "ディスコグラフィを読み込み中…";
 "Loading explore content..." = "探索コンテンツを読み込み中…";
 "Loading lyrics..." = "歌詞を読み込み中…";
-"Loading moods & genres..." = "ムードとジャンルを読み込み中…";
 "Loading more..." = "さらに読み込み中…";
-"Loading new releases..." = "新着リリースを読み込み中…";
 "Loading playlist..." = "プレイリストを読み込み中…";
-"Loading podcasts..." = "ポッドキャストを読み込み中…";
 "Loading songs..." = "曲を読み込み中…";
 "Loading your library..." = "ライブラリを読み込み中…";
 "Loading..." = "読み込み中…";
@@ -180,7 +175,6 @@
 "Minimize" = "最小化";
 "Mix" = "ミックス";
 "Mix tracks" = "ミックスのトラック";
-"Moods & Genres" = "ムードとジャンル";
 "More" = "その他";
 "Move Down" = "下へ移動";
 "Move Up" = "上へ移動";
@@ -195,7 +189,6 @@
 "No Connection" = "接続なし";
 "No Content Available" = "利用可能なコンテンツはありません";
 "No Lyrics Available" = "利用できる歌詞はありません";
-"No Moods & Genres Available" = "利用可能なムードとジャンルはありません";
 "No Playlists" = "プレイリストなし";
 "No Queue" = "キューなし";
 "No Song Playing" = "再生中の曲はありません";

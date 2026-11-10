@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented, amended 2026-08-29
+Superseded by [ADR-0043](0043-sidebar-library-layout.md) (implemented, amended 2026-08-29)
 
 ## Context
 

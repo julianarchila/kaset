@@ -18,22 +18,6 @@ final class MockUITestYTMusicClient: YTMusicClientProtocol {
         false
     }
 
-    var hasMoreChartsSections: Bool {
-        false
-    }
-
-    var hasMoreMoodsAndGenresSections: Bool {
-        false
-    }
-
-    var hasMoreNewReleasesSections: Bool {
-        false
-    }
-
-    var hasMorePodcastsSections: Bool {
-        false
-    }
-
     var hasMoreHistorySections: Bool {
         false
     }
@@ -89,51 +73,12 @@ final class MockUITestYTMusicClient: YTMusicClientProtocol {
         nil
     }
 
-    func getCharts() async throws -> HomeResponse {
-        try? await Task.sleep(for: .milliseconds(100))
-        return HomeResponse(sections: Self.defaultHomeSections())
-    }
-
-    func getChartsContinuation() async throws -> [HomeSection]? {
-        nil
-    }
-
-    func getMoodsAndGenres() async throws -> HomeResponse {
-        try? await Task.sleep(for: .milliseconds(100))
-        return HomeResponse(sections: Self.defaultHomeSections())
-    }
-
-    func getMoodsAndGenresContinuation() async throws -> [HomeSection]? {
-        nil
-    }
-
-    func getNewReleases() async throws -> HomeResponse {
-        try? await Task.sleep(for: .milliseconds(100))
-        return HomeResponse(sections: Self.defaultHomeSections())
-    }
-
-    func getNewReleasesContinuation() async throws -> [HomeSection]? {
-        nil
-    }
-
     func getHistory() async throws -> HomeResponse {
         try? await Task.sleep(for: .milliseconds(100))
         return HomeResponse(sections: Self.defaultHomeSections())
     }
 
     func getHistoryContinuation() async throws -> [HomeSection]? {
-        nil
-    }
-
-    func getPodcasts() async throws -> [PodcastSection] {
-        try? await Task.sleep(for: .milliseconds(100))
-        if UITestConfig.environmentValue(for: UITestConfig.mockPodcastsRegionUnavailableKey) == "true" {
-            throw YTMusicError.apiError(message: "HTTP 404", code: 404)
-        }
-        return []
-    }
-
-    func getPodcastsContinuation() async throws -> [PodcastSection]? {
         nil
     }
 

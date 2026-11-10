@@ -59,7 +59,6 @@
 "Community playlists" = "Community-Playlists";
 "Connect" = "Verbinden";
 "Content Language" = "Inhaltssprache";
-"Content may not be available in your region." = "Inhalte sind in deiner Region möglicherweise nicht verfügbar.";
 "Continue" = "Fortfahren";
 "Copy Link" = "Link kopieren";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Kasets Audio konnte nicht erfasst werden (Status %d). Prüfe die Berechtigung für Bildschirm- und Systemaudioaufnahme in den Systemeinstellungen.";
@@ -166,16 +165,12 @@
 "Loading account" = "Account wird geladen";
 "Loading account…" = "Account wird geladen…";
 "Loading artist..." = "Interpret wird geladen…";
-"Loading charts..." = "Charts werden geladen…";
 "Loading discography..." = "Diskografie wird geladen...";
 "Loading explore content..." = "Entdecken-Inhalte werden geladen…";
 "Loading lyrics..." = "Songtext wird geladen…";
-"Loading moods & genres..." = "Stimmungen und Genres werden geladen…";
 "Loading more..." = "Mehr wird geladen…";
-"Loading new releases..." = "Neuerscheinungen werden geladen…";
 "Loading playlist..." = "Playlist wird geladen…";
 "Loading Playlists…" = "Playlists werden geladen…";
-"Loading podcasts..." = "Podcasts werden geladen…";
 "Loading songs..." = "Titel werden geladen…";
 "Loading your library..." = "Deine Mediathek wird geladen…";
 "Loading..." = "Wird geladen…";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimieren";
 "Mix" = "Mix";
 "Mix tracks" = "Mix-Titel";
-"Moods & Genres" = "Stimmungen und Genres";
 "More" = "Mehr";
 "Move Down" = "Nach unten";
 "Move to End" = "Ans Ende verschieben";
@@ -202,7 +196,6 @@
 "No Content Available" = "Keine Inhalte verfügbar";
 "No history" = "Kein Verlauf";
 "No Lyrics Available" = "Kein Songtext verfügbar";
-"No Moods & Genres Available" = "Keine Stimmungen und Genres verfügbar";
 "No Playlists" = "Keine Playlists";
 "No playlists" = "Keine Playlists";
 "No playlists yet" = "Noch keine Playlists";

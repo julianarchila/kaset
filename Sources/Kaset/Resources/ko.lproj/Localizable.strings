@@ -59,7 +59,6 @@
 "Community playlists" = "커뮤니티 재생목록";
 "Connect" = "연결";
 "Content Language" = "콘텐츠 언어";
-"Content may not be available in your region." = "해당 지역에서 콘텐츠를 사용하지 못할 수 있습니다.";
 "Continue" = "계속";
 "Copy Link" = "링크 복사";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Kaset의 오디오를 캡처할 수 없습니다(상태 %d). 시스템 설정에서 화면 및 시스템 오디오 녹음 권한을 확인하세요.";
@@ -166,16 +165,12 @@
 "Loading account" = "계정 불러오는 중";
 "Loading account…" = "계정 불러오는 중…";
 "Loading artist..." = "아티스트 로드 중...";
-"Loading charts..." = "차트 로드 중...";
 "Loading discography..." = "디스코그래피 불러오는 중...";
 "Loading explore content..." = "둘러보기 콘텐츠 로드 중...";
 "Loading lyrics..." = "가사 로드 중...";
-"Loading moods & genres..." = "분위기 및 장르 로드 중...";
 "Loading more..." = "더 로드 중...";
-"Loading new releases..." = "새 앨범 로드 중...";
 "Loading playlist..." = "재생목록 로드 중...";
 "Loading Playlists…" = "재생목록 불러오는 중…";
-"Loading podcasts..." = "팟캐스트 로드 중...";
 "Loading songs..." = "노래 로드 중...";
 "Loading your library..." = "보관함 로드 중...";
 "Loading..." = "로드 중...";
@@ -185,7 +180,6 @@
 "Minimize" = "최소화";
 "Mix" = "믹스";
 "Mix tracks" = "믹스 트랙";
-"Moods & Genres" = "분위기 및 장르";
 "More" = "더 보기";
 "Move Down" = "아래로 이동";
 "Move to End" = "맨 끝으로 이동";
@@ -202,7 +196,6 @@
 "No Content Available" = "사용 가능한 콘텐츠 없음";
 "No history" = "기록 없음";
 "No Lyrics Available" = "가사 없음";
-"No Moods & Genres Available" = "분위기 및 장르 없음";
 "No Playlists" = "재생목록 없음";
 "No playlists" = "재생목록 없음";
 "No playlists yet" = "아직 재생목록이 없습니다";

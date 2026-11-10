@@ -59,7 +59,6 @@
 "Community playlists" = "Playlists de la comunidad";
 "Connect" = "Conectar";
 "Content Language" = "Idioma del contenido";
-"Content may not be available in your region." = "Es posible que el contenido no esté disponible en tu región.";
 "Continue" = "Continuar";
 "Copy Link" = "Copiar enlace";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "No se pudo capturar el audio de Kaset (estado %d). Revisa el permiso de Grabación de Pantalla y Audio del Sistema en Ajustes del Sistema.";
@@ -166,16 +165,12 @@
 "Loading account" = "Cargando cuenta";
 "Loading account…" = "Cargando cuenta…";
 "Loading artist..." = "Cargando artista…";
-"Loading charts..." = "Cargando éxitos…";
 "Loading discography..." = "Cargando discografía...";
 "Loading explore content..." = "Cargando contenido de Explorar…";
 "Loading lyrics..." = "Cargando letras…";
-"Loading moods & genres..." = "Cargando estados de ánimo y géneros…";
 "Loading more..." = "Cargando más…";
-"Loading new releases..." = "Cargando novedades…";
 "Loading playlist..." = "Cargando playlist…";
 "Loading Playlists…" = "Cargando playlists…";
-"Loading podcasts..." = "Cargando podcasts…";
 "Loading songs..." = "Cargando canciones…";
 "Loading your library..." = "Cargando tu biblioteca…";
 "Loading..." = "Cargando…";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimizar";
 "Mix" = "Mix";
 "Mix tracks" = "Pistas de la mezcla";
-"Moods & Genres" = "Estados de ánimo y géneros";
 "More" = "Más";
 "Move Down" = "Bajar";
 "Move to End" = "Mover al final";
@@ -202,7 +196,6 @@
 "No Content Available" = "No hay contenido disponible";
 "No history" = "Sin historial";
 "No Lyrics Available" = "No hay letras disponibles";
-"No Moods & Genres Available" = "No hay estados de ánimo ni géneros disponibles";
 "No Playlists" = "No hay playlists";
 "No playlists" = "No hay playlists";
 "No playlists yet" = "Todavía no hay playlists";

@@ -28,7 +28,7 @@
 
 - 📚 **Library Access** — Browse playlists, liked songs, and subscribed podcasts; create playlists, add songs to playlists, and delete your own playlists
 - 🧭 **Explore** — Discover new releases, charts, and moods & genres
-- 🎙️ **Podcasts** — Browse and listen to podcasts with episode progress tracking
+- 🎙️ **Podcasts** — Listen to your saved podcasts with episode progress tracking
 - 🔍 **Search** — Find songs, albums, artists, playlists, and podcasts
 - 🕓 **History** — Revisit recently played tracks
 

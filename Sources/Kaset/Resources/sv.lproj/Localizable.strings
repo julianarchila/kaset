@@ -59,7 +59,6 @@
 "Community playlists" = "Spellistor från communityn";
 "Connect" = "Anslut";
 "Content Language" = "Innehållsspråk";
-"Content may not be available in your region." = "Innehållet kanske inte är tillgängligt i din region.";
 "Continue" = "Fortsätt";
 "Copy Link" = "Kopiera länk";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Det gick inte att fånga Kasets ljud (status %d). Kontrollera behörigheten för skärm- och systemljudinspelning i Systeminställningar.";
@@ -166,16 +165,12 @@
 "Loading account" = "Läser in konto";
 "Loading account…" = "Läser in konto…";
 "Loading artist..." = "Läser in artist…";
-"Loading charts..." = "Läser in topplistor…";
 "Loading discography..." = "Läser in diskografi...";
 "Loading explore content..." = "Läser in utforskningsinnehåll…";
 "Loading lyrics..." = "Läser in sångtext…";
-"Loading moods & genres..." = "Läser in stämningar och genrer…";
 "Loading more..." = "Läser in…";
-"Loading new releases..." = "Läser in nya utgåvor…";
 "Loading playlist..." = "Läser in spellista…";
 "Loading Playlists…" = "Läser in spellistor…";
-"Loading podcasts..." = "Läser in poddar…";
 "Loading songs..." = "Läser in låtar…";
 "Loading your library..." = "Läser in ditt bibliotek…";
 "Loading..." = "Läser in…";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimera";
 "Mix" = "Mix";
 "Mix tracks" = "Mixspår";
-"Moods & Genres" = "Stämningar och genrer";
 "More" = "Mer";
 "Move Down" = "Flytta ned";
 "Move to End" = "Flytta till slutet";
@@ -202,7 +196,6 @@
 "No Content Available" = "Inget innehåll tillgängligt";
 "No history" = "Ingen historik";
 "No Lyrics Available" = "Ingen sångtext tillgänglig";
-"No Moods & Genres Available" = "Inga stämningar och genrer tillgängliga";
 "No Playlists" = "Inga spellistor";
 "No playlists" = "Inga spellistor";
 "No playlists yet" = "Inga spellistor ännu";

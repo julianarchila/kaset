@@ -22,6 +22,10 @@ own playlists only appeared after pinning them by hand.
 - New Releases, Charts, Moods & Genres, and Podcasts have no sidebar rows;
   Explore already links to new releases, charts, and moods & genres. They are
   also no longer launch-page options (a stored one falls back to the default).
+  Their full-page screens (ChartsView, MoodsAndGenresView, NewReleasesView,
+  PodcastsView) and view models, the client endpoints only they used, and
+  `PodcastsAvailabilityService` (which gated the Podcasts row; ADR-0019) are
+  removed. Saved Podcasts keeps `PodcastShowView` and the episode views.
   Sections use the native sidebar disclosure control:
   a custom header button cannot toggle `Section(isExpanded:)` reliably,
   because the binding it receives inside a sidebar `List` header never updates

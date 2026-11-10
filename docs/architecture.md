@@ -333,7 +333,7 @@ Manages user preferences persisted via `UserDefaults`:
 | `rememberPlaybackSettings` | `Bool` | `false` | Persist shuffle/repeat state |
 | `syncedLyricsEnabled` | `Bool` | `true` | Enable synced lyrics provider lookup before plain lyrics fallback |
 
-**Music LaunchPage Options**: Home, Explore, Charts, Moods & Genres, New Releases, Liked Music, Playlists, Last Used
+**Music LaunchPage Options**: Home, Explore, Liked Music, Playlists, Last Used
 
 ### EqualizerService
 

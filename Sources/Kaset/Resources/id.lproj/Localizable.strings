@@ -59,7 +59,6 @@
 "Community playlists" = "Daftar putar komunitas";
 "Connect" = "Hubungkan";
 "Content Language" = "Bahasa Konten";
-"Content may not be available in your region." = "Konten mungkin tidak tersedia di wilayah Anda.";
 "Continue" = "Lanjutkan";
 "Copy Link" = "Salin Tautan";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Tidak dapat menangkap audio Kaset (status %d). Periksa izin Perekaman Layar & Audio Sistem di Pengaturan Sistem.";
@@ -166,16 +165,12 @@
 "Loading account" = "Memuat akun";
 "Loading account…" = "Memuat akun…";
 "Loading artist..." = "Memuat artis...";
-"Loading charts..." = "Memuat tangga lagu...";
 "Loading discography..." = "Memuat diskografi...";
 "Loading explore content..." = "Memuat konten jelajah...";
 "Loading lyrics..." = "Memuat lirik...";
-"Loading moods & genres..." = "Memuat suasana hati & genre...";
 "Loading more..." = "Memuat lainnya...";
-"Loading new releases..." = "Memuat rilis baru...";
 "Loading playlist..." = "Memuat daftar putar...";
 "Loading Playlists…" = "Memuat Playlist…";
-"Loading podcasts..." = "Memuat podcast...";
 "Loading songs..." = "Memuat lagu...";
 "Loading your library..." = "Memuat pustaka Anda...";
 "Loading..." = "Memuat...";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimalkan";
 "Mix" = "Mix";
 "Mix tracks" = "Trek mix";
-"Moods & Genres" = "Suasana & Genre";
 "More" = "Lainnya";
 "Move Down" = "Geser ke Bawah";
 "Move to End" = "Pindah ke Akhir";
@@ -202,7 +196,6 @@
 "No Content Available" = "Tidak Ada Konten";
 "No history" = "Tidak ada riwayat";
 "No Lyrics Available" = "Tidak Ada Lirik";
-"No Moods & Genres Available" = "Tidak Ada Suasana & Genre";
 "No Playlists" = "Tidak Ada Playlist";
 "No playlists" = "Tidak ada playlist";
 "No playlists yet" = "Belum ada daftar putar";

@@ -10,10 +10,6 @@ import os
 enum PaginatedContentType: String, Hashable {
     case home = "FEmusic_home"
     case explore = "FEmusic_explore"
-    case charts = "FEmusic_charts"
-    case moodsAndGenres = "FEmusic_moods_and_genres"
-    case newReleases = "FEmusic_new_releases"
-    case podcasts = "FEmusic_podcasts"
     case history = "FEmusic_history"
 
     /// Display name for logging.
@@ -21,10 +17,6 @@ enum PaginatedContentType: String, Hashable {
         switch self {
         case .home: "home"
         case .explore: "explore"
-        case .charts: "charts"
-        case .moodsAndGenres: "moods and genres"
-        case .newReleases: "new releases"
-        case .podcasts: "podcasts"
         case .history: "history"
         }
     }
@@ -265,51 +257,6 @@ final class YTMusicClient: YTMusicClientProtocol {
         self.hasMoreSections(for: .explore)
     }
 
-    /// Fetches the charts page content (initial sections only for fast display).
-    func getCharts() async throws -> HomeResponse {
-        try await self.fetchPaginatedContent(type: .charts)
-    }
-
-    /// Fetches the next batch of charts sections via continuation.
-    func getChartsContinuation() async throws -> [HomeSection]? {
-        try await self.fetchContinuation(type: .charts)
-    }
-
-    /// Whether more charts sections are available to load.
-    var hasMoreChartsSections: Bool {
-        self.hasMoreSections(for: .charts)
-    }
-
-    /// Fetches the moods and genres page content (initial sections only for fast display).
-    func getMoodsAndGenres() async throws -> HomeResponse {
-        try await self.fetchPaginatedContent(type: .moodsAndGenres)
-    }
-
-    /// Fetches the next batch of moods and genres sections via continuation.
-    func getMoodsAndGenresContinuation() async throws -> [HomeSection]? {
-        try await self.fetchContinuation(type: .moodsAndGenres)
-    }
-
-    /// Whether more moods and genres sections are available to load.
-    var hasMoreMoodsAndGenresSections: Bool {
-        self.hasMoreSections(for: .moodsAndGenres)
-    }
-
-    /// Fetches the new releases page content (initial sections only for fast display).
-    func getNewReleases() async throws -> HomeResponse {
-        try await self.fetchPaginatedContent(type: .newReleases)
-    }
-
-    /// Fetches the next batch of new releases sections via continuation.
-    func getNewReleasesContinuation() async throws -> [HomeSection]? {
-        try await self.fetchContinuation(type: .newReleases)
-    }
-
-    /// Whether more new releases sections are available to load.
-    var hasMoreNewReleasesSections: Bool {
-        self.hasMoreSections(for: .newReleases)
-    }
-
     /// Fetches the history page content (initial sections only for fast display).
     /// No cache — history changes with every song played.
     func getHistory() async throws -> HomeResponse {
@@ -348,63 +295,6 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Whether more history sections are available to load.
     var hasMoreHistorySections: Bool {
         self.hasMoreSections(for: .history)
-    }
-
-    /// Fetches the podcasts page content (initial sections only for fast display).
-    func getPodcasts() async throws -> [PodcastSection] {
-        self.logger.info("Fetching podcasts page")
-
-        let body: [String: Any] = [
-            "browseId": PaginatedContentType.podcasts.rawValue,
-        ]
-
-        let generation = self.continuationGeneration
-        let data = try await request("browse", body: body, ttl: APICache.TTL.home)
-        let sections = PodcastParser.parseDiscovery(data)
-
-        // Store continuation token for progressive loading
-        let token = HomeResponseParser.extractContinuationToken(from: data)
-        if generation == self.continuationGeneration {
-            self.continuationTokens[.podcasts] = token
-        }
-
-        let hasMore = generation == self.continuationGeneration && token != nil
-        self.logger.info("Podcasts page loaded: \(sections.count) initial sections, hasMore: \(hasMore)")
-        return sections
-    }
-
-    /// Fetches the next batch of podcasts sections via continuation.
-    func getPodcastsContinuation() async throws -> [PodcastSection]? {
-        guard let token = continuationTokens[.podcasts] else {
-            self.logger.debug("No podcasts continuation token available")
-            return nil
-        }
-
-        self.logger.info("Fetching podcasts continuation")
-        let generation = self.continuationGeneration
-
-        do {
-            let continuationData = try await requestContinuation(token)
-            let additionalSections = PodcastParser.parseContinuation(continuationData)
-            guard generation == self.continuationGeneration else {
-                self.logger.info("Discarding stale podcasts continuation after session reset")
-                return nil
-            }
-            self.continuationTokens[.podcasts] = HomeResponseParser.extractContinuationTokenFromContinuation(continuationData)
-            let hasMore = self.continuationTokens[.podcasts] != nil
-
-            self.logger.info("Podcasts continuation loaded: \(additionalSections.count) sections, hasMore: \(hasMore)")
-            return additionalSections
-        } catch {
-            self.logger.warning("Failed to fetch podcasts continuation: \(error.localizedDescription)")
-            self.continuationTokens[.podcasts] = nil
-            throw error
-        }
-    }
-
-    /// Whether more podcasts sections are available to load.
-    var hasMorePodcastsSections: Bool {
-        self.hasMoreSections(for: .podcasts)
     }
 
     /// Fetches details for a podcast show including its episodes.

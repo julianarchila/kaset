@@ -59,7 +59,6 @@
 "Community playlists" = "Playlists de la communauté";
 "Connect" = "Connecter";
 "Content Language" = "Langue du contenu";
-"Content may not be available in your region." = "Le contenu peut ne pas être disponible dans votre région.";
 "Continue" = "Continuer";
 "Copy Link" = "Copier le lien";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Impossible de capturer l'audio de Kaset (état %d). Vérifiez l'autorisation Enregistrement de l'écran et de l'audio système dans Réglages Système.";
@@ -166,16 +165,12 @@
 "Loading account" = "Chargement du compte";
 "Loading account…" = "Chargement du compte…";
 "Loading artist..." = "Chargement de l'artiste...";
-"Loading charts..." = "Chargement des classements...";
 "Loading discography..." = "Chargement de la discographie...";
 "Loading explore content..." = "Chargement du contenu à explorer...";
 "Loading lyrics..." = "Chargement des paroles...";
-"Loading moods & genres..." = "Chargement des ambiances et genres...";
 "Loading more..." = "Chargement...";
-"Loading new releases..." = "Chargement des nouveautés...";
 "Loading playlist..." = "Chargement de la playlist...";
 "Loading Playlists…" = "Chargement des playlists…";
-"Loading podcasts..." = "Chargement des podcasts...";
 "Loading songs..." = "Chargement des morceaux...";
 "Loading your library..." = "Chargement de votre bibliothèque...";
 "Loading..." = "Chargement...";
@@ -185,7 +180,6 @@
 "Minimize" = "Réduire";
 "Mix" = "Mix";
 "Mix tracks" = "Titres du mix";
-"Moods & Genres" = "Ambiances et genres";
 "More" = "Plus";
 "Move Down" = "Descendre";
 "Move to End" = "Déplacer à la fin";
@@ -202,7 +196,6 @@
 "No Content Available" = "Aucun contenu disponible";
 "No history" = "Aucun historique";
 "No Lyrics Available" = "Aucune parole disponible";
-"No Moods & Genres Available" = "Aucune ambiance et genre disponible";
 "No Playlists" = "Aucune playlist";
 "No playlists" = "Aucune playlist";
 "No playlists yet" = "Aucune playlist pour le moment";

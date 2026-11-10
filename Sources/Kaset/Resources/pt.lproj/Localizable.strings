@@ -59,7 +59,6 @@
 "Community playlists" = "Listas de reprodução da comunidade";
 "Connect" = "Ligar";
 "Content Language" = "Idioma do conteúdo";
-"Content may not be available in your region." = "O conteúdo poderá não estar disponível na sua região.";
 "Continue" = "Continuar";
 "Copy Link" = "Copiar ligação";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Não foi possível capturar o áudio do Kaset (estado %d). Verifique a permissão Gravação do ecrã e áudio do sistema nas Definições do Sistema.";
@@ -166,16 +165,12 @@
 "Loading account" = "A carregar conta";
 "Loading account…" = "A carregar conta…";
 "Loading artist..." = "A carregar artista…";
-"Loading charts..." = "A carregar tops…";
 "Loading discography..." = "A carregar discografia…";
 "Loading explore content..." = "A carregar conteúdo de exploração…";
 "Loading lyrics..." = "A carregar letras…";
-"Loading moods & genres..." = "A carregar estados de espírito e géneros…";
 "Loading more..." = "A carregar mais…";
-"Loading new releases..." = "A carregar lançamentos…";
 "Loading playlist..." = "A carregar lista de reprodução…";
 "Loading Playlists…" = "A carregar listas de reprodução…";
-"Loading podcasts..." = "A carregar podcasts…";
 "Loading songs..." = "A carregar músicas…";
 "Loading your library..." = "A carregar a sua biblioteca…";
 "Loading..." = "A carregar…";
@@ -185,7 +180,6 @@
 "Minimize" = "Minimizar";
 "Mix" = "Mistura";
 "Mix tracks" = "Faixas da mistura";
-"Moods & Genres" = "Estados de espírito e géneros";
 "More" = "Mais";
 "Move Down" = "Mover para baixo";
 "Move to End" = "Mover para o fim";
@@ -202,7 +196,6 @@
 "No Content Available" = "Sem conteúdo disponível";
 "No history" = "Sem histórico";
 "No Lyrics Available" = "Sem letras disponíveis";
-"No Moods & Genres Available" = "Sem estados de espírito nem géneros disponíveis";
 "No Playlists" = "Sem listas de reprodução";
 "No playlists" = "Sem listas de reprodução";
 "No playlists yet" = "Ainda não há listas de reprodução";

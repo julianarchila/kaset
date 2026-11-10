@@ -59,7 +59,6 @@
 "Community playlists" = "Topluluk Çalma Listeleri";
 "Connect" = "Bağlan";
 "Content Language" = "İçerik Dili";
-"Content may not be available in your region." = "İçerik bölgenizde kullanılamıyor olabilir.";
 "Continue" = "Devam Et";
 "Copy Link" = "Bağlantıyı Kopyala";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "Kaset'in sesi yakalanamadı (durum %d). Sistem Ayarları'nda Ekran ve Sistem Sesi Kaydı iznini denetleyin.";
@@ -166,16 +165,12 @@
 "Loading account" = "Hesap yükleniyor";
 "Loading account…" = "Hesap yükleniyor…";
 "Loading artist..." = "Sanatçı yükleniyor...";
-"Loading charts..." = "Listeler yükleniyor...";
 "Loading discography..." = "Diskografi yükleniyor...";
 "Loading explore content..." = "Keşif içeriği yükleniyor...";
 "Loading lyrics..." = "Şarkı sözleri yükleniyor...";
-"Loading moods & genres..." = "Ruh Halleri ve Türler yükleniyor...";
 "Loading more..." = "Daha fazlası yükleniyor...";
-"Loading new releases..." = "Yeni çıkanlar yükleniyor...";
 "Loading playlist..." = "Çalma listesi yükleniyor...";
 "Loading Playlists…" = "Çalma listeleri yükleniyor…";
-"Loading podcasts..." = "Podcastler yükleniyor...";
 "Loading songs..." = "Şarkılar yükleniyor...";
 "Loading your library..." = "Kitaplığınız yükleniyor...";
 "Loading..." = "Yükleniyor...";
@@ -185,7 +180,6 @@
 "Minimize" = "Küçült";
 "Mix" = "Mix";
 "Mix tracks" = "Miks parçaları";
-"Moods & Genres" = "Ruh Halleri ve Türler";
 "More" = "Daha fazla";
 "Move Down" = "Aşağı Taşı";
 "Move to End" = "Sona Taşı";
@@ -202,7 +196,6 @@
 "No Content Available" = "İçerik Yok";
 "No history" = "Geçmiş yok";
 "No Lyrics Available" = "Şarkı Sözü Yok";
-"No Moods & Genres Available" = "Ruh Halleri ve Türler Yok";
 "No Playlists" = "Çalma listesi yok";
 "No playlists" = "Çalma listesi yok";
 "No playlists yet" = "Henüz çalma listesi yok";

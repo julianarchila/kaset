@@ -132,33 +132,6 @@ protocol YTMusicClientProtocol: Sendable {
     /// Whether more explore sections are available to load.
     var hasMoreExploreSections: Bool { get }
 
-    /// Fetches the charts page content (initial sections only for fast display).
-    func getCharts() async throws -> HomeResponse
-
-    /// Fetches the next batch of charts sections via continuation.
-    func getChartsContinuation() async throws -> [HomeSection]?
-
-    /// Whether more charts sections are available to load.
-    var hasMoreChartsSections: Bool { get }
-
-    /// Fetches the moods and genres page content (initial sections only for fast display).
-    func getMoodsAndGenres() async throws -> HomeResponse
-
-    /// Fetches the next batch of moods and genres sections via continuation.
-    func getMoodsAndGenresContinuation() async throws -> [HomeSection]?
-
-    /// Whether more moods and genres sections are available to load.
-    var hasMoreMoodsAndGenresSections: Bool { get }
-
-    /// Fetches the new releases page content (initial sections only for fast display).
-    func getNewReleases() async throws -> HomeResponse
-
-    /// Fetches the next batch of new releases sections via continuation.
-    func getNewReleasesContinuation() async throws -> [HomeSection]?
-
-    /// Whether more new releases sections are available to load.
-    var hasMoreNewReleasesSections: Bool { get }
-
     /// Fetches the history page content (initial sections only for fast display).
     func getHistory() async throws -> HomeResponse
 
@@ -167,15 +140,6 @@ protocol YTMusicClientProtocol: Sendable {
 
     /// Whether more history sections are available to load.
     var hasMoreHistorySections: Bool { get }
-
-    /// Fetches the podcasts page content (initial sections only for fast display).
-    func getPodcasts() async throws -> [PodcastSection]
-
-    /// Fetches the next batch of podcasts sections via continuation.
-    func getPodcastsContinuation() async throws -> [PodcastSection]?
-
-    /// Whether more podcasts sections are available to load.
-    var hasMorePodcastsSections: Bool { get }
 
     /// Fetches details for a podcast show including its episodes.
     func getPodcastShow(browseId: String) async throws -> PodcastShowDetail

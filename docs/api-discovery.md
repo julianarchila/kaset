@@ -1591,9 +1591,8 @@ including `ZZ` for Global.
 The [Japan request](#charts-femusic_charts) returned HTTP 200, explicitly
 selected `JP`, 40 list rows, and two carousels. Country selection is separate
 from `context.client.gl`, which the app currently sets to US.
-[ChartsViewModel](../Sources/Kaset/ViewModels/ChartsViewModel.swift) and
-[ChartsView](../Sources/Kaset/Views/ChartsView.swift) have no country selection;
-`getCharts` has no country argument or country-specific state.
+The app had no country selection for Charts; its dedicated Charts screen and
+`getCharts` endpoint have since been removed (ADR-0043).
 
 The read-only form handling verified here applies only to Charts. Home and
 tastebuilder forms can update recommendation preferences.

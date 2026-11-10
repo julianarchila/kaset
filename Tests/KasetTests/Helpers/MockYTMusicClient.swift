@@ -41,17 +41,9 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
     var personalizedRecommendationsContinuationSections: [[HomeSection]] = []
     var exploreResponse: HomeResponse = .init(sections: [])
     var exploreContinuationSections: [[HomeSection]] = []
-    var chartsResponse: HomeResponse = .init(sections: [])
-    var chartsContinuationSections: [[HomeSection]] = []
-    var moodsAndGenresResponse: HomeResponse = .init(sections: [])
-    var moodsAndGenresContinuationSections: [[HomeSection]] = []
-    var newReleasesResponse: HomeResponse = .init(sections: [])
-    var newReleasesContinuationSections: [[HomeSection]] = []
     var historyResponse: HomeResponse = .init(sections: [])
     var historyResponseSequence: [HomeResponse] = []
     var historyContinuationSections: [[HomeSection]] = []
-    var podcastsSections: [PodcastSection] = []
-    var podcastsContinuationSections: [[PodcastSection]] = []
     var searchResponse: SearchResponse = .empty
     var mixedSearchResponse: SearchResponse?
     var songsSearchResponse: SearchResponse?
@@ -77,7 +69,6 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
     var addToPlaylistMenus: [String: AddToPlaylistMenu] = [:]
     var defaultAddToPlaylistMenu = AddToPlaylistMenu(title: nil, options: [], canCreatePlaylist: false)
     var onGetLibraryContent: (@MainActor () -> Void)?
-    var onGetPodcasts: (@MainActor () -> Void)?
     var beforeGetHomeReturn: (@MainActor () async -> Void)?
     var beforeGetHomeContinuationReturn: (@MainActor () async -> Void)?
     var beforeCreatePlaylistReturn: (@MainActor () async -> Void)?
@@ -98,7 +89,6 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
     var getSongErrors: [Error] = []
     var getHistoryDelay: Duration?
     var shouldWaitForGetHistoryResponse = false
-    var getPodcastsDelay: Duration?
     var getPlaylistDelay: Duration?
     var getPlaylistGate: AsyncGate?
     var getPlaylistError: Error?
@@ -149,11 +139,7 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
     private var _homeContinuationIndex = 0
     private var _personalizedRecommendationsContinuationIndex = 0
     private var _exploreContinuationIndex = 0
-    private var _chartsContinuationIndex = 0
-    private var _moodsAndGenresContinuationIndex = 0
-    private var _newReleasesContinuationIndex = 0
     private var _historyContinuationIndex = 0
-    private var _podcastsContinuationIndex = 0
     private var _likedSongsContinuationIndex = 0
 
     var hasMoreHomeSections: Bool {
@@ -168,24 +154,8 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         self._exploreContinuationIndex < self.exploreContinuationSections.count
     }
 
-    var hasMoreChartsSections: Bool {
-        self._chartsContinuationIndex < self.chartsContinuationSections.count
-    }
-
-    var hasMoreMoodsAndGenresSections: Bool {
-        self._moodsAndGenresContinuationIndex < self.moodsAndGenresContinuationSections.count
-    }
-
-    var hasMoreNewReleasesSections: Bool {
-        self._newReleasesContinuationIndex < self.newReleasesContinuationSections.count
-    }
-
     var hasMoreHistorySections: Bool {
         self._historyContinuationIndex < self.historyContinuationSections.count
-    }
-
-    var hasMorePodcastsSections: Bool {
-        self._podcastsContinuationIndex < self.podcastsContinuationSections.count
     }
 
     var hasMoreLikedSongs: Bool {
@@ -203,18 +173,12 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
     private(set) var getPersonalizedRecommendationsCallCount = 0
     private(set) var getPersonalizedRecommendationsContinuationCalled = false
     private(set) var getPersonalizedRecommendationsContinuationCallCount = 0
-    private(set) var getPodcastsContinuationCallCount = 0
     private(set) var getExploreCalled = false
     private(set) var getExploreCallCount = 0
     private(set) var getHistoryCallCount = 0
     private(set) var getHistoryContinuationCallCount = 0
     private(set) var getExploreContinuationCalled = false
     private(set) var getExploreContinuationCallCount = 0
-    private(set) var getChartsCalled = false
-    private(set) var getChartsCallCount = 0
-    private(set) var getChartsContinuationCallCount = 0
-    private(set) var getMoodsAndGenresContinuationCallCount = 0
-    private(set) var getNewReleasesContinuationCallCount = 0
     private(set) var searchCalled = false
     private(set) var searchQueries: [String] = []
     private(set) var completedSearchEndpoints: [SearchEndpoint] = []
@@ -415,71 +379,6 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         return sections
     }
 
-    func getCharts() async throws -> HomeResponse {
-        self.getChartsCalled = true
-        self.getChartsCallCount += 1
-        self._chartsContinuationIndex = 0
-        if let error = shouldThrowError {
-            throw error
-        }
-        return self.chartsResponse
-    }
-
-    func getChartsContinuation() async throws -> [HomeSection]? {
-        self.getChartsContinuationCallCount += 1
-        if let error = shouldThrowError {
-            throw error
-        }
-        guard self._chartsContinuationIndex < self.chartsContinuationSections.count else {
-            return nil
-        }
-        let sections = self.chartsContinuationSections[self._chartsContinuationIndex]
-        self._chartsContinuationIndex += 1
-        return sections
-    }
-
-    func getMoodsAndGenres() async throws -> HomeResponse {
-        self._moodsAndGenresContinuationIndex = 0
-        if let error = shouldThrowError {
-            throw error
-        }
-        return self.moodsAndGenresResponse
-    }
-
-    func getMoodsAndGenresContinuation() async throws -> [HomeSection]? {
-        self.getMoodsAndGenresContinuationCallCount += 1
-        if let error = shouldThrowError {
-            throw error
-        }
-        guard self._moodsAndGenresContinuationIndex < self.moodsAndGenresContinuationSections.count else {
-            return nil
-        }
-        let sections = self.moodsAndGenresContinuationSections[self._moodsAndGenresContinuationIndex]
-        self._moodsAndGenresContinuationIndex += 1
-        return sections
-    }
-
-    func getNewReleases() async throws -> HomeResponse {
-        self._newReleasesContinuationIndex = 0
-        if let error = shouldThrowError {
-            throw error
-        }
-        return self.newReleasesResponse
-    }
-
-    func getNewReleasesContinuation() async throws -> [HomeSection]? {
-        self.getNewReleasesContinuationCallCount += 1
-        if let error = shouldThrowError {
-            throw error
-        }
-        guard self._newReleasesContinuationIndex < self.newReleasesContinuationSections.count else {
-            return nil
-        }
-        let sections = self.newReleasesContinuationSections[self._newReleasesContinuationIndex]
-        self._newReleasesContinuationIndex += 1
-        return sections
-    }
-
     func getHistory() async throws -> HomeResponse {
         self.getHistoryCallCount += 1
         self._historyContinuationIndex = 0
@@ -510,31 +409,6 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         }
         let sections = self.historyContinuationSections[self._historyContinuationIndex]
         self._historyContinuationIndex += 1
-        return sections
-    }
-
-    func getPodcasts() async throws -> [PodcastSection] {
-        self._podcastsContinuationIndex = 0
-        self.onGetPodcasts?()
-        if let delay = self.getPodcastsDelay {
-            try await Task.sleep(for: delay)
-        }
-        if let error = shouldThrowError {
-            throw error
-        }
-        return self.podcastsSections
-    }
-
-    func getPodcastsContinuation() async throws -> [PodcastSection]? {
-        self.getPodcastsContinuationCallCount += 1
-        if let error = shouldThrowError {
-            throw error
-        }
-        guard self._podcastsContinuationIndex < self.podcastsContinuationSections.count else {
-            return nil
-        }
-        let sections = self.podcastsContinuationSections[self._podcastsContinuationIndex]
-        self._podcastsContinuationIndex += 1
         return sections
     }
 
@@ -746,11 +620,7 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         self.resetSessionStateForAccountSwitchCallCount += 1
         self._homeContinuationIndex = 0
         self._exploreContinuationIndex = 0
-        self._chartsContinuationIndex = 0
-        self._moodsAndGenresContinuationIndex = 0
-        self._newReleasesContinuationIndex = 0
         self._historyContinuationIndex = 0
-        self._podcastsContinuationIndex = 0
         self._likedSongsContinuationIndex = 0
     }
 
@@ -1367,24 +1237,14 @@ final class MockYTMusicClient: YTMusicClientProtocol { // swiftlint:disable:this
         self.getPersonalizedRecommendationsCallCount = 0
         self.getPersonalizedRecommendationsContinuationCalled = false
         self.getPersonalizedRecommendationsContinuationCallCount = 0
-        self.getPodcastsContinuationCallCount = 0
         self._personalizedRecommendationsContinuationIndex = 0
         self.getExploreCalled = false
         self.getExploreCallCount = 0
         self.getExploreContinuationCalled = false
         self.getExploreContinuationCallCount = 0
         self._exploreContinuationIndex = 0
-        self.getChartsCalled = false
-        self.getChartsCallCount = 0
-        self.getChartsContinuationCallCount = 0
-        self.getMoodsAndGenresContinuationCallCount = 0
-        self.getNewReleasesContinuationCallCount = 0
         self.getHistoryContinuationCallCount = 0
-        self._chartsContinuationIndex = 0
-        self._moodsAndGenresContinuationIndex = 0
-        self._newReleasesContinuationIndex = 0
         self._historyContinuationIndex = 0
-        self._podcastsContinuationIndex = 0
         self._likedSongsContinuationIndex = 0
         self.searchCalled = false
         self.searchQueries = []

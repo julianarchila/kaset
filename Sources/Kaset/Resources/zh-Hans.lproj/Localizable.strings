@@ -59,7 +59,6 @@
 "Community playlists" = "社区播放列表";
 "Connect" = "连接";
 "Content Language" = "内容语言";
-"Content may not be available in your region." = "此内容可能在你所在的地区不可用。";
 "Continue" = "继续";
 "Copy Link" = "拷贝链接";
 "Couldn't capture Kaset's audio (status %d). Check Screen & System Audio Recording permission in System Settings." = "无法捕获 Kaset 的音频（状态 %d）。请在系统设置中检查“屏幕与系统音频录制”权限。";
@@ -167,15 +166,11 @@
 "Loading account" = "正在加载账号";
 "Loading account…" = "正在加载账号…";
 "Loading artist..." = "正在加载艺人…";
-"Loading charts..." = "正在加载排行榜…";
 "Loading discography..." = "正在加载作品集…";
 "Loading explore content..." = "正在加载探索内容…";
 "Loading lyrics..." = "正在加载歌词…";
-"Loading moods & genres..." = "正在加载心情与流派…";
 "Loading more..." = "正在加载更多…";
-"Loading new releases..." = "正在加载最新发行…";
 "Loading playlist..." = "正在加载该播放列表…";
-"Loading podcasts..." = "正在加载播客…";
 "Loading songs..." = "正在加载歌曲…";
 "Loading your library..." = "正在加载你的音乐库…";
 "Loading..." = "正在加载…";
@@ -185,7 +180,6 @@
 "Minimize" = "最小化";
 "Mix" = "合辑";
 "Mix tracks" = "合辑曲目";
-"Moods & Genres" = "心情与流派";
 "More" = "更多";
 "Move Down" = "下移";
 "Move Up" = "上移";
@@ -200,7 +194,6 @@
 "No Connection" = "无网络连接";
 "No Content Available" = "暂无可用内容";
 "No Lyrics Available" = "暂无歌词";
-"No Moods & Genres Available" = "暂无心情与流派";
 "No Playlists" = "暂无播放列表";
 "No Queue" = "队列为空";
 "No Song Playing" = "当前没有播放歌曲";
