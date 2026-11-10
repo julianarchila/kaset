@@ -20,7 +20,7 @@ Sources/
       │   ├── Player/   → PlayerService, NowPlayingManager, queue metadata and album playback actions
       │   ├── Scripting/→ ScriptCommands (AppleScript integration)
       │   ├── WebKit/   → WebKitManager (cookie persistence)
-      │   └── HapticService.swift → Force Touch trackpad haptic feedback
+      │   └── HapticService.swift → Force Touch slider-boundary haptics
       ├── ViewModels/   → State management
       ├── Utilities/    → Helpers (DiagnosticsLogger, extensions)
       └── Views/        → SwiftUI views (MainWindow, Sidebar, PlayerBar, etc.)
@@ -240,16 +240,7 @@ Remote command center integration for media key support:
 
 **File**: `Sources/Lilt/Services/HapticService.swift`
 
-Provides tactile feedback on Macs with Force Touch trackpads:
-
-| Feedback Type | Pattern | Used For |
-|---------------|---------|----------|
-| `.playbackAction` | `.generic` | Play, pause, skip |
-| `.toggle` | `.alignment` | Shuffle, repeat, like/dislike |
-| `.sliderBoundary` | `.levelChange` | Volume/seek at 0% or 100% |
-| `.navigation` | `.alignment` | Sidebar selection |
-| `.success` | `.generic` | Add to library, search submit |
-| `.error` | `.generic` | Action failures |
+Plays the `.levelChange` pattern on Force Touch trackpads when a dragged volume or seek slider reaches 0% or 100%. Button clicks don't play app haptics, because the trackpad already gives click feedback (ADR-0046).
 
 **Accessibility**: Respects user preference (Settings → General) and system "Reduce Motion" setting.
 
@@ -329,7 +320,7 @@ Manages user preferences persisted via `UserDefaults`:
 |---------|------|---------|-------------|
 | `showNowPlayingNotifications` | `Bool` | `true` | Track change notifications |
 | `defaultLaunchPage` | `LaunchPage` | `.home` | Initial page on app launch |
-| `hapticFeedbackEnabled` | `Bool` | `true` | Force Touch feedback |
+| `hapticFeedbackEnabled` | `Bool` | `true` | Force Touch slider-boundary feedback |
 | `rememberPlaybackSettings` | `Bool` | `false` | Persist shuffle/repeat state |
 | `syncedLyricsEnabled` | `Bool` | `true` | Enable synced lyrics provider lookup before plain lyrics fallback |
 

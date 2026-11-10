@@ -95,7 +95,6 @@ enum SongActionsHelper {
     }
 
     static func presentLibraryUpdateError(_ error: any Error) {
-        HapticService.error()
         let alert = NSAlert(error: error)
         if let window = NSApp.keyWindow ?? NSApp.mainWindow {
             alert.beginSheetModal(for: window)

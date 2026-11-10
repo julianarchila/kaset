@@ -472,7 +472,6 @@ struct MainWindow: View {
 
     private func submitSidebarSearch() {
         guard let searchViewModel else { return }
-        HapticService.success()
         self.showSearchResults()
         searchViewModel.searchImmediately()
     }

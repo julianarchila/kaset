@@ -317,7 +317,6 @@ enum LibraryMutationActions {
     ) async {
         guard let setVideoId = song.playlistSetVideoId else {
             DiagnosticsLogger.api.error("Cannot remove '\(song.title)' from playlist: missing setVideoId")
-            HapticService.error()
             return
         }
 
@@ -338,7 +337,6 @@ enum LibraryMutationActions {
                     viewModel.confirmTrackRemoval(removal)
                     try self.checkAccountBoundary(boundaryGeneration)
                     Self.invalidateResponseCaches()
-                    HapticService.success()
                     DiagnosticsLogger.api.info("Removed song '\(song.title)' from playlist")
                 } catch is CancellationError {
                     if !didMutateRemotely {
@@ -353,7 +351,6 @@ enum LibraryMutationActions {
                         throw CancellationError()
                     }
                     await viewModel.rollbackTrackRemoval(removal)
-                    HapticService.error()
                     DiagnosticsLogger.api.error("Failed to remove song from playlist: \(error.localizedDescription)")
                 }
             }

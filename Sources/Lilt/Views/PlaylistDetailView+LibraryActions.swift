@@ -44,7 +44,6 @@ extension PlaylistDetailView {
                         DiagnosticsLogger.api.error(
                             "Album library target is unavailable for \(detail.id, privacy: .public)"
                         )
-                        HapticService.error()
                         return
                     }
                     let album = Album(
@@ -89,13 +88,10 @@ extension PlaylistDetailView {
                         onMutationApplied: mutationApplied
                     )
                 }
-
-                HapticService.success()
             } catch is CancellationError {
                 return
             } catch {
                 DiagnosticsLogger.api.error("Failed to update library status: \(error.localizedDescription)")
-                HapticService.error()
             }
         }
     }

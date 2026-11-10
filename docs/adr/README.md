@@ -80,3 +80,4 @@ What becomes easier or more difficult because of this change?
 | [0043](0043-sidebar-library-layout.md) | Sidebar layout with Library destinations | Accepted |
 | [0044](0044-home-greeting-featured-quick-picks.md) | Home greeting, featured cards, and Quick picks grid | Accepted |
 | [0045](0045-single-now-playing-card.md) | One Now Playing card | Accepted |
+| [0046](0046-drag-only-haptics.md) | Haptics only for drags, not clicks | Accepted |

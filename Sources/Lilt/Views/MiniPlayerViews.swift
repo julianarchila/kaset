@@ -463,7 +463,6 @@ struct MiniPlayerWindow: View {
             label: self.playerService.isAirPlayConnected ? String(localized: "AirPlay Connected") : String(localized: "AirPlay"),
             isActive: self.playerService.isAirPlayConnected
         ) {
-            HapticService.toggle()
             self.playerService.showAirPlayPicker(at: self.airPlayAnchor.screenPoint)
         }
         .background {

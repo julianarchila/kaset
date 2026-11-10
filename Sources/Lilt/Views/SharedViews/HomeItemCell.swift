@@ -473,7 +473,6 @@ final class HomeItemCell: NSView {
 
     func toggleLike() {
         guard let item, case let .song(song) = item, self.allowsLikeActions else { return }
-        HapticService.success()
         let manager = SongLikeStatusManager.shared
         if self.isLiked {
             SongActionsHelper.unlikeSong(song, likeStatusManager: manager)

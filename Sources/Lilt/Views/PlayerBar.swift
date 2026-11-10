@@ -680,7 +680,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
     }
 
     private func toggleMute() {
-        HapticService.toggle()
         if self.playerService.volume > 0 {
             self.volumeBeforeMute = self.playerService.volume
             self.volumeValue = 0
@@ -698,7 +697,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
         return PlayerBarIconButton(
             action: {
-                HapticService.toggle()
                 withAnimation(AppAnimation.standard) {
                     player.showLyrics.toggle()
                 }
@@ -723,7 +721,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
         return PlayerBarIconButton(
             action: {
-                HapticService.toggle()
                 withAnimation(AppAnimation.standard) {
                     player.showQueue.toggle()
                 }
@@ -769,7 +766,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
         return PlayerBarIconButton(
             action: {
-                HapticService.toggle()
                 _ = player.toggleMiniPlayer(mode: .switchFromMainWindow)
             },
             isSelected: self.playerService.isMiniPlayerVisible,
@@ -793,7 +789,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     private func toggleVideo() {
         guard self.canShowCurrentTrackVideo else { return }
-        HapticService.toggle()
         DiagnosticsLogger.player.debug(
             "Video button clicked, toggling showVideo from \(self.playerService.showVideo)"
         )
@@ -859,7 +854,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     private func openFullScreenPlayer() {
         guard self.playerService.currentTrack != nil else { return }
-        HapticService.toggle()
         withAnimation(AppAnimation.standard) {
             self.playerService.showFullScreenPlayer = true
         }
@@ -887,7 +881,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     private func likeCurrentTrack() {
         guard self.hasPersonalAccount else { return }
-        HapticService.toggle()
         self.playerService.likeCurrentTrack()
     }
 
@@ -926,10 +919,8 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
     private func openCurrentArtist() {
         guard self.canOpenCurrentArtist else { return }
         guard !self.isResolvingArtist else { return }
-        HapticService.toggle()
-
         if let artist = self.currentArtistTarget {
-            self.openArtist(artist, playsHaptic: false)
+            self.openArtist(artist)
             return
         }
 
@@ -946,17 +937,15 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
             self.isResolvingArtist = false
 
             guard let artist, !self.isCurrentArtistTarget else { return }
-            self.openArtist(artist, playsHaptic: false)
+            self.openArtist(artist)
         }
     }
 
     private func openCurrentAlbum() {
         guard self.canOpenCurrentAlbum else { return }
         guard !self.isResolvingAlbum else { return }
-        HapticService.toggle()
-
         if let album = self.currentAlbumTarget {
-            self.openAlbum(album, playsHaptic: false)
+            self.openAlbum(album)
             return
         }
 
@@ -974,7 +963,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
             self.isResolvingAlbum = false
 
             guard let album else { return }
-            self.openAlbum(album, playsHaptic: false)
+            self.openAlbum(album)
         }
     }
 
@@ -987,17 +976,11 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
         self.isResolvingAlbum = false
     }
 
-    private func openArtist(_ artist: Artist, playsHaptic: Bool = true) {
-        if playsHaptic {
-            HapticService.toggle()
-        }
+    private func openArtist(_ artist: Artist) {
         self.navigationAction.openArtist?(artist)
     }
 
-    private func openAlbum(_ album: Playlist, playsHaptic: Bool = true) {
-        if playsHaptic {
-            HapticService.toggle()
-        }
+    private func openAlbum(_ album: Playlist) {
         self.navigationAction.openAlbum?(album)
     }
 
@@ -1100,31 +1083,26 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     private func dislikeCurrentTrack() {
         guard self.hasPersonalAccount else { return }
-        HapticService.toggle()
         self.playerService.dislikeCurrentTrack()
     }
 
     private func showAirPlayPicker() {
-        HapticService.toggle()
         self.playerService.showAirPlayPicker(at: self.airPlayAnchor.screenPoint)
     }
 
     private func previousTrack() {
-        HapticService.playback()
         Task {
             await self.playerService.previous()
         }
     }
 
     private func playPause() {
-        HapticService.playback()
         Task {
             await self.playerService.playPause()
         }
     }
 
     private func nextTrack() {
-        HapticService.playback()
         Task {
             await self.playerService.next()
         }
@@ -1146,17 +1124,14 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
     }
 
     private func cycleShuffle() {
-        HapticService.toggle()
         self.playerService.cycleShuffleMode()
     }
 
     private func cycleRepeatMode() {
-        HapticService.toggle()
         self.playerService.cycleRepeatMode()
     }
 
     private func toggleVolumePopover() {
-        HapticService.toggle()
         withAnimation(AppAnimation.quick) {
             self.showsVolumeOverlay.toggle()
         }

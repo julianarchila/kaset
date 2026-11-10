@@ -139,12 +139,10 @@ struct Sidebar: View {
         let newSelection = SidebarSelection.navigation(item)
         if self.currentSidebarSelection == newSelection {
             self.onReselectNavigationItem?(item)
-            HapticService.navigation()
             return
         }
         self.selection = item
         self.pinnedSelection = nil
-        HapticService.navigation()
     }
 
     private func selectPinnedItem(_ item: SidebarPinnedItem) {
@@ -167,13 +165,11 @@ struct Sidebar: View {
     ) {
         if self.currentSidebarSelection == newSelection {
             self.onReselectPinnedItem?(item)
-            HapticService.navigation()
             return
         }
         self.pinnedSelectionOrigin = origin
         self.selection = nil
         self.pinnedSelection = item
-        HapticService.navigation()
     }
 
     /// Playlists saved in the user's library, minus Liked Music (it has its own row).
