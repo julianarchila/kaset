@@ -91,9 +91,11 @@ enum CookieArchiveEncodingResult: Equatable, Sendable {
 
 /// Stores auth cookie backups in the configured backing store.
 ///
-/// Release builds use the macOS Keychain for encryption at rest and app-specific
-/// access control. DEBUG builds default to a sandboxed file to avoid local
-/// ad-hoc signing hangs inside Security.framework; set
+/// Developer ID builds use the macOS Keychain for encryption at rest and
+/// app-specific access control. DEBUG builds, and release builds compiled with
+/// `KASET_FILE_COOKIE_STORAGE` (every build `Scripts/build-app.sh` does not sign
+/// with Developer ID), use a file in the app's sandbox container instead,
+/// because ad-hoc signed sandboxed apps hang inside `SecItemCopyMatching`. Set
 /// `KASET_DEBUG_COOKIE_STORAGE=keychain` to exercise the Keychain path locally.
 enum KeychainCookieStorage {
     private static let logger = DiagnosticsLogger.webKit
@@ -105,7 +107,7 @@ enum KeychainCookieStorage {
     /// Keychain account identifier.
     private static let account = "youtube-music-cookies"
 
-    #if DEBUG
+    #if DEBUG || KASET_FILE_COOKIE_STORAGE
         private static let debugCookieStorageEnvironmentKey = "KASET_DEBUG_COOKIE_STORAGE"
 
         static var usesDebugFileStorage: Bool {
@@ -273,7 +275,7 @@ enum KeychainCookieStorage {
             return false
         }
 
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if self.usesDebugFileStorage {
                 return self.saveArchiveDataToDebugFile(data, cookieCount: cookieCount)
             }
@@ -313,7 +315,7 @@ enum KeychainCookieStorage {
         }
     }
 
-    #if DEBUG
+    #if DEBUG || KASET_FILE_COOKIE_STORAGE
         private static func saveArchiveDataToDebugFile(_ data: Data, cookieCount: Int) -> Bool {
             guard let fileURL = debugCookieFileURL else {
                 self.logger.error("Debug cookie file storage is unavailable")
@@ -344,7 +346,7 @@ enum KeychainCookieStorage {
 
     /// Returns `true` if a cookie backup exists in the active backing store.
     static func hasCookieItem() -> Bool {
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if self.usesDebugFileStorage {
                 guard let fileURL = self.debugCookieFileURL else { return false }
                 return FileManager.default.fileExists(atPath: fileURL.path)
@@ -370,7 +372,7 @@ enum KeychainCookieStorage {
     }
 
     static func loadArchiveResult() -> CookieArchiveLoadResult {
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if self.usesDebugFileStorage {
                 return self.loadArchiveResultFromDebugFile()
             }
@@ -407,7 +409,7 @@ enum KeychainCookieStorage {
         return .data(data)
     }
 
-    #if DEBUG
+    #if DEBUG || KASET_FILE_COOKIE_STORAGE
         private static func loadArchiveResultFromDebugFile() -> CookieArchiveLoadResult {
             guard let fileURL = self.debugCookieFileURL else {
                 self.logger.error("Debug cookie file storage is unavailable")
@@ -483,7 +485,7 @@ enum KeychainCookieStorage {
     /// Returns true when no persisted archive remains in the active store.
     @discardableResult
     static func deleteCookies() -> Bool {
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if self.usesDebugFileStorage {
                 return self.deleteDebugCookieFile()
             }
@@ -512,14 +514,14 @@ enum KeychainCookieStorage {
             Self.logger.error("Failed to delete cookies from Keychain: \(status)")
         }
 
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             return didDeleteKeychainItem && didDeleteDebugFile
         #else
             return didDeleteKeychainItem
         #endif
     }
 
-    #if DEBUG
+    #if DEBUG || KASET_FILE_COOKIE_STORAGE
         @discardableResult
         private static func deleteDebugCookieFile() -> Bool {
             guard let fileURL = self.debugCookieFileURL else {
@@ -549,7 +551,7 @@ enum CookieRestorePolicyStorage {
     private static let keychainAccount = "youtube-music-cookies-restore-policy"
 
     static func loadResult() -> CookieRestorePolicyLoadResult {
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if KeychainCookieStorage.usesDebugFileStorage {
                 guard let url = self.debugFileURL else { return .failure }
                 guard FileManager.default.fileExists(atPath: url.path) else { return .notFound }
@@ -597,7 +599,7 @@ enum CookieRestorePolicyStorage {
     @discardableResult
     static func save(_ allowed: Bool) -> Bool {
         let data = Data([allowed ? 1 : 0])
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             if KeychainCookieStorage.usesDebugFileStorage {
                 guard let url = self.debugFileURL else { return false }
                 do {
@@ -638,7 +640,7 @@ enum CookieRestorePolicyStorage {
         return status == errSecSuccess
     }
 
-    #if DEBUG
+    #if DEBUG || KASET_FILE_COOKIE_STORAGE
         private static var debugFileURL: URL? {
             KeychainCookieStorage.debugCookieFileURL?
                 .appendingPathExtension("restore-policy")

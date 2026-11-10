@@ -43,6 +43,14 @@ APP_INTENTS_SWIFT_FLAGS=(
   -Xswiftc -Xfrontend -Xswiftc -const-gather-protocols-file
   -Xswiftc -Xfrontend -Xswiftc "$APP_INTENTS_PROTOCOLS"
 )
+# Sandboxed apps without a Developer ID signature hang inside
+# SecItemCopyMatching, so every other build stores the auth cookie archive in
+# a file inside the app's sandbox container instead of the Keychain.
+COOKIE_STORAGE_SWIFT_FLAGS=()
+case "$SIGNING_MODE" in
+  developer-id|distribution|release) ;;
+  *) COOKIE_STORAGE_SWIFT_FLAGS=(-Xswiftc -DKASET_FILE_COOKIE_STORAGE) ;;
+esac
 APP_SHORTCUTS_CATALOG="$ROOT/Sources/Kaset/Resources/AppShortcuts.xcstrings"
 
 # Build for host architecture by default; allow overriding via ARCHES (e.g., "arm64 x86_64" for universal).
@@ -407,7 +415,7 @@ mkdir -p "$BUILD_DIR"
 # some SwiftPM layouts reuse one products directory for every --arch build.
 for ARCH in "${ARCH_LIST[@]}"; do
   echo "  → Building for $ARCH..."
-  swift build -c "$CONF" --arch "$ARCH" --product "$APP_NAME" "${APP_INTENTS_SWIFT_FLAGS[@]}"
+  swift build -c "$CONF" --arch "$ARCH" --product "$APP_NAME" "${APP_INTENTS_SWIFT_FLAGS[@]}" ${COOKIE_STORAGE_SWIFT_FLAGS[@]+"${COOKIE_STORAGE_SWIFT_FLAGS[@]}"}
   stage_arch_product "$APP_NAME" "$ARCH"
   stage_app_intents_const_values "$ARCH"
 done

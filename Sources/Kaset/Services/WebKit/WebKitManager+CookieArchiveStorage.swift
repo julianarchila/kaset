@@ -195,7 +195,7 @@ enum CookieArchiveRestorePolicy {
     }
 
     private static var invalidatedKey: String {
-        #if DEBUG
+        #if DEBUG || KASET_FILE_COOKIE_STORAGE
             self.invalidationTombstoneKey(
                 usesDebugFileStorage: KeychainCookieStorage.usesDebugFileStorage
             )

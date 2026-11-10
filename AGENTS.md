@@ -80,7 +80,7 @@ Write throwaway traces to `NSTemporaryDirectory()`, `synchronize()` after each l
 
 Sandboxed builds without a valid Developer ID or provisioning profile (local debug and ad-hoc builds) hang inside `SecItemCopyMatching` when they query the Keychain.
 
-- `#if DEBUG` builds therefore store cookies in Application Support at `Kaset/cookies.dat` and skip the Keychain. Launch with `KASET_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
+- `#if DEBUG` builds, and release builds compiled with `KASET_FILE_COOKIE_STORAGE`, therefore store cookies in Application Support at `Kaset/cookies.dat` and skip the Keychain. `Scripts/build-app.sh` sets that flag for every build it does not sign with Developer ID (`KASET_SIGNING=developer-id`), so `Scripts/build-app.sh release` produces an installable optimized build without a paid developer account. Launch with `KASET_DEBUG_COOKIE_STORAGE=keychain` to test the production Keychain path.
 - Packaged debug builds use the bundle ID `com.julianarchila.KasetFork.debug`, which gives them their own container, UserDefaults, and WebKit cookie jar. Don't package a debug build with the release bundle ID: each build's startup would overwrite the other's session.
 - The Keychain is shared, so `KASET_DEBUG_COOKIE_STORAGE=keychain` reads and writes the release archive.
 - The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state must not write the release key.
