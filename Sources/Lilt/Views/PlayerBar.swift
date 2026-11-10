@@ -7,8 +7,11 @@ import SwiftUI
 /// Player bar shown at the bottom of the content area, styled like Apple Music with Liquid Glass.
 struct PlayerBar: View { // swiftlint:disable:this type_body_length
     private static let accent = PackageResourceLookup.accent
-    private static let fullSongInfoWidth: CGFloat = 234
+    private static let fullSongInfoWidth: CGFloat = 244
     private static let compactSongInfoWidth: CGFloat = 152
+    private static let fullOptionsWidth: CGFloat = 268
+    private static let compactOptionsWidth: CGFloat = 196
+    private static let inlineVolumeSliderWidth: CGFloat = 72
 
     @Environment(AuthService.self) private var authService
     @Environment(PlayerService.self) private var playerService
@@ -30,6 +33,8 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
     @State private var volumeValue: Double = 1.0
     @State private var isAdjustingVolume = false
     @State private var showsVolumeOverlay = false
+    /// Volume to restore when unmuting from the volume icon.
+    @State private var volumeBeforeMute: Double?
     @State private var resolvedArtist: Artist?
     @State private var resolvedAlbum: Playlist?
     @State private var isResolvingArtist = false
@@ -54,8 +59,11 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
 
-                    self.playbackOptionsSection
-                        .frame(width: 142, height: 52)
+                    self.playbackOptionsSection(usesCompactDetails: usesCompactDetails)
+                        .frame(
+                            width: usesCompactDetails ? Self.compactOptionsWidth : Self.fullOptionsWidth,
+                            height: 52
+                        )
                 }
             }
             .frame(maxWidth: .infinity)
@@ -132,7 +140,7 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                 .disabled(self.playerService.currentTrack == nil)
             } else {
                 self.songDetailsView
-                    .frame(width: 110, alignment: .leading)
+                    .frame(width: 126, alignment: .leading)
             }
 
             self.songActionButtons
@@ -336,42 +344,51 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
         )
     }
 
-    @ViewBuilder
+    /// Heart (like) and a "…" menu with the rest of the song actions, as in Apple Music.
     private var songActionButtons: some View {
-        if self.hasPersonalAccount {
-            HStack(spacing: 6) {
+        HStack(spacing: 2) {
+            if self.hasPersonalAccount {
+                let isLiked = self.playerService.currentTrackLikeStatus == .like
                 PlayerBarIconButton(
                     action: self.likeCurrentTrack,
-                    isSelected: self.playerService.currentTrackLikeStatus == .like,
                     accessibilityID: AccessibilityID.PlayerBar.likeButton,
                     accessibilityLabel: String(localized: "Like"),
-                    accessibilityValue: self.playerService.currentTrackLikeStatus == .like ? String(localized: "Liked") : String(localized: "Not liked")
+                    accessibilityValue: isLiked ? String(localized: "Liked") : String(localized: "Not liked")
                 ) {
-                    Image(systemName: self.playerService.currentTrackLikeStatus == .like ? "hand.thumbsup.fill" : "hand.thumbsup")
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(width: 10, height: 16)
-                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .like ? Self.accent : .primary)
+                    Image(systemName: isLiked ? "heart.fill" : "heart")
+                        .font(.system(size: 15, weight: .regular))
+                        .frame(width: 16, height: 15)
+                        .foregroundStyle(isLiked ? Self.accent : .primary)
                         .contentTransition(.symbolEffect(.replace))
                 }
-                .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .like)
-                .disabled(self.playerService.currentTrack == nil)
-
-                PlayerBarIconButton(
-                    action: self.dislikeCurrentTrack,
-                    isSelected: self.playerService.currentTrackLikeStatus == .dislike,
-                    accessibilityID: AccessibilityID.PlayerBar.dislikeButton,
-                    accessibilityLabel: String(localized: "Dislike"),
-                    accessibilityValue: self.playerService.currentTrackLikeStatus == .dislike ? String(localized: "Disliked") : String(localized: "Not disliked")
-                ) {
-                    Image(systemName: self.playerService.currentTrackLikeStatus == .dislike ? "hand.thumbsdown.fill" : "hand.thumbsdown")
-                        .font(.system(size: 16, weight: .regular))
-                        .frame(width: 10, height: 16)
-                        .foregroundStyle(self.playerService.currentTrackLikeStatus == .dislike ? Self.accent : .primary)
-                        .contentTransition(.symbolEffect(.replace))
-                }
-                .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .dislike)
+                .symbolEffect(.bounce, value: isLiked)
                 .disabled(self.playerService.currentTrack == nil)
             }
+
+            PlayerBarIconMenu(
+                accessibilityID: AccessibilityID.PlayerBar.moreButton,
+                accessibilityLabel: String(localized: "More")
+            ) {
+                if let track = self.playerService.currentTrack {
+                    if self.hasPersonalAccount {
+                        Toggle(
+                            String(localized: "Dislike"),
+                            isOn: Binding(
+                                get: { self.playerService.currentTrackLikeStatus == .dislike },
+                                set: { _ in self.dislikeCurrentTrack() }
+                            )
+                        )
+                        .accessibilityIdentifier(AccessibilityID.PlayerBar.dislikeButton)
+                        Divider()
+                    }
+                    self.currentSongContextMenu(for: track)
+                }
+            } icon: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+            }
+            .disabled(self.playerService.currentTrack == nil)
         }
     }
 
@@ -420,25 +437,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
             }
 
             PlayerBarIconButton(
-                action: self.showAirPlayPicker,
-                isSelected: self.playerService.isAirPlayConnected,
-                accessibilityID: AccessibilityID.PlayerBar.airplayButton,
-                accessibilityLabel: self.playerService.isAirPlayConnected ? String(localized: "AirPlay Connected") : String(localized: "AirPlay")
-            ) {
-                Image(systemName: "airplayaudio")
-                    .font(.system(size: 16, weight: .regular))
-                    .frame(width: 10, height: 16)
-                    .foregroundStyle(self.playerService.isAirPlayConnected ? Self.accent : .primary)
-                    .contentTransition(.symbolEffect(.replace))
-            }
-            .background {
-                AirPlayPickerAnchorView(anchor: self.airPlayAnchor)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-            }
-            .disabled(self.playerService.currentTrack == nil)
-
-            PlayerBarIconButton(
                 action: self.cycleShuffle,
                 isSelected: self.playerService.shuffleEnabled,
                 accessibilityID: AccessibilityID.PlayerBar.shuffleButton,
@@ -481,10 +479,12 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                     accessibilityLabel: self.playerService.isPlaying ? String(localized: "Pause") : String(localized: "Play")
                 ) {
                     Image(systemName: self.playerService.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 20, weight: .regular))
-                        .frame(width: 12, height: 20)
-                        .foregroundStyle(.primary)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(self.colorScheme == .dark ? Color.black : Color.white)
                         .contentTransition(.symbolEffect(.replace))
+                        .frame(width: 28, height: 28)
+                        // Explicit colors: the bar's glass applies vibrancy to `.primary`.
+                        .background(Circle().fill(self.colorScheme == .dark ? Color.white : Color.black))
                 }
                 .compatGlassID("playPause", in: self.playerNamespace)
 
@@ -515,21 +515,6 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
                     .contentTransition(.symbolEffect(.replace))
             }
             .disabled(self.playerService.currentTrack == nil)
-
-            PlayerBarIconButton(
-                action: self.toggleVolumePopover,
-                accessibilityLabel: String(localized: "Volume"),
-                accessibilityValue: "\(Int(self.displayedVolume * 100))%"
-            ) {
-                Image(systemName: self.volumeIcon)
-                    .font(.system(size: 15, weight: .regular))
-                    .frame(width: 10, height: 15)
-                    .foregroundStyle(.primary)
-                    .contentTransition(.symbolEffect(.replace))
-            }
-            .playerBarVolumeOverlay(isPresented: self.$showsVolumeOverlay) {
-                self.volumeOverlay
-            }
         }
     }
 
@@ -604,15 +589,108 @@ struct PlayerBar: View { // swiftlint:disable:this type_body_length
 
     // MARK: - Playback Options
 
-    private var playbackOptionsSection: some View {
-        HStack(spacing: 6) {
+    private func playbackOptionsSection(usesCompactDetails: Bool) -> some View {
+        HStack(spacing: 4) {
             self.lyricsButton
             self.queueButton
-            self.pictureButton
+            self.airPlayButton
+            self.volumeControl(usesCompactDetails: usesCompactDetails)
+            if self.canShowCurrentTrackVideo || self.playerService.showVideo {
+                self.pictureButton
+            }
             self.miniPlayerButton
         }
         .padding(.trailing, 12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+    }
+
+    private var airPlayButton: some View {
+        PlayerBarIconButton(
+            action: self.showAirPlayPicker,
+            isSelected: self.playerService.isAirPlayConnected,
+            accessibilityID: AccessibilityID.PlayerBar.airplayButton,
+            accessibilityLabel: self.playerService.isAirPlayConnected ? String(localized: "AirPlay Connected") : String(localized: "AirPlay")
+        ) {
+            Image(systemName: "airplayaudio")
+                .font(.system(size: 15, weight: .regular))
+                .frame(width: 16, height: 15)
+                .foregroundStyle(self.playerService.isAirPlayConnected ? Self.accent : .primary)
+                .contentTransition(.symbolEffect(.replace))
+        }
+        .background {
+            AirPlayPickerAnchorView(anchor: self.airPlayAnchor)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+        .disabled(self.playerService.currentTrack == nil)
+    }
+
+    /// Wide bars show the volume slider inline and the icon mutes; compact bars keep the
+    /// icon-plus-popover control.
+    @ViewBuilder
+    private func volumeControl(usesCompactDetails: Bool) -> some View {
+        if usesCompactDetails {
+            PlayerBarIconButton(
+                action: self.toggleVolumePopover,
+                accessibilityLabel: String(localized: "Volume"),
+                accessibilityValue: "\(Int(self.displayedVolume * 100))%"
+            ) {
+                self.volumeIconImage
+            }
+            .playerBarVolumeOverlay(isPresented: self.$showsVolumeOverlay) {
+                self.volumeOverlay
+            }
+        } else {
+            HStack(spacing: 2) {
+                PlayerBarIconButton(
+                    action: self.toggleMute,
+                    accessibilityLabel: self.displayedVolume == 0 ? String(localized: "Unmute") : String(localized: "Mute")
+                ) {
+                    self.volumeIconImage
+                }
+
+                Slider(value: self.$volumeValue, in: 0 ... 1) { editing in
+                    self.isAdjustingVolume = editing
+                    if !editing {
+                        self.playerService.setVolumeImmediately(self.volumeValue)
+                    }
+                }
+                .controlSize(.mini)
+                .tint(Self.accent)
+                .frame(width: Self.inlineVolumeSliderWidth)
+                .accessibilityIdentifier(AccessibilityID.PlayerBar.volumeSlider)
+                .accessibilityLabel(String(localized: "Volume"))
+                .onChange(of: self.volumeValue) { oldValue, newValue in
+                    guard self.isAdjustingVolume else { return }
+                    if (oldValue > 0 && newValue == 0) || (oldValue < 1 && newValue == 1) {
+                        HapticService.sliderBoundary()
+                    }
+                    self.playerService.setVolumeImmediately(newValue)
+                }
+            }
+        }
+    }
+
+    private var volumeIconImage: some View {
+        Image(systemName: self.volumeIcon)
+            .font(.system(size: 14, weight: .regular))
+            .frame(width: 18, height: 14)
+            .foregroundStyle(.primary)
+            .contentTransition(.symbolEffect(.replace))
+    }
+
+    private func toggleMute() {
+        HapticService.toggle()
+        if self.playerService.volume > 0 {
+            self.volumeBeforeMute = self.playerService.volume
+            self.volumeValue = 0
+            self.playerService.setVolumeImmediately(0)
+        } else {
+            let restored = self.volumeBeforeMute ?? 1
+            self.volumeBeforeMute = nil
+            self.volumeValue = restored
+            self.playerService.setVolumeImmediately(restored)
+        }
     }
 
     private var lyricsButton: some View {

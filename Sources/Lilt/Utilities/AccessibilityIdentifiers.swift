@@ -35,6 +35,7 @@ enum AccessibilityID {
         static let repeatButton = "playerBar.repeat"
         static let likeButton = "playerBar.like"
         static let dislikeButton = "playerBar.dislike"
+        static let moreButton = "playerBar.more"
         static let lyricsButton = "playerBar.lyrics"
         static let queueButton = "playerBar.queue"
         static let miniPlayerButton = "playerBar.miniPlayer"
