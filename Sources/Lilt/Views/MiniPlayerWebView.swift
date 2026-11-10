@@ -1418,13 +1418,18 @@ extension SingletonPlayerWebView {
         return documentGeneration.accepts(rawGeneration: rawDocumentGeneration)
     }
 
+    /// Bridge messages that carry a media-key command from the page's Media Session handlers.
+    nonisolated static let remoteCommandMessageTypes: Set<String> = [
+        "REMOTE_NEXT", "REMOTE_PREVIOUS", "REMOTE_PLAY", "REMOTE_PAUSE",
+    ]
+
     nonisolated static func acceptsBridgeDocumentID(
         _ documentID: Int?,
         expectedDocumentID: Int?,
         messageType: String
     ) -> Bool {
         // The coordinator fences media keys by committed generation and command time.
-        messageType == "REMOTE_NEXT" || messageType == "REMOTE_PREVIOUS"
+        self.remoteCommandMessageTypes.contains(messageType)
             || documentID == nil || documentID == expectedDocumentID
     }
 

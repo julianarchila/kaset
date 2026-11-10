@@ -57,8 +57,8 @@ extension SingletonPlayerWebView {
                 window.__liltUseNextPrev = \(jsBoolean);
                 // Wrap setActionHandler at document start so YouTube registrations cannot
                 // steal remote-command ownership. Seek handlers always stay native-owned;
-                // next/previous stay Lilt-owned in nextPrev mode unless Lilt is installing
-                // its own handlers under the temporary install flag.
+                // play/pause always, and next/previous in nextPrev mode, stay Lilt-owned
+                // unless Lilt is installing its own handlers under the temporary install flag.
                 try {
                     if (typeof window.__liltInstallingMediaControlHandlers !== 'boolean') {
                         window.__liltInstallingMediaControlHandlers = false;
@@ -69,8 +69,12 @@ extension SingletonPlayerWebView {
                         ms.setActionHandler = function(type, handler) {
                             var isSeekSkip = type === 'seekforward' || type === 'seekbackward';
                             var isNextPrevious = type === 'nexttrack' || type === 'previoustrack';
+                            var isPlayPause = type === 'play' || type === 'pause';
                             if (isSeekSkip) {
                                 return orig(type, null);
+                            }
+                            if (isPlayPause && !window.__liltInstallingMediaControlHandlers) {
+                                return undefined;
                             }
                             if (isNextPrevious) {
                                 if (window.__liltUseNextPrev) {
@@ -146,7 +150,32 @@ extension SingletonPlayerWebView {
                 }
             }
 
+            function postRemoteCommand(type) {
+                window.webkit.messageHandlers.singletonPlayer
+                    .postMessage({
+                        type: type,
+                        documentGeneration: window.__liltDocumentGeneration,
+                        commandIssuedAtMilliseconds: __liltEventTimestampMilliseconds(),
+                        observerEpoch: observerEpoch,
+                        documentID: documentID
+                    });
+            }
+
+            // Play/pause media keys reach WebKit's own Now Playing session. Route them through
+            // the native player so its pause intent and the page's playback suppression are
+            // cleared together; otherwise a key press after an in-app pause gets re-paused.
+            function applyPlayPauseOverride() {
+                try {
+                    var ms = navigator.mediaSession;
+                    withLiltMediaControlInstall(function() {
+                        ms.setActionHandler('play', function() { postRemoteCommand('REMOTE_PLAY'); });
+                        ms.setActionHandler('pause', function() { postRemoteCommand('REMOTE_PAUSE'); });
+                    });
+                } catch (e) {}
+            }
+
             function applyOverride() {
+                applyPlayPauseOverride();
                 if (!window.__liltUseNextPrev) {
                     return;
                 }
@@ -155,26 +184,8 @@ extension SingletonPlayerWebView {
                     withLiltMediaControlInstall(function() {
                         ms.setActionHandler('seekforward', null);
                         ms.setActionHandler('seekbackward', null);
-                        ms.setActionHandler('nexttrack', function() {
-                            window.webkit.messageHandlers.singletonPlayer
-                                .postMessage({
-                                    type: 'REMOTE_NEXT',
-                                    documentGeneration: window.__liltDocumentGeneration,
-                                    commandIssuedAtMilliseconds: __liltEventTimestampMilliseconds(),
-                                    observerEpoch: observerEpoch,
-                                    documentID: documentID
-                                });
-                        });
-                        ms.setActionHandler('previoustrack', function() {
-                            window.webkit.messageHandlers.singletonPlayer
-                                .postMessage({
-                                    type: 'REMOTE_PREVIOUS',
-                                    documentGeneration: window.__liltDocumentGeneration,
-                                    commandIssuedAtMilliseconds: __liltEventTimestampMilliseconds(),
-                                    observerEpoch: observerEpoch,
-                                    documentID: documentID
-                                });
-                        });
+                        ms.setActionHandler('nexttrack', function() { postRemoteCommand('REMOTE_NEXT'); });
+                        ms.setActionHandler('previoustrack', function() { postRemoteCommand('REMOTE_PREVIOUS'); });
                     });
                 } catch (e) {}
             }

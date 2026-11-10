@@ -8,7 +8,7 @@ import Testing
 @Suite("YouTube Music playback bridge generation", .tags(.service))
 @MainActor
 struct MusicPlaybackBridgeGenerationTests {
-    @Test("Current-document media keys pass the document ID gate during navigation", arguments: ["REMOTE_NEXT", "REMOTE_PREVIOUS"])
+    @Test("Current-document media keys pass the document ID gate during navigation", arguments: ["REMOTE_NEXT", "REMOTE_PREVIOUS", "REMOTE_PLAY", "REMOTE_PAUSE"])
     func currentDocumentMediaKeysPassDocumentIDGateDuringNavigation(messageType: String) {
         var generation = WebPlaybackDocumentGeneration()
         let committed = generation.beginNavigation()
@@ -717,20 +717,21 @@ struct MusicPlaybackBridgeGenerationTests {
             terminator: "});"
         )
 
-        #expect(self.occurrenceCount(of: "postMessage(", in: script) == 2)
-        #expect(payloads.count == 2)
+        // Every media-key command goes through the single `postRemoteCommand` payload.
+        #expect(self.occurrenceCount(of: "postMessage(", in: script) == 1)
+        #expect(payloads.count == 1)
         for payload in payloads {
+            #expect(payload.contains("type: type"))
             #expect(payload.contains("documentGeneration: window.__liltDocumentGeneration"))
-        }
-        #expect(payloads.contains { $0.contains("type: 'REMOTE_NEXT'") })
-        #expect(payloads.contains { $0.contains("type: 'REMOTE_PREVIOUS'") })
-        #expect(script.contains("function __liltEventTimestampMilliseconds()"))
-        #expect(script.contains("Number(performance.timeOrigin) + Number(performance.now())"))
-        for payload in payloads where payload.contains("type: 'REMOTE_") {
             #expect(payload.contains(
                 "commandIssuedAtMilliseconds: __liltEventTimestampMilliseconds()"
             ))
         }
+        for command in ["REMOTE_NEXT", "REMOTE_PREVIOUS", "REMOTE_PLAY", "REMOTE_PAUSE"] {
+            #expect(script.contains("postRemoteCommand('\(command)')"))
+        }
+        #expect(script.contains("function __liltEventTimestampMilliseconds()"))
+        #expect(script.contains("Number(performance.timeOrigin) + Number(performance.now())"))
     }
 
     @Test("Playback audio-quality stats payload carries document generation")

@@ -51,6 +51,9 @@ mark its client `NeverVisible`, which hides it from Control Center's module but
   (metadata, artwork, and play/pause/next/previous/seek actions).
 - Depends on a WebKit SPI; if it disappears, the duplicate card returns while
   paused, and nothing else breaks.
-- Known pre-existing issue, unchanged: after pausing from the app's own
-  controls, the Play media key does not resume playback (it does after a pause
-  made with the media key).
+- Media keys reach WebKit's session, not `MPRemoteCommandCenter`, so the page
+  forwards Media Session `play`/`pause` actions to the native player
+  (`REMOTE_PLAY`/`REMOTE_PAUSE`, like next/previous) and YouTube cannot
+  register its own. Before this, the Play key could not resume after a pause
+  made from the app's controls: the in-app pause sets
+  `__liltPlaybackSuppressed`, and the page re-paused WebKit's direct `play()`.
