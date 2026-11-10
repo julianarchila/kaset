@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Lilt
 
-@Suite("Deferred restoration home preload", .serialized, .tags(.service))
+@Suite("Deferred restoration home preload", .serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct DeferredRestorationHomePreloadTests {
     @Test("Authenticated deferred restoration mounts Home without loading the saved video")

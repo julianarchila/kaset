@@ -3,7 +3,7 @@ import Testing
 @testable import Lilt
 
 /// Tests for standalone artist-page episode playback.
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct PlayerServiceEpisodeTests {
     var playerService: PlayerService

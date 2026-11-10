@@ -5,7 +5,7 @@ import Testing
 // MARK: - MediaControlScriptTests
 
 /// Tests for singleton media-control script generation and scheduling.
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct MediaControlScriptTests {
     @Test("Bootstrap script reflects pending media-control style changes")

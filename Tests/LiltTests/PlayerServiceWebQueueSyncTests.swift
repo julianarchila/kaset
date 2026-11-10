@@ -7,7 +7,7 @@ import Testing
 // MARK: - PlayerServiceWebQueueSyncTests
 
 /// Web queue sync, next/previous stack, repeat-one, metadata drift, and radio-related PlayerService tests.
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 // swiftlint:disable:next type_body_length
 struct PlayerServiceWebQueueSyncTests {

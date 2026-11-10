@@ -5,7 +5,7 @@ import JavaScriptCore
 import Testing
 @testable import Lilt
 
-@Suite("Player service playback intents", .serialized, .tags(.service))
+@Suite("Player service playback intents", .serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct PlayerServicePlaybackIntentTests { // swiftlint:disable:this type_body_length
     @Test("A newer reservation invalidates an older unclaimed request")

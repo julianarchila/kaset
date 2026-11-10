@@ -3,7 +3,7 @@ import Testing
 import WebKit
 @testable import Lilt
 
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct SingletonPlayerNavigationStateTests {
     @Test("Finished playback navigation retries native Web queue synchronization")

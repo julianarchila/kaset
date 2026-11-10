@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Lilt
 
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct PlayerServiceQueueEnrichmentTests {
     init() {

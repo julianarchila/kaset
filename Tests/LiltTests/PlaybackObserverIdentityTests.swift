@@ -4,7 +4,7 @@ import Testing
 import WebKit
 @testable import Lilt
 
-@Suite(.tags(.service))
+@Suite(.singletonPlayerWebView, .tags(.service))
 @MainActor
 struct PlaybackObserverIdentityTests {
     @Test("Playback snapshots retain outgoing identity until the physical media changes")

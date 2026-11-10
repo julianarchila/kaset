@@ -4,7 +4,7 @@ import Testing
 
 // MARK: - MusicPlaybackRequestDedupTests
 
-@Suite("Music playback request deduplication", .serialized, .tags(.service))
+@Suite("Music playback request deduplication", .serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct MusicPlaybackRequestDedupTests {
     @Test("A deduplicated same-song request preserves native playback state")

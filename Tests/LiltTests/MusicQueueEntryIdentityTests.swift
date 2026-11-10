@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Lilt
 
-@Suite("Music queue entry identity", .serialized, .tags(.service))
+@Suite("Music queue entry identity", .serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct MusicQueueEntryIdentityTests {
     @Test("Stale metadata cannot overwrite a newer same-video queue entry")

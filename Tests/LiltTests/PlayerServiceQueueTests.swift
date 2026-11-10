@@ -5,7 +5,7 @@ import Testing
 @testable import Lilt
 
 /// Tests for PlayerService queue operations, undo/redo, and metadata enrichment.
-@Suite(.serialized, .tags(.service))
+@Suite(.serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct PlayerServiceQueueTests {
     var playerService: PlayerService

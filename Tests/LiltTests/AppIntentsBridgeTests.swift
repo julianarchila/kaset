@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Lilt
 
-@Suite("App Intents bridge", .serialized, .tags(.service))
+@Suite("App Intents bridge", .serialized, .singletonPlayerWebView, .tags(.service))
 @MainActor
 struct AppIntentsBridgeTests {
     /// Mutable flags the bridge reads through its closures.
@@ -14,12 +14,6 @@ struct AppIntentsBridgeTests {
         var transportPayloads: [RemoteMusicCommandPayload] = []
         var showMainWindowCount = 0
         var publishedLibraries: [AppIntentsLibrary] = []
-    }
-
-    init() {
-        // Like requests run through the shared status manager; keep tests from leaking into each other.
-        SongLikeStatusManager.shared.clearCache()
-        SongLikeStatusManager.shared.setActiveAccountID(nil)
     }
 
     private func makeBridge(
@@ -52,6 +46,9 @@ struct AppIntentsBridgeTests {
         let authService = AuthService(webKitManager: MockWebKitManager())
         authService.completeLogin(sapisid: "test-sapisid")
         let player = PlayerService()
+        // Other suites clear or switch accounts on `SongLikeStatusManager.shared` while these tests run in
+        // parallel, which cancels in-flight ratings. A private manager keeps ratings isolated.
+        player.setSongLikeStatusManager(SongLikeStatusManager())
         player.setAuthService(authService)
         player.setYTMusicClient(client)
         return player
