@@ -400,6 +400,11 @@ struct MainWindow: View {
                     client: self.client
                 )
             }
+            // Must sit inside `.searchable`: an `onSubmit(of: .search)` applied
+            // after the sidebar-placed search field never receives Return.
+            .onSubmit(of: .search) {
+                self.submitSidebarSearch()
+            }
             .searchable(
                 text: self.sidebarSearchQuery,
                 placement: .sidebar,
@@ -408,9 +413,6 @@ struct MainWindow: View {
             .searchFocused(self.$isSidebarSearchFocused)
             .searchSuggestions {
                 self.sidebarSearchSuggestions
-            }
-            .onSubmit(of: .search) {
-                self.submitSidebarSearch()
             }
             .onChange(of: self.searchFocusTrigger.wrappedValue) { _, isRequested in
                 guard isRequested else { return }
