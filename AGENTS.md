@@ -84,7 +84,7 @@ Media keys and Control Center reach WebKit's Now Playing session in the GPU proc
 Sandboxed builds without a Developer ID signature hang inside `SecItemCopyMatching` when they query the Keychain.
 
 - `#if DEBUG` builds and release builds compiled with `LILT_FILE_COOKIE_STORAGE` store cookies in `Application Support/Lilt/cookies.dat` instead of the Keychain. `Scripts/build-app.sh` sets that flag unless `LILT_SIGNING=developer-id`, so `Scripts/build-app.sh release` produces an installable ad-hoc build.
-- Packaged debug builds use the bundle ID `com.julianarchila.Lilt.debug`, with their own container, UserDefaults, and WebKit cookie jar. They start signed out, so signed-in UI (like, Dislike, Library) needs a login or the user's installed release build. Keep the `.debug` bundle ID: sharing the release ID makes each build overwrite the other's session.
+- Packaged debug builds use the bundle ID `com.julianarchila.Lilt.debug` and show as "Lilt Debug" with a blue icon dot. They have their own container, UserDefaults, and WebKit cookie jar. They start signed out, so signed-in UI (like, Dislike, Library) needs a login or the user's installed release build. Keep the `.debug` bundle ID: sharing the release ID makes each build overwrite the other's session.
 - `LILT_DEBUG_COOKIE_STORAGE=keychain` tests the Keychain path. The Keychain is shared, so it reads and writes the release archive.
 - The debug file backend has its own sign-out tombstone key (`authCookieBackupInvalidated.debugFileStorage`). Debug-only auth state writes only that key.
 

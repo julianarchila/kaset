@@ -13,19 +13,24 @@ source "$ROOT/version.env"
 CONF=${1:-release}
 SIGNING_MODE=${LILT_SIGNING:-dev}
 SKIP_MAIN_ASSETS=${LILT_SKIP_MAIN_ASSETS:-0}
-# APP_NAME is the user-visible name, the SwiftPM product/module, and the
-# executable. The bundle ID and URL scheme are distinct from upstream Kaset so
+# APP_NAME is the SwiftPM product/module, the executable, and the release
+# build's user-visible name. The bundle ID and URL scheme are distinct from upstream Kaset so
 # both apps can be installed side by side without sharing a sandbox container,
 # cookies, preferences, or URL scheme.
 APP_NAME="Lilt"
 APP_URL_SCHEME="lilt"
 RELEASE_BUNDLE_ID="com.julianarchila.Lilt"
 # Debug bundles get their own sandbox container, so they never share the release
-# app's WebKit cookie jar, saved sign-in data, or preferences.
+# app's WebKit cookie jar, saved sign-in data, or preferences. They also get a
+# distinct name and icon tint so the two are easy to tell apart in the Dock.
 if [[ "$(printf '%s' "$CONF" | tr '[:upper:]' '[:lower:]')" == "debug" ]]; then
+  IS_DEBUG_BUILD=1
   BUNDLE_ID="${RELEASE_BUNDLE_ID}.debug"
+  DISPLAY_NAME="${APP_NAME} Debug"
 else
+  IS_DEBUG_BUILD=0
   BUNDLE_ID="$RELEASE_BUNDLE_ID"
+  DISPLAY_NAME="$APP_NAME"
 fi
 DEVELOPMENT_LOCALIZATION="en"
 MIN_MACOS_VERSION="15.4"
@@ -462,6 +467,24 @@ xcrun xcstringstool compile "$APP_SHORTCUTS_CATALOG" \
 ICON_SOURCE="$ROOT/Sources/Lilt/Resources/AppIcon.icon"
 APP_ASSET_CATALOG="$ROOT/Sources/Lilt/Resources/Assets.xcassets"
 
+# Debug builds recolor the icon's red dot blue, from a copy of the package.
+if [[ "$IS_DEBUG_BUILD" == "1" ]] && [[ -d "$ICON_SOURCE" ]]; then
+  DEBUG_ICON_DIR="$BUILD_DIR/DebugIcon"
+  rm -rf "$DEBUG_ICON_DIR"
+  mkdir -p "$DEBUG_ICON_DIR"
+  cp -R "$ICON_SOURCE" "$DEBUG_ICON_DIR/AppIcon.icon"
+  # Light and dark fills of the "dot" layer.
+  sed -i '' \
+    -e 's/display-p3:0.96000,0.36000,0.37500,1.00000/display-p3:0.00000,0.48000,1.00000,1.00000/' \
+    -e 's/display-p3:0.98000,0.43000,0.42500,1.00000/display-p3:0.04000,0.52000,1.00000,1.00000/' \
+    "$DEBUG_ICON_DIR/AppIcon.icon/icon.json"
+  if grep -q '0.96000,0.36000,0.37500' "$DEBUG_ICON_DIR/AppIcon.icon/icon.json"; then
+    echo "ERROR: debug icon recolor did not match AppIcon.icon/icon.json" >&2
+    exit 1
+  fi
+  ICON_SOURCE="$DEBUG_ICON_DIR/AppIcon.icon"
+fi
+
 # Copy the .icon bundle into the app for Liquid Glass dark/light switching
 if [[ -d "$ICON_SOURCE" ]]; then
   echo "🎨 Copying AppIcon.icon bundle..."
@@ -588,9 +611,9 @@ ${APP_LOCALIZATIONS_PLIST}
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>${APP_NAME}</string>
+    <string>${DISPLAY_NAME}</string>
     <key>CFBundleDisplayName</key>
-    <string>${APP_NAME}</string>
+    <string>${DISPLAY_NAME}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
